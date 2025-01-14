@@ -80,4 +80,6 @@ ggplot(detect_by_station, aes(y = BestTaxon, x = depth,
                                pnw_palette("Sunset",12, type = "continuous")[1:11])) +
   theme(legend.position = "none")
 
+save(detect_data_meta, file = "./ProcessedData/detect_data_meta.RData")
+
                     
