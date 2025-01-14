@@ -24,7 +24,7 @@ detect_data <- readr::read_csv(detect_list, id = "file_name") %>%
                             "Macropus giganteus",
                             "Osphranter","Osphranter robustus",
                             "Osphranter rufus", "Dama dama",
-                            "Canis"))) %>% 
+                            "Canis", "Felis"))) %>% 
   mutate(BestTaxon = case_when(BestTaxon == "Lagenorhynchus" ~ "Lagenorhynchus obliquidens",
                                TRUE ~ BestTaxon))
 
