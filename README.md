@@ -18,6 +18,8 @@ Modelling 3D distributions of marine mammal detections from eDNA samples, with t
 
 Repo will contain code, data must be downloaded from [Google Drive](https://drive.google.com/drive/folders/1EZEfbxgRszwmN4RmaoQe7wh6S6zPgm5A?usp=drive_link) and placed in a folder named "Data".
 
+TODO: clean this up and add connections with Brice's model https://github.com/BriceSemmens/eDNA_patch
+
 # Analysis 1
 
 - collapse all data across X and Y, ignore xy distribution
