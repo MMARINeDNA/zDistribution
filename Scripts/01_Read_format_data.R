@@ -30,7 +30,7 @@ detect_data <- readr::read_csv(detect_list, id = "file_name") %>%
                                TRUE ~ BestTaxon))
 
 metadata <- read.csv("./Data/Hake_2019_metadata.csv")
-
+species_meta <- read.csv("./Data/MM_metadata.csv")
 rm(detect_list)
 
 #### Merge and format detection data -------------------------------------------
@@ -44,7 +44,8 @@ detect_data_meta <- detect_data %>%
   separate(techRep, into = c("techRep",NA), sep = "_") %>% 
   separate(file_name, into = c(NA,NA,"data",NA,NA), sep = "/") %>% 
   separate(data, into = c(NA,"Plate",NA,NA), sep = "_") %>% #I'm not sure what LCA3 means in the filesnames
-  left_join(metadata, by = c("NWFSCsampleID" = "sampleID"))
+  left_join(metadata, by = c("NWFSCsampleID" = "sampleID")) %>% 
+  left_join(species_meta, by = c("BestTaxon" = "Species"))
 
 #### Make a fun little ridgeplot -----------------------------------------------
 
@@ -64,12 +65,15 @@ lowdetect_subset <- detect_by_station %>%
 
 ggplot(detect_by_station, aes(y = BestTaxon, x = depth, 
                               fill = BestTaxon, color = BestTaxon)) +
-  geom_density_ridges(scale = 1.5, 
-                      bandwidth = 50, 
+  geom_density_ridges(scale = 1, 
+                      bandwidth = 100, 
                       jittered_points = TRUE,
                       point_alpha = 1,
                       point_shape = 21,
-                      alpha = 0.6) +
+                      alpha = 0.6,
+                      position = position_points_jitter(width = 0.5, height = 0))+
+                      #point_shape = "|") +
+  #facet_wrap(~Suborder, scales = "free_x") +
   geom_point(data = lowdetect_subset, aes()) +
   theme_minimal() + 
   coord_flip() +
@@ -80,6 +84,14 @@ ggplot(detect_by_station, aes(y = BestTaxon, x = depth,
   scale_color_manual(values = c(pnw_palette("Cascades",12, type = "continuous"),
                                pnw_palette("Sunset",12, type = "continuous")[1:11])) +
   theme(legend.position = "none")
+
+ggplot(detect_by_station, aes(y = BestTaxon, x = depth, group = BestTaxon, height = ..density..)) +
+  geom_density_ridges(stat = "density", trim = TRUE, scale = 20) +
+  theme_minimal() + 
+  coord_flip() +
+  scale_x_reverse() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
 
 save(detect_data_meta, file = "./ProcessedData/detect_data_meta.RData")
 
