@@ -1,15 +1,16 @@
 # 3DDistribution
-Modelling 3D distributions of marine mammal detections from eDNA samples, with the goal of nswering the following questions:
+Modelling 3D distributions of marine mammal detections from eDNA samples, with the goal of answering the following questions:
 
-1. Does detection probability vary across depth?
-   - H0: Detection does not vary with depth.
-   - H1: Detection varies across depth agnostic to species or functional group.
-   - H2: Detection varies across depth according to species or functional group.
-2. Does detection probability vary with technical replicates?
+1. Does the probability of a detecting cetaceans in eDNA samples vary with sample depth?
+   - H0: Probability of detection does not vary with depth.
+   - H1: Probability of detection varies across depth agnostic to species or functional group.
+   - H2: Probability of detection varies across depth according to species or functional group.
+2. Does the probability of a detecting cetaceans in eDNA samples change with the number of technical replicates?
+   * NOTE should we wrap dilution into this question as well?
    - H0: Detection does not vary with # technical replicates.
    - H1: Detection varies with # technical replicated agnostic to species/fuctional group or depth.
    - H2: Detection varies with # technical replicates according to species/functional group, depth, or a combination of the two.
-3. Does depth distribution of detections vary across xy spatial distribution?
+4. Does depth distribution of detections vary across xy spatial distribution?
    - H0: Depth distribution of detections does not vary across xy spatial distribution.
    - H1: Depth distribution of detection does vary across xy spatial distribution agnostic to oceanography (e.g. upwelling).
    - H2: Depth distribution of detection does vary across xy spatial distribution according to oceanography (e.g. upwelling).
