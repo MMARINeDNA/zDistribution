@@ -27,7 +27,7 @@ detect_data <- readr::read_csv(detect_list, id = "file_name") %>%
                             "Canis", "Felis", "Petrogale xanthopus", 
                             "Homo"))) %>% 
   mutate(BestTaxon = case_when(BestTaxon == "Lagenorhynchus" ~ "Lagenorhynchus obliquidens",
-                               TRUE ~ BestTaxon))
+                               TRUE ~ BestTaxon)) 
 
 metadata <- read.csv("./Data/Hake_2019_metadata.csv")
 species_meta <- read.csv("./Data/MM_metadata.csv")
@@ -40,17 +40,19 @@ detect_data_meta <- detect_data %>%
            into = c("primer","NWFSCpopID","NWFSCsampNum","dilution","techRep"),
            sep = "-",
            remove = FALSE) %>% 
+  filter(NWFSCpopID == 52193) %>% 
   unite(NWFSCsampleID, NWFSCpopID:NWFSCsampNum, sep = "-") %>% 
   separate(techRep, into = c("techRep",NA), sep = "_") %>% 
   separate(file_name, into = c(NA,NA,"data",NA,NA), sep = "/") %>% 
   separate(data, into = c(NA,"Plate",NA,NA), sep = "_") %>% #I'm not sure what LCA3 means in the filesnames
   left_join(metadata, by = c("NWFSCsampleID" = "sampleID")) %>% 
-  left_join(species_meta, by = c("BestTaxon" = "Species"))
+  left_join(species_meta, by = c("BestTaxon" = "Species")) 
 
 #### Make a fun little ridgeplot -----------------------------------------------
+# question: should we include technical replicates here, or ignore them?
 
 detect_by_station <- detect_data_meta %>% 
-  group_by(station, depth, techRep) %>% 
+  group_by(station, depth, techRep, BestTaxon) %>% 
   mutate(totReads = sum(nReads)) %>% 
   mutate(detect = case_when(totReads > 1 ~ 1,
                             TRUE ~ 0)) %>% 
@@ -70,9 +72,7 @@ ggplot(detect_by_station, aes(y = BestTaxon, x = depth,
                       jittered_points = TRUE,
                       point_alpha = 1,
                       point_shape = 21,
-                      alpha = 0.6,
-                      position = position_points_jitter(width = 0.5, height = 0))+
-                      #point_shape = "|") +
+                      alpha = 0.6) +
   #facet_wrap(~Suborder, scales = "free_x") +
   geom_point(data = lowdetect_subset, aes()) +
   theme_minimal() + 
@@ -80,9 +80,9 @@ ggplot(detect_by_station, aes(y = BestTaxon, x = depth,
   scale_x_reverse() +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
   scale_fill_manual(values = c(pnw_palette("Cascades",12, type = "continuous"),
-                               pnw_palette("Sunset",12, type = "continuous")[1:11])) +
+                               pnw_palette("Sunset",12, type = "continuous")[1:12])) +
   scale_color_manual(values = c(pnw_palette("Cascades",12, type = "continuous"),
-                               pnw_palette("Sunset",12, type = "continuous")[1:11])) +
+                               pnw_palette("Sunset",12, type = "continuous")[1:12])) +
   theme(legend.position = "none")
 
 ggplot(detect_by_station, aes(y = BestTaxon, x = depth, group = BestTaxon, height = ..density..)) +
