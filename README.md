@@ -19,6 +19,8 @@ Modelling 3D distributions of marine mammal detections from eDNA samples, with t
 
 Repo will contain code, data must be downloaded from [Google Drive](https://drive.google.com/drive/folders/1EZEfbxgRszwmN4RmaoQe7wh6S6zPgm5A?usp=drive_link) and placed in a folder named "Data".
 
+Marine mammal metadata (taxonomy, species-specific time-at-depth and prey preference): contact AVC. Dive data come from [here](https://apps.dtic.mil/sti/tr/pdf/ADA560975.pdf) and [here](https://www.nepa.navy.mil/Portals/20/Documents/aftteis4/Dive%20Profile%20and%20Group%20Size_TR_2017_05_22.pdf).
+
 EKJ TODO: clean this up and add connections with Brice's model https://github.com/BriceSemmens/eDNA_patch
 
 # Analysis 1
