@@ -37,9 +37,21 @@ m1.2_predictions <- expand_grid(depth = 0:500, BestTaxon = as.factor(unique(dete
 m1.2_predictions$pred <- predict.gam(m1.2, m1.2_predictions, type = "response")
 
 ggplot(m1.2_predictions) +
-  geom_line(aes(x=depth, y = pred, group = BestTaxon)) +
+  geom_line(aes(x=depth, y = pred, group = BestTaxon, color = BestTaxon)) +
   xlab("Depth")+
   ylab("P(Detection)")+
   theme_bw()
 
 save(m1.2, file = "./ProcessedData/m1.2.RData")
+
+# TODO
+# confidence intervals
+# scaling
+# need to control for tech rep, dilution, primer
+# could try getting rid of dloop data and just using mifish and marver
+# consider species-primer interactions
+# group by Family etc.
+# group by prey type
+# then, try adding time at depth to species specific model
+# see if it helps i.e. hypothesis test
+

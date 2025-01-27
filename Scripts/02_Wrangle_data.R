@@ -3,6 +3,10 @@
 #### January 2025
 #### EKJ
 
+# TODO 
+# check/modify this script so it works independently of 01_Read_format
+# change script file names accordingly
+
 library(tidyverse)
 
 # First, load data and keep records from all samples, even if no cetaceans detected
@@ -31,7 +35,7 @@ samples_info <- data_samples %>%
 
 # okay, now want a record for each possible species x sample
 
-samples_info_species <- expand_grid(SampleUID = data_samples_info$SampleUID, 
+samples_info_species <- expand_grid(SampleUID = samples_info$SampleUID, 
                                     BestTaxon = unique(detect_data$BestTaxon)) %>%
   left_join(samples_info, by = "SampleUID")
 
@@ -71,6 +75,8 @@ detect_species_techreps <- binary_detect_species %>%
 # okay now we're ready to attach metadata
 
 detect_species_meta <- left_join(detect_species_techreps, metadata, by = c("NWFSCsampleID" = "sampleID"))
+# this would be a good place to attach other species metadata (family)
+# time at depth would have to fill in zeroes for some records at depth
 
 # save the file and we're done!
 
