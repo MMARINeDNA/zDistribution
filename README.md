@@ -44,3 +44,57 @@ EKJ TODO: clean up Analysis 3
 - incorporate spread and decay from Mod 1?
 - does eDNA depth distribution interact with xy distribution due to differences in, e.g. oceanographic upwelling or downwelling?
 - incorproate prey (Note for future consideration: this is one of the broad Mod 3 goals but not sure if it fits in this paper)
+
+
+
+# Taking Brice's approach
+
+We don't have observations of the presence or absence of marine mammals at each site, but we can still treat site occupancy as a latent variable (per species). 
+
+We have: multiple sites, each of which contain biological samples at multiple depths (not replicates), then multiple primers x tech reps. Each has an associated volume and dilution. 
+
+* need to add a dilution coefficient, or does this happen at the tech rep level?
+
+### Hierarchical Model Structure
+
+1. **Site-Level Occurrence**
+   The presence of a marine mammal species at site $s$ is modeled as a Bernoulli random variable:
+
+   $Z_s \sim \text{Bernoulli}(\psi)$
+
+   where $Z_s$ is the site-level occurrence indicator, and $\psi$ is the overall occurrence probability, drawn from a Beta prior:
+
+   $\psi \sim \text{Beta}(1,1)$
+
+   --> note that in our case, particularly since we are working at the species level, psi might come from some field over X, Y
+
+3. **Capture within a depth x primer reaction**
+   The logit-linear model for capture probability at depth $d$ is:
+
+   $\text{logit}(p_{\text{capture},d}) = \beta_0 + \beta_{\text{vol}} \cdot X_{\text{vol},d} + \beta_{\text{depth}} \cdot X_{\text{depth},d} + \gamma_{s} + \delta_{\text{primer}[b]}$
+
+   Where:
+   - $p_{\text{capture},d}$ is the capture probability for depth $d$
+   - $\beta_0$ is the intercept (site-level capture probability hyperparameter)
+   - $\beta_{\text{vol}}$ is the volume coefficient
+   - $\beta_{\text{depth}}$ is the depth coefficient
+   - $X_{\text{vol},d}$ is the centered water volume
+   - $X_{\text{depth},d}$ is the centered sampling depth
+   - $\gamma_{s}$ is the site-specific random effect # EKJ note is this what we want?
+   - $\delta_{\text{primer}[b]}$ is the primer-specific fixed effect, with method effects constrained such that:
+   $\delta_{\text{MFU}} = 0$ and 
+   $\delta_{\text{MV1}} \sim \text{Normal}(0, 1.7)$ # EKJ note may need to change these
+   $\delta_{\text{DLP}} \sim \text{Normal}(0, 1.7)$
+   
+   The depth capture for a given site, volume, primer  is then modeled as:
+
+   $Y_{\text{capture},d} \sim \text{Bernoulli}(Z_{s} \cdot p_{\text{capture},d})$
+
+5. **Technical Replicate Detection**
+   Conditional on capture in that volume x primer reaction, technical replicates are modeled as:
+
+   $Y_{\text{detect},i} \sim \text{Bernoulli}(p_{\text{detect}} \cdot Y_{\text{capture},b[i]})$
+
+   where $p_{\text{detect}}$ is the detection probability, drawn from a Beta prior:
+
+   $p_{\text{detect}} \sim \text{Beta}(1,1)$
