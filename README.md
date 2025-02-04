@@ -68,7 +68,7 @@ We have: multiple sites, each of which contain biological samples at multiple de
 
    --> note that in our case, particularly since we are working at the species level, psi might come from some field over X, Y
 
-3. **Capture within a depth x primer reaction**
+2. **Capture within a depth x primer x tech rep reaction **
    The logit-linear model for capture probability at depth $d$ is:
 
    $\text{logit}(p_{\text{capture},d}) = \beta_0 + \beta_{\text{vol}} \cdot X_{\text{vol},d} + \beta_{\text{depth}} \cdot X_{\text{depth},d} + \gamma_{s} + \delta_{\text{primer}[b]}$
@@ -90,7 +90,8 @@ We have: multiple sites, each of which contain biological samples at multiple de
 
    $Y_{\text{capture},d} \sim \text{Bernoulli}(Z_{s} \cdot p_{\text{capture},d})$
 
-5. **Technical Replicate Detection**
+   Need to rewrite this bc it's only one Bernoulli trial in our case
+
    Conditional on capture in that volume x primer reaction, technical replicates are modeled as:
 
    $Y_{\text{detect},i} \sim \text{Bernoulli}(p_{\text{detect}} \cdot Y_{\text{capture},b[i]})$
