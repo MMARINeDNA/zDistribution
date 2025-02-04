@@ -257,7 +257,7 @@ m1.2e_predictions <- expand_grid(time_per_m = min(detect_species_divetime$time_p
 m1.2e_predictions$pred <- predict.gam(m1.2e, m1.2e_predictions, type = "response")
 
 ggplot(m1.2e_predictions) +
-  geom_line(aes(x=time_per_m, y = pred, group = BestTaxon, color = BestTaxo)) +
+  geom_line(aes(x=time_per_m, y = pred, group = BestTaxon, color = BestTaxon)) +
   xlab("Time at depth")+
   ylab("POD")+
   theme_bw()
