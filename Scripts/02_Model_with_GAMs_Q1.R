@@ -266,16 +266,3 @@ ggplot(m1.2e_predictions) +
 
 save(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e,
      file = "./ProcessedData/m1models.RData")
-
-###
-
-# TODO
-# scaling
-# need to control for tech rep, dilution, primer
-# could try getting rid of dloop data and just using mifish and marver
-#     Or get rid of MFU and just use MV1 and DL (MFU has lowest detection rate)
-# consider species-primer interactions
-# if depth is better than time-at-depth, then we may need better 
-#    time-at-depth models, OR maybe we should add a term for sinking and/or did
-#    we discover the depth at which beaked whales poop??
-
