@@ -5,6 +5,7 @@
 
 library(mgcv)
 library(tidyverse)
+library(PNWColors)
 
 load("./ProcessedData/detect_species_meta.RData")
 mmEcoEvo <- read.csv("./Data/MM_metadata.csv")
@@ -42,6 +43,7 @@ ggplot(m1.0_sePreds, aes(x = depth, y = mu)) +
 m1.1 <- gam(Detected ~ s(depth) + BestTaxon, family = "binomial", data = detect_species_meta)
 m1.1_predictions <- expand_grid(depth = 0:500, BestTaxon = as.factor(unique(detect_species_meta$BestTaxon)))
 m1.1_predictions$pred <- predict.gam(m1.1, m1.1_predictions, type = "response")
+# AIC = 3257
 
 ggplot(m1.1_predictions) +
   geom_line(aes(x=depth, y = pred, group = BestTaxon)) +
@@ -89,16 +91,19 @@ m1.2_sePreds <- data.frame(m1.2_predictions,
                       high = exp(m1.2preds$fit + 1.96 * m1.2preds$se.fit)) %>% 
   left_join(mmEcoEvo, by = c("BestTaxon" = "Species"))
 
-ggplot(m1.2_sePreds, aes(x = depth, y = mu, color = BestTaxon, fill = BestTaxon)) +
-  geom_point() +
+ggplot(m1.2_sePreds, aes(x = depth,color = BestTaxon, fill = BestTaxon)) +
+  geom_point(aes(y = mu)) +
   geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity") +
   scale_fill_manual(values = c(pnw_palette("Cascades",12, type = "continuous"),
                                pnw_palette("Sunset",12, type = "continuous")[1:12])) +
   scale_color_manual(values = c(pnw_palette("Cascades",12, type = "continuous"),
                                 pnw_palette("Sunset",12, type = "continuous")[1:12])) +
   facet_wrap(~BestTaxon, scales = "free_y") +
+  geom_rug(data = detect_species_meta, aes(x=depth))+
+  
   #coord_cartesian(ylim = c(0,0.25)) +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "none")
 
 save(m1.2, file = "./ProcessedData/m1.2.RData")
 
@@ -257,14 +262,19 @@ ggplot(m1.2e_predictions) +
   ylab("POD")+
   theme_bw()
 
+########
+
+save(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e,
+     file = "./ProcessedData/m1models.RData")
+
+###
+
 # TODO
-# confidence intervals
 # scaling
 # need to control for tech rep, dilution, primer
 # could try getting rid of dloop data and just using mifish and marver
 #     Or get rid of MFU and just use MV1 and DL (MFU has lowest detection rate)
 # consider species-primer interactions
-
 # if depth is better than time-at-depth, then we may need better 
 #    time-at-depth models, OR maybe we should add a term for sinking and/or did
 #    we discover the depth at which beaked whales poop??
