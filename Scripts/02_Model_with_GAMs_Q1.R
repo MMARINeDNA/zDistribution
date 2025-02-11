@@ -92,7 +92,7 @@ m1.2_sePreds <- data.frame(m1.2_predictions,
   left_join(mmEcoEvo, by = c("BestTaxon" = "Species"))
 
 ggplot(m1.2_sePreds, aes(x = depth,color = BestTaxon, fill = BestTaxon)) +
-  geom_point(aes(y = mu)) +
+  geom_line(aes(y = mu)) +
   geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity") +
   scale_fill_manual(values = c(pnw_palette("Cascades",12, type = "continuous"),
                                pnw_palette("Sunset",12, type = "continuous")[1:12])) +
@@ -180,7 +180,7 @@ m1.2c <- gam(Detected ~ s(time_per_m),
 summary(m1.2c)
 #p<2e-16
 AIC(m1.2c)
-#AIC 3887.54 - still better across depth by individual species
+#AIC 3185.768 - still better across depth by individual species
 
 m1.2c_predictions <- data.frame(time_per_m = seq(min(detect_species_divetime$time_per_m),max(detect_species_divetime$time_per_m), by = 0.1))
 m1.2c_predictions$pred <- predict.gam(m1.2c, m1.2c_predictions, type = "response")
