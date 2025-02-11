@@ -5,7 +5,6 @@ library(PNWColors)
 load("./ProcessedData/detect_species_meta.RData")
 
 # Q2: Does the probability of a detecting cetaceans in eDNA samples change with the number of technical replicates?
-# NOTE should we wrap dilution into this question as well?
 
 # H0: Detection does not vary with # technical replicates.
 # H1: Detection varies with # technical replicated agnostic to species/fuctional group or depth.
