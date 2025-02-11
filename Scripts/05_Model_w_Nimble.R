@@ -10,7 +10,7 @@ library(viridis)
 library(patchwork)
 library(nimble)
 
-lags.data <- filter(detect_species_meta, BestTaxon == "Ziphius cavirostris")
+lags.data <- filter(detect_species_meta, BestTaxon == "Lagenorhynchus obliquidens")
 #lags.data <- detect_species_meta
 # each biological replicate needs a unique ID, IDK why it needs to be numeric/ordered
 lags.data$Bio_UID <- as.numeric(factor(lags.data$NWFSCsampleID))
