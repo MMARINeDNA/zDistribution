@@ -52,6 +52,8 @@ samples_info <- data_samples %>%
            sep = "-",
            remove = FALSE) %>% 
   filter(NWFSCpopID == 52193) %>% 
+  filter(dilution != "pos", dilution != "poscontrol") %>%
+  filter(techRep != "control") %>%
   unite(NWFSCsampleID, NWFSCpopID:NWFSCsampNum, sep = "-") %>% 
   separate(techRep, into = c("techRep",NA), sep = "_") %>% 
   separate(file_name, into = c(NA,NA,"data",NA,NA), sep = "/") %>% 
@@ -82,6 +84,7 @@ binary_detect_species <- left_join(samples_info_species, detect_data,
   mutate(techRep = as.numeric(techRep))
 
 # now want to collapse across techReps so that nTechReps is max(techRep)
+# also create a variable for dilution x techreps to represent 
 
 detect_species_techreps <- binary_detect_species %>%
   group_by(BestTaxon, Plate, primer, NWFSCsampleID, dilution) %>%
