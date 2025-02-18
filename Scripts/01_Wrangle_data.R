@@ -71,7 +71,7 @@ samples_info_species <- expand_grid(SampleUID = samples_info$SampleUID,
 
 diluteProp <- function(d){
   dn <- as.numeric(str_extract_all(d, "\\d+"))
-  prop <- 1/(dn+1)
+  prop <- 1/dn
   return(prop)
 }
 
