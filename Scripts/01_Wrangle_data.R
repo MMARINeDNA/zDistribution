@@ -69,6 +69,12 @@ samples_info_species <- expand_grid(SampleUID = samples_info$SampleUID,
 # now want to fill in whether each record resulted in a detection or not
 # binary data for all possible sample x species combos
 
+diluteProp <- function(d){
+  dn <- as.numeric(str_extract_all(d, "\\d+"))
+  prop <- 1/(dn+1)
+  return(prop)
+}
+
 binary_detect_species <- left_join(samples_info_species, detect_data,
                                    by = c("Plate", "Sample_name", "primer", 
                                           "NWFSCsampleID", "dilution", "techRep", 
@@ -76,19 +82,20 @@ binary_detect_species <- left_join(samples_info_species, detect_data,
   select(-Class) %>%
   replace_na(list(nReads = 0)) %>%
   mutate(Detected = ifelse(nReads>0, 1, 0)) %>%
-  mutate(techRep1 = techRep, .after = techRep) %>% 
-  mutate(techRep = ifelse(Plate == 313 | Sample_name == "MV1-52193-460-5-d10-1_S39", dilution, techRep)) %>% 
-  mutate(dilution = ifelse(Plate == 313 | Sample_name == "MV1-52193-460-5-d10-1_S39", techRep1, dilution)) %>% 
+#  mutate(techRep1 = techRep, .after = techRep) %>% 
+#  mutate(techRep = ifelse(Plate == 313 | Sample_name == "MV1-52193-460-5-d10-1_S39", dilution, techRep)) %>% 
+#  mutate(dilution = ifelse(Plate == 313 | Sample_name == "MV1-52193-460-5-d10-1_S39", techRep1, dilution)) %>% 
   filter(!grepl("control", Sample_name)) %>% 
-  select(-techRep1) %>% 
+#  select(-techRep1) %>% 
   mutate(techRep = as.numeric(techRep))
 
 # now want to collapse across techReps so that nTechReps is max(techRep)
-# also create a variable for dilution x techreps to represent 
+# also create a variable for dilution proportion
 
 detect_species_techreps <- binary_detect_species %>%
   group_by(BestTaxon, Plate, primer, NWFSCsampleID, dilution) %>%
-  summarize(nTechReps = max(techRep), nReads = max(nReads), Detected = max(Detected))
+  summarize(nTechReps = max(techRep), nReads = max(nReads), Detected = max(Detected)) %>%
+  mutate(DilutionP = diluteProp(dilution))
 
 # okay now we're ready to attach metadata
 detect_species_meta <- left_join(detect_species_techreps, metadata, 
