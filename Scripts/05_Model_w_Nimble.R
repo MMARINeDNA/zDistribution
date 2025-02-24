@@ -10,33 +10,36 @@ library(viridis)
 library(patchwork)
 library(nimble)
 
-lags.data <- filter(detect_species_meta, BestTaxon == "Lagenorhynchus obliquidens")
-#lags.data <- detect_species_meta
+load("./ProcessedData/detect_species_meta.RData")
+#cetacean.data <- filter(detect_species_meta, BestTaxon == "Lagenorhynchus obliquidens")
+cetacean.data <- filter(detect_species_meta, Family != "Otariidae", Family != "Phocidae") # take out pinnipeds
 # each biological replicate needs a unique ID, IDK why it needs to be numeric/ordered
-lags.data$Bio_UID <- as.numeric(factor(lags.data$NWFSCsampleID))
+cetacean.data$Bio_UID <- as.numeric(factor(cetacean.data$NWFSCsampleID))
 
 # create a site variable that can hold multiple depths
-lags.data$Site <- as.numeric(factor(paste0(lags.data$utm.lat, lags.data$utm.lon)))
+cetacean.data$Site <- as.numeric(factor(paste0(cetacean.data$utm.lat, cetacean.data$utm.lon)))
 
-biosamp_data <- lags.data %>%
+biosamp_data <- cetacean.data %>%
   group_by(Bio_UID) %>%
   slice(1) %>%
   ungroup()
 
-# note this is each loc + depth as a unique biosamp station
+# note this is each loc as a unique biosamp station
 biosamp_station_index <- biosamp_data$Site
-Y_biosamp_index <- lags.data$Bio_UID
 biosamp_Volume_filt_mL <- as.numeric(biosamp_data$volume) - mean(as.numeric(biosamp_data$volume))
 biosamp_depth_Depth_m <- as.numeric(biosamp_data$depth) - mean(as.numeric(biosamp_data$depth))
-Y_station_index <- lags.data$Site
-Y_primer_index <- as.numeric(factor(lags.data$primer))
+biosamp_dilution_p <- biosamp_data$DilutionP - mean(biosamp_data$DilutionP)
+biosamp_techreps <- biosamp_data$nTechReps - mean(biosamp_data$nTechReps)
 
-N <- nrow(lags.data)
-n_sites <- length(unique(lags.data$Site))
-n_biosamples <- length(unique(lags.data$Bio_UID))
-n_primers <- length(unique(lags.data$primer))
+Y_primer_index <- as.numeric(factor(cetacean.data$primer))
+Y_biosamp_index <- cetacean.data$Bio_UID
 
-Y <- lags.data$Detected
+N <- nrow(cetacean.data)
+n_sites <- length(unique(cetacean.data$Site))
+n_biosamples <- length(unique(cetacean.data$Bio_UID))
+n_primers <- length(unique(cetacean.data$primer))
+
+Y <- cetacean.data$Detected
 
 
 edna_code_vol_depth_meth_randCap <- nimbleCode({
@@ -53,7 +56,9 @@ edna_code_vol_depth_meth_randCap <- nimbleCode({
     
     logit(prob_capture[i]) <- cap_prob_logit[biosamp_station_index[i]] +   # categorical differences in capture method # removed [biosamp_method_index[i]]
       b_depth * biosamp_depth_Depth_m[i] +    # continuous effect of depth
-      b_vol * biosamp_Volume_filt_mL[i]      # continuous effect of volume
+      b_vol * biosamp_Volume_filt_mL[i]  +    # continuous effect of volume
+      b_dilution * biosamp_dilution_p[i] + # continuous effect of dilution proportion
+      b_techreps * biosamp_techreps[i] # continuous effect of tech rep volume
     
     # biosample-level occurrence probability
     bio_capture[i] ~ dbern(site_occurrence[biosamp_station_index[i]] *
@@ -72,9 +77,11 @@ edna_code_vol_depth_meth_randCap <- nimbleCode({
   }
   
   # Priors for the parameters
-  prob_occurrence <- 1
+  prob_occurrence ~ dbeta(1, 1)
   b_depth ~ dnorm(0, 1)
   b_vol ~ dnorm(0, 1)
+  b_dilution ~ dnorm(0, 1)
+  b_techreps ~ dnorm(0, 1)
   prob_detection[1] ~ dbeta(1, 1) #detection prob for dloop, MiFish, MarVer
   prob_detection[2] ~ dbeta(1, 1) 
   prob_detection[3] ~ dbeta(1, 1)
@@ -96,7 +103,9 @@ constants <- list(
 data <- list(
   Y = Y, # detections by sample
   biosamp_Volume_filt_mL = biosamp_Volume_filt_mL, #centered water volumes
-  biosamp_depth_Depth_m = biosamp_depth_Depth_m #centered sample depths
+  biosamp_depth_Depth_m = biosamp_depth_Depth_m, #centered sample depths
+  biosamp_dilution_p = biosamp_dilution_p, # centered sample dilution proportions
+  biosamp_techreps = biosamp_techreps # centered sample number of tech reps
 )
 
 inits <- list(
@@ -109,7 +118,9 @@ inits <- list(
   
   # Initial values for coefficients
   b_depth = 0,  # Initial value for depth coefficient
-  b_vol = 0     # Initial value for volume coefficient
+  b_vol = 0,     # Initial value for volume coefficient
+  b_dilution = 0,
+  b_techreps = 0
 )
 
 
@@ -138,6 +149,8 @@ post.samples <- rbind.data.frame(edna_code_vol_depth_meth_randCap.run$samples$ch
                                  edna_code_vol_depth_meth_randCap.run$samples$chain3)
 b_depth <- post.samples$b_depth
 b_vol <- post.samples$b_vol
+b_techreps <- post.samples$b_techreps
+b_dilution <- post.samples$b_dilution
 prob_detection_1 <- post.samples$`prob_detection[1]`
 prob_detection_2 <- post.samples$`prob_detection[2]`
 prob_detection_3 <- post.samples$`prob_detection[3]`
@@ -153,48 +166,93 @@ vol_max <- max(as.numeric(biosamp_data$volume))
 n_vol_steps <- 100
 vol_seq <- seq(from = vol_min, to = vol_max, length.out = n_vol_steps)
 
+dil_min <- 0
+dil_max <- 1
+n_dil_steps <- 100
+dil_seq <- seq(from = dil_min, to = dil_max, length.out = n_dil_steps)
+
+techreps_min <- 1
+techreps_max <- 5
+techrep_seq <- techreps_min:techreps_max
+
 # --- Calculate predicted probabilities ---
-plot.stor2 <- matrix(data = NA, n.post, length(depth_seq))
-plot.stor <- matrix(data = NA, n.post, length(vol_seq))
+plot.stor.depth <- matrix(data = NA, n.post, length(depth_seq))
+plot.stor.vol <- matrix(data = NA, n.post, length(vol_seq))
+plot.stor.dil <- matrix(data = NA, n.post, length(dil_seq))
+plot.stor.techreps <- matrix(data = NA, n.post, length(techrep_seq))
 
 for (i in 1:length(depth_seq)) {
   for (j in 1:n.post) {
-    plot.stor2[j, i] <- inv.logit(b_depth[j] * (depth_seq[i]-mean(as.numeric(biosamp_data$depth))))
+    plot.stor.depth[j, i] <- inv.logit(b_depth[j] * (depth_seq[i]-mean(as.numeric(biosamp_data$depth))))
   }
 }
 
 for (i in 1:length(vol_seq)) {
   for (j in 1:n.post) {
-    plot.stor[j, i] <- inv.logit(b_vol[j] * (vol_seq[i]-mean(as.numeric(biosamp_data$volume))))
+    plot.stor.vol[j, i] <- inv.logit(b_vol[j] * (vol_seq[i]-mean(as.numeric(biosamp_data$volume))))
+  }
+}
+
+for (i in 1:length(dil_seq)) {
+  for (j in 1:n.post) {
+    plot.stor.dil[j, i] <- inv.logit(b_dilution[j] * (dil_seq[i]-mean(as.numeric(biosamp_data$DilutionP))))
+  }
+}
+
+for (i in 1:length(techrep_seq)) {
+  for (j in 1:n.post) {
+    plot.stor.techreps[j, i] <- inv.logit(b_techreps[j] * (techrep_seq[i]-mean(as.numeric(biosamp_data$nTechReps))))
   }
 }
 
 # --- Create plot data frames ---
 plot_data_lineribbon_depth <- data.frame(
   x_value = rep(depth_seq, each = n.post),
-  value = as.vector(plot.stor2)
+  value = as.vector(plot.stor.depth)
 )
 
 plot_data_lineribbon_vol <- data.frame(
   x_value = rep(vol_seq, each = n.post),
-  value = as.vector(plot.stor)
+  value = as.vector(plot.stor.vol)
+)
+
+plot_data_lineribbon_dilution <- data.frame(
+  x_value = rep(dil_seq, each = n.post),
+  value = as.vector(plot.stor.dil)
+)
+
+plot_data_lineribbon_techreps <- data.frame(
+  x_value = rep(techrep_seq, each = n.post),
+  value = as.vector(plot.stor.techreps)
 )
 
 # --- Create plots ---
-p2 <- ggplot(plot_data_lineribbon_depth, aes(x = x_value, y = value)) +
+p.depth <- ggplot(plot_data_lineribbon_depth, aes(x = x_value, y = value)) +
   stat_lineribbon(aes(y = value), alpha = 0.25, fill = "#808080", color = "#000000", .width = c(0.25, 0.5, 0.75)) +
   labs(x = "Depth Sampled", y = "Probability of Capture", title = "Probability of Capture Covariates") +
   theme_minimal()
 
-p1 <- ggplot(plot_data_lineribbon_vol, aes(x = x_value, y = value)) +
+p.volume <- ggplot(plot_data_lineribbon_vol, aes(x = x_value, y = value)) +
   stat_lineribbon(aes(y = value), alpha = 0.25, fill = "#808080", color = "#000000", .width = c(0.25, 0.5, 0.75)) +
   labs(x = "Volume Sampled", y = "Probability of Capture") +
+  theme_minimal()
+
+p.dilution <- ggplot(plot_data_lineribbon_dilution, aes(x = x_value, y = value)) +
+  stat_lineribbon(aes(y = value), alpha = 0.25, fill = "#808080", color = "#000000", .width = c(0.25, 0.5, 0.75)) +
+  labs(x = "Dilution (Proportion)", y = "Probability of Capture")+
+  theme_minimal()
+
+p.techreps <- ggplot(plot_data_lineribbon_techreps, aes(x = x_value, y = value)) +
+  stat_lineribbon(aes(y = value), alpha = 0.25, fill = "#808080", color = "#000000", .width = c(0.25, 0.5, 0.75)) +
+  labs(x = "Number of Tech Reps", y = "Probability of Capture") +
   theme_minimal()
 
 # --- Combine plots ---
 combined_data <- rbind(
   data.frame(variable = "Depth (m)", plot_data_lineribbon_depth),
-  data.frame(variable = "Volume Filtered (mL)", plot_data_lineribbon_vol)
+  data.frame(variable = "Volume Filtered (mL)", plot_data_lineribbon_vol),
+  data.frame(variable = "Dilution (Proportion)", plot_data_lineribbon_dilution),
+  data.frame(variable = "Number of Tech Reps", plot_data_lineribbon_techreps)
 )
 
 p <- ggplot(combined_data, aes(x = x_value, y = value)) +
@@ -229,8 +287,8 @@ p3 <- ggplot(df_prob_detection, aes(x = Probability, fill = Method, color = Meth
   scale_color_viridis(discrete = TRUE, begin = 0.3, end = 0.7) +
   labs(x = "Detection Probability", y = "Density", title = "Primers") +
   theme_bw() + theme(panel.grid = element_blank(), legend.position = "none")
-p3 <- p3 + scale_x_continuous(limits = c(0, 0.25)) # Set x-axis limits
-
+#p3 <- p3 + scale_x_continuous(limits = c(0, 0.25)) # Set x-axis limits
+p3
 # Combine the plots using patchwork - Probability of Detection at the bottom
 combined_plot <- p1 / p3 / p2
 
