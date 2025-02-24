@@ -60,6 +60,36 @@ samples_info <- data_samples %>%
   separate(data, into = c(NA,"Plate",NA,NA), sep = "_")  %>%
   mutate(SampleUID = paste0(Sample_name, "_", Plate))
 
+# Number of observations per dilution
+check <- samples_info %>% 
+  group_by(NWFSCsampleID, primer, techRep) %>% 
+  filter(n() > 1) %>% 
+  left_join(detect_data, by = c("NWFSCsampleID", "primer", "techRep", "dilution")) %>% 
+  filter(!is.na(BestTaxon)) %>% 
+  group_by(dilution) %>% 
+  summarize(n.obs = n())
+
+# Number of detects per species/primer/sample for multi-dilution samples
+check2 <- samples_info %>% 
+  group_by(NWFSCsampleID, primer, techRep) %>% 
+  filter(n() > 1) %>% 
+  left_join(detect_data, by = c("NWFSCsampleID", "primer", "techRep", "dilution")) %>% 
+  group_by(NWFSCsampleID, primer, BestTaxon, techRep) %>% 
+  filter(!is.na(BestTaxon)) %>% 
+  summarize(n.obs.sample = n())
+
+# Number of detects per species/primer/sample removing 1 multi-dilution replicate
+check3 <- samples_info %>% 
+  group_by(NWFSCsampleID, primer, techRep) %>% 
+  filter(n() > 1) %>% 
+  left_join(detect_data, by = c("NWFSCsampleID", "primer", "techRep", "dilution")) %>% 
+  group_by(NWFSCsampleID, primer, dilution, techRep) %>% 
+  mutate(onTarget_reads = sum(nReads)) %>% 
+  group_by(NWFSCsampleID, primer, techRep) %>% 
+  slice_max(onTarget_reads, na_rm = TRUE) %>% 
+  group_by(NWFSCsampleID, primer, BestTaxon, techRep) %>% 
+  summarize(n.obs.sample = n())
+
 # okay, now want a record for each possible species x sample
 
 samples_info_species <- expand_grid(SampleUID = samples_info$SampleUID, 
