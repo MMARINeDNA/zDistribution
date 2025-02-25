@@ -11,6 +11,15 @@ load("./ProcessedData/detect_species_meta.RData")
 
 m2.0 <- gam(Detected ~ nTechReps, 
             family = "binomial", data = detect_species_meta)
+summary(m2.0)
+AIC(m2.0)
+
+### TODO:
+### Could the apparent lack of effect here be due to masking by primer effect?
+### Would it be useful to have a dataset that isn't collapsed by sampling station
+### so that we could more directly test the effect of technical replicates?
+### Possibly also keeping only 1 dilution/sample so that we remove the effect of dilution.
+### Thinking about a way to randomize the techRep order.... -AVC
 
 # H2: Detection varies with # technical replicates according to species/functional 
 # group, depth, or a combination of the two.

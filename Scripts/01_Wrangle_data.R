@@ -127,6 +127,12 @@ detect_species_techreps <- binary_detect_species %>%
   summarize(nTechReps = max(techRep), nReads = max(nReads), Detected = max(Detected)) %>%
   mutate(DilutionP = diluteProp(dilution))
 
+### TODO:
+### Thinking about this a bit more, I'm worried about combining a logistic relationship
+### that we have a pretty good sense of (between tech reps and detection prob) with 
+### a nonlinear relationship that we have very poor understanding of (with dilution).
+### Would modeling each separately first tell us something? -AVC
+
 # okay now we're ready to attach metadata
 detect_species_meta <- left_join(detect_species_techreps, metadata, 
                                  by = c("NWFSCsampleID" = "sampleID")) %>% 

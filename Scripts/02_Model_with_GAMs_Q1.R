@@ -105,7 +105,7 @@ ggplot(m1.2_sePreds, aes(x = depth,color = BestTaxon, fill = BestTaxon)) +
   theme_minimal() +
   theme(legend.position = "none")
 
-save(m1.2, file = "./ProcessedData/m1.2.RData")
+#save(m1.2, file = "./ProcessedData/m1.2.RData")
 
 ### H2a: POD by depth across taxonomic family ----------------------------------
 m1.2a <- gam(Detected ~ s(depth, by = as.factor(Family)), 
@@ -242,7 +242,7 @@ ggplot(m1.2d_sePreds, aes(x = time_per_m, y = mu, color = Family, fill = Family)
   facet_wrap(~Family, scales = "free_y") +
   theme_minimal()
 
-### H2d: POD by time-at-depth across species -----------------------------------
+### H2e: POD by time-at-depth across species -----------------------------------
 ## This one takes a really long time to run.
 m1.2e <- gam(Detected ~ s(time_per_m, by = as.factor(BestTaxon)), 
              family = "binomial", data = detect_species_divetime)
@@ -253,7 +253,7 @@ AIC(m1.2e)
 #3428.249 - better than by family but still not as good as by depth
 
 m1.2e_predictions <- expand_grid(time_per_m = min(detect_species_divetime$time_per_m):max(detect_species_divetime$time_per_m),
-                                 Family = as.factor(unique(detect_species_divetime$BestTaxon)))
+                                 BestTaxon = as.factor(unique(detect_species_divetime$BestTaxon)))
 m1.2e_predictions$pred <- predict.gam(m1.2e, m1.2e_predictions, type = "response")
 
 ggplot(m1.2e_predictions) +
@@ -262,7 +262,84 @@ ggplot(m1.2e_predictions) +
   ylab("POD")+
   theme_bw()
 
+m1.2epreds <- predict(m1.2e, m1.2e_predictions, se.fit = TRUE)
+
+m1.2e_sePreds <- data.frame(m1.2e_predictions,
+                            mu   = exp(m1.2epreds$fit),
+                            low  = exp(m1.2epreds$fit - 1.96 * m1.2epreds$se.fit),
+                            high = exp(m1.2epreds$fit + 1.96 * m1.2epreds$se.fit))
+
+ggplot(m1.2e_sePreds, aes(x = time_per_m, y = mu, color = BestTaxon, fill = BestTaxon)) +
+  geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity", 
+              alpha = 0.2) +
+  
+  ylab("POD") +
+  xlab("Time at depth") +
+  scale_fill_manual(values = c(pnw_palette("Bay",24, type = "continuous"))) +
+  scale_color_manual(values = c(pnw_palette("Bay",24, type = "continuous"))) +
+  facet_wrap(~BestTaxon, scales = "free_y") +
+  theme_minimal()
+
+### H2f: POD by depth + time-at-depth across species ---------------------------
+## This one takes a really long time to run.
+m1.2f <- gam(Detected ~ s(time_per_m, by = as.factor(BestTaxon)) +
+               s(depth, by = as.factor(BestTaxon)), 
+             family = "binomial", data = detect_species_divetime)
+summary(m1.2f)
+
+AIC(m1.2f)
+# 3477.885
+
+### H2g: POD by time-at-depth across depths ------------------------------------
+
+bins <- c(0, 100, 300, 500)
+detect_species_depthbin <- detect_species_divetime %>% 
+  mutate(depth_bin = cut(depth, bins, include.lowest = TRUE))
+
+m1.2g <- gam(Detected ~ s(time_per_m, by = as.factor(depth_bin)), 
+             family = "binomial", data = detect_species_depthbin)
+summary(m1.2g)
+
+AIC(m1.2g)
+# 3876.487
+
+m1.2g2 <- gam(Detected ~ s(time_per_m, by = depth), 
+             family = "binomial", data = detect_species_divetime)
+summary(m1.2g2)
+
+AIC(m1.2g2)
+# 3991.547
+
+m1.2g_predictions <- expand_grid(time_per_m = min(detect_species_depthbin$time_per_m):max(detect_species_depthbin$time_per_m),
+                                 depth_bin = as.factor(unique(detect_species_depthbin$depth_bin)))
+m1.2g_predictions$pred <- predict.gam(m1.2g, m1.2g_predictions, type = "response")
+
+
+m1.2gpreds <- predict(m1.2g, m1.2g_predictions, se.fit = TRUE)
+
+m1.2g_sePreds <- data.frame(m1.2g_predictions,
+                            mu   = exp(m1.2gpreds$fit),
+                            low  = exp(m1.2gpreds$fit - 1.96 * m1.2gpreds$se.fit),
+                            high = exp(m1.2gpreds$fit + 1.96 * m1.2gpreds$se.fit))
+
+#very large uncertainty bands
+ggplot(m1.2g_sePreds, aes(x = time_per_m, y = mu, color = depth_bin, fill = depth_bin)) +
+  geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity", 
+              alpha = 0.2) +
+  
+  ylab("POD") +
+  xlab("Time at depth") +
+  scale_fill_manual(values = c(pnw_palette("Bay",5, type = "continuous"))) +
+  scale_color_manual(values = c(pnw_palette("Bay",5, type = "continuous"))) +
+  facet_wrap(~depth_bin, scales = "free_y") +
+  coord_cartesian(ylim = c(0, 1)) +
+  theme_minimal()
+
+### Aggregate model AIC --------------------------------------------------------
+
+modelAIC <- AIC(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e, m1.2f, m1.2g)
+
 ########
 
-save(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e,
-     file = "./ProcessedData/m1models.RData")
+save(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e, m1.2f, m1.2g,
+     file = "ProcessedData/H1models.RData")
