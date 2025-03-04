@@ -26,7 +26,10 @@ detect_data <- readr::read_csv(detect_list, id = "file_name") %>%
                             "Osphranter","Osphranter robustus",
                             "Osphranter rufus", "Dama dama",
                             "Canis", "Felis", "Petrogale xanthopus", 
-                            "Homo", "Tursiops truncatus"))) %>% 
+                            "Homo", "Tursiops truncatus",
+                            "Phoca vitulina", "Callorhinus ursinus",
+                            "Zalophus californianus", "Eumetopias jubatus",
+                            "Mirounga angustirostris"))) %>% 
   mutate(BestTaxon = case_when(BestTaxon == "Lagenorhynchus" ~ "Lagenorhynchus obliquidens",
                                TRUE ~ BestTaxon)) %>% 
   separate(Sample_name, 
