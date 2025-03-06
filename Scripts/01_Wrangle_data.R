@@ -41,15 +41,34 @@ detect_data <- readr::read_csv(detect_list, id = "file_name") %>%
   separate(techRep, into = c("techRep",NA), sep = "_") %>% 
   separate(file_name, into = c(NA,NA,"data",NA,NA), sep = "/") %>% 
   separate(data, into = c(NA,"Plate",NA,NA), sep = "_") %>%
-  mutate(SampleUID = paste0(Sample_name, "_", Plate))
+  mutate(SampleUID = paste0(Sample_name, "_", Plate)) %>% 
+  filter(!(Plate == "314" & primer %in% c("DL", "DLL1"))) 
 
-# All samples, even if no cetaceans detected
+# All samples MFU + MV1 positive samples, even if no cetaceans detected
 data_samples <- readr::read_csv(detect_list, id = "file_name") %>%
   select(-BestTaxon, -Class, -nReads) %>%
-  unique()
+  distinct() %>% 
+  filter(!(grepl("DL", Sample_name))) %>% 
+  separate(file_name, into = c(NA,NA,"data",NA,NA), sep = "/") %>% 
+  separate(data, into = c(NA,"Plate",NA,NA), sep = "_")
+
+# All DL samples (whether there they passed pipeline or not)
+DL_list <- list.files(path = "./Data/sample_sheets", pattern = ".csv", 
+                          recursive = TRUE, full.names = TRUE)
+
+DL_samples <- readr::read_csv(DL_list, id = "file_name", skip = 19) %>%
+  select(file_name, Sample_Name) %>%
+  unique() %>% 
+  filter(grepl("DL", Sample_Name)) %>% 
+  rename("Sample_name" = Sample_Name) %>% 
+  separate(file_name, into = c(NA,NA, NA, "data"), sep = "/") %>% 
+  separate(data, into = c("Plate",NA), sep = "_")
+
+# combine DL samples with MFU and MV1 positives
+all_data_samples <- bind_rows(data_samples, DL_samples)
 
 # these are all of the samples that were run, with SampleUID as the unique identifier
-samples_info <- data_samples %>% 
+samples_info <- all_data_samples %>% 
   separate(Sample_name, 
            into = c("primer","NWFSCpopID","NWFSCsampNum","dilution","techRep"),
            sep = "-",
@@ -59,8 +78,6 @@ samples_info <- data_samples %>%
   filter(techRep != "control") %>%
   unite(NWFSCsampleID, NWFSCpopID:NWFSCsampNum, sep = "-") %>% 
   separate(techRep, into = c("techRep",NA), sep = "_") %>% 
-  separate(file_name, into = c(NA,NA,"data",NA,NA), sep = "/") %>% 
-  separate(data, into = c(NA,"Plate",NA,NA), sep = "_")  %>%
   mutate(SampleUID = paste0(Sample_name, "_", Plate))
 
 # Number of observations per dilution
@@ -71,6 +88,12 @@ check <- samples_info %>%
   filter(!is.na(BestTaxon)) %>% 
   group_by(dilution) %>% 
   summarize(n.obs = n())
+
+# Which samples have more than one dilution
+check.double.dil <- samples_info %>% 
+  group_by(NWFSCsampleID, primer, techRep) %>% 
+  filter(n() > 1) %>% 
+  slice_head()
 
 # Number of detects per species/primer/sample for multi-dilution samples
 check2 <- samples_info %>% 
@@ -93,9 +116,25 @@ check3 <- samples_info %>%
   group_by(NWFSCsampleID, primer, BestTaxon, techRep) %>% 
   summarize(n.obs.sample = n())
 
+# For samples with multiple dilutions, remove the dilution with the lower on-target read count
+samples_info_onedil <- samples_info %>% 
+  left_join(detect_data, by = c("NWFSCsampleID", "primer", "techRep", "dilution", "Plate", "Sample_name", "SampleUID")) %>%
+  group_by(NWFSCsampleID, primer, dilution, techRep, Plate) %>% 
+  mutate(onTarget_reads = sum(nReads)) %>% 
+  replace_na(list(onTarget_reads = 0)) %>% 
+  group_by(NWFSCsampleID, primer, techRep) %>% 
+  slice_max(onTarget_reads, na_rm = TRUE) %>% 
+  slice_head() %>%
+  select(-c(BestTaxon, Class, nReads, onTarget_reads)) 
+
+#check again
+check.final <- samples_info_onedil %>% 
+  group_by(NWFSCsampleID, primer, techRep) %>%
+  filter(n() > 1) #should be an empty dataframe
+
 # okay, now want a record for each possible species x sample
 
-samples_info_species <- expand_grid(SampleUID = samples_info$SampleUID, 
+samples_info_species <- expand_grid(SampleUID = samples_info_onedil$SampleUID, 
                                     BestTaxon = unique(detect_data$BestTaxon)) %>%
   left_join(samples_info, by = "SampleUID")
 
@@ -118,7 +157,7 @@ binary_detect_species <- left_join(samples_info_species, detect_data,
 #  mutate(techRep1 = techRep, .after = techRep) %>% 
 #  mutate(techRep = ifelse(Plate == 313 | Sample_name == "MV1-52193-460-5-d10-1_S39", dilution, techRep)) %>% 
 #  mutate(dilution = ifelse(Plate == 313 | Sample_name == "MV1-52193-460-5-d10-1_S39", techRep1, dilution)) %>% 
-  filter(!grepl("control", Sample_name)) %>% 
+#  filter(!grepl("control", Sample_name)) %>% 
 #  select(-techRep1) %>% 
   mutate(techRep = as.numeric(techRep))
 
@@ -156,7 +195,7 @@ detect_species_divetime <- detect_species_meta %>%
                                 TRUE~time_per_m))
   
 # save the file and we're done!
-save(detect_data, detect_species_meta, detect_species_divetime,
+save(detect_data, detect_species_meta, detect_species_divetime, samples_info_onedil,
      file = "./ProcessedData/detect_species_meta.RData")
 
-         
+write.csv(samples_info_onedil, file = paste("MURIsampleInfo_", as.character(Sys.Date()), ".csv"))       

@@ -164,7 +164,7 @@ m1.2b_sePreds <- data.frame(m1.2b_predictions,
                             high = exp(m1.2bpreds$fit + 1.96 * m1.2bpreds$se.fit))
 
 ggplot(m1.2b_sePreds, aes(x = depth, y = mu, color = Prey.family, fill = Prey.family)) +
-  geom_point() +
+  geom_line() +
   geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity") +
   scale_fill_manual(values = c(pnw_palette("Moth",5, type = "continuous"))) +
   scale_color_manual(values = c(pnw_palette("Moth",5, type = "continuous"))) +
@@ -278,7 +278,8 @@ ggplot(m1.2e_sePreds, aes(x = time_per_m, y = mu, color = BestTaxon, fill = Best
   scale_fill_manual(values = c(pnw_palette("Bay",24, type = "continuous"))) +
   scale_color_manual(values = c(pnw_palette("Bay",24, type = "continuous"))) +
   facet_wrap(~BestTaxon, scales = "free_y") +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "none")
 
 ### H2f: POD by depth + time-at-depth across species ---------------------------
 ## This one takes a really long time to run.
@@ -309,7 +310,6 @@ summary(m1.2g2)
 
 AIC(m1.2g2)
 # 3991.547
-
 m1.2g_predictions <- expand_grid(time_per_m = min(detect_species_depthbin$time_per_m):max(detect_species_depthbin$time_per_m),
                                  depth_bin = as.factor(unique(detect_species_depthbin$depth_bin)))
 m1.2g_predictions$pred <- predict.gam(m1.2g, m1.2g_predictions, type = "response")
