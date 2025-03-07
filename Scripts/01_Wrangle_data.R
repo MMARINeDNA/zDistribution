@@ -43,7 +43,8 @@ detect_data <- readr::read_csv(detect_list, id = "file_name") %>%
   separate(file_name, into = c(NA,NA,"data",NA,NA), sep = "/") %>% 
   separate(data, into = c(NA,"Plate",NA,NA), sep = "_") %>%
   mutate(SampleUID = paste0(Sample_name, "_", Plate)) %>% 
-  filter(!(Plate == "314" & primer %in% c("DL", "DLL1"))) 
+  filter(!(Plate == "314" & primer %in% c("DL", "DLL1"))) %>%
+  filter(primer != "DLL1") # take out all DLL1s
 
 # All samples MFU + MV1 positive samples, even if no cetaceans detected
 data_samples <- readr::read_csv(detect_list, id = "file_name") %>%
