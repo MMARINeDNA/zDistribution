@@ -91,21 +91,23 @@ m1.2_sePreds <- data.frame(m1.2_predictions,
                       high = exp(m1.2preds$fit + 1.96 * m1.2preds$se.fit)) %>% 
   left_join(mmEcoEvo, by = c("BestTaxon" = "Species"))
 
-ggplot(m1.2_sePreds, aes(x = depth,color = BestTaxon, fill = BestTaxon)) +
+ggplot(filter(m1.2_sePreds, Family %in% c("Balaenopteridae", "Delphinidae", "Ziphiidae")), 
+       aes(x = depth,color = Family, fill = Family)) +
   geom_line(aes(y = mu)) +
   geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity") +
-  scale_fill_manual(values = c(pnw_palette("Cascades",12, type = "continuous"),
-                               pnw_palette("Sunset",12, type = "continuous")[1:12])) +
-  scale_color_manual(values = c(pnw_palette("Cascades",12, type = "continuous"),
-                                pnw_palette("Sunset",12, type = "continuous")[1:12])) +
+  scale_fill_manual(values = c(pnw_palette("Cascades",3, type = "continuous"),
+                               pnw_palette("Sunset",3, type = "continuous")[1:3])) +
+  scale_color_manual(values = c(pnw_palette("Cascades",3, type = "continuous"),
+                                pnw_palette("Sunset",3, type = "continuous")[1:3])) +
   facet_wrap(~BestTaxon, scales = "free_y") +
-  geom_rug(data = detect_species_meta, aes(x=depth))+
+  geom_rug(data = filter(detect_species_meta, Family %in% c("Balaenopteridae", "Delphinidae", "Ziphiidae")), aes(x=depth))+
+  geom_rug(data = filter(detect_species_meta, Family %in% c("Balaenopteridae", "Delphinidae", "Ziphiidae"), Detected == 1), aes(x=depth), color = "red")+
   
   #coord_cartesian(ylim = c(0,0.25)) +
   theme_minimal() +
   theme(legend.position = "none")
 
-#save(m1.2, file = "./ProcessedData/m1.2.RData")
+save(m1.2, file = "./ProcessedData/m1.2.RData")
 
 ### H2a: POD by depth across taxonomic family ----------------------------------
 m1.2a <- gam(Detected ~ s(depth, by = as.factor(Family)), 
