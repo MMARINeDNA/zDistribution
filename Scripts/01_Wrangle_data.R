@@ -29,7 +29,8 @@ detect_data <- readr::read_csv(detect_list, id = "file_name") %>%
                             "Homo", "Tursiops truncatus",
                             "Phoca vitulina", "Callorhinus ursinus",
                             "Zalophus californianus", "Eumetopias jubatus",
-                            "Mirounga angustirostris"))) %>% 
+                            "Mirounga angustirostris",
+                            "Tursiops truncatus", "Balaenoptera"))) %>% 
   mutate(BestTaxon = case_when(BestTaxon == "Lagenorhynchus" ~ "Lagenorhynchus obliquidens",
                                TRUE ~ BestTaxon)) %>% 
   separate(Sample_name, 
