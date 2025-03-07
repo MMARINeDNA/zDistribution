@@ -11,11 +11,13 @@ library(ggridges)
 
 load("./ProcessedData/detect_species_meta.RData")
 metadata <- read.csv("./Data/Hake_2019_metadata.csv")
+mmEcoEvo <- read.csv("./Data/MM_metadata.csv")
 
 #### Add metadata --------------------------------------------------------------
 
 detect_data_meta <- detect_data %>% 
-  left_join(metadata, by = c("NWFSCsampleID" = "sampleID"))
+  left_join(metadata, by = c("NWFSCsampleID" = "sampleID")) %>%
+  left_join(mmEcoEvo, by = c("BestTaxon" = "Species"))
 
 #### Collapse by station/species -----------------------------------------------
 
@@ -29,17 +31,21 @@ detect_by_station <- detect_data_meta %>%
   filter(detect == 1)
 
 #### Bubbleplot ----------------------------------------------------------------
-detectDepth_bubble <- ggplot(detect_by_station, aes(y = BestTaxon, x = depth, 
-                              fill = BestTaxon, color = BestTaxon)) +
+detectDepth_bubble <- ggplot(filter(detect_by_station, Family %in% c("Balaenopteridae", "Delphinidae", "Ziphiidae")), 
+                                    aes(y = BestTaxon, x = depth, 
+                              fill = Family, color = Family)) +
   geom_count() +
+  facet_wrap(~Family, scales = "free_x") +
   theme_minimal() + 
   coord_flip() +
   scale_x_reverse() +
+  xlab("Species")+
+  ylab("Sample Depth (m)")+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-  scale_fill_manual(values = c(pnw_palette("Cascades",12, type = "continuous"),
-                               pnw_palette("Sunset",12, type = "continuous")[1:11])) +
-  scale_color_manual(values = c(pnw_palette("Cascades",12, type = "continuous"),
-                                pnw_palette("Sunset",12, type = "continuous")[1:11])) +
+  scale_fill_manual(values = c(pnw_palette("Cascades",3, type = "continuous"),
+                               pnw_palette("Sunset",3, type = "continuous")[1:3])) +
+  scale_color_manual(values = c(pnw_palette("Cascades",3, type = "continuous"),
+                                pnw_palette("Sunset",3, type = "continuous")[1:3])) +
   theme(legend.position = "none")
 
 #### Ridgeplot -----------------------------------------------------------------
