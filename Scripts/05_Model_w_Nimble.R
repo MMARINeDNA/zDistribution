@@ -290,7 +290,7 @@ p3 <- ggplot(df_prob_detection, aes(x = Probability, fill = Method, color = Meth
 #p3 <- p3 + scale_x_continuous(limits = c(0, 0.25)) # Set x-axis limits
 p3
 # Combine the plots using patchwork - Probability of Detection at the bottom
-combined_plot <- p1 / p3 / p2
+combined_plot <- p.depth / p3 
 
 print(combined_plot)
 

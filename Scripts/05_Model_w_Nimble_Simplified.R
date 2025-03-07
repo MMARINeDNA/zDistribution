@@ -14,11 +14,15 @@ load("./ProcessedData/detect_species_meta.RData")
 #cetacean.data <- filter(detect_species_meta, BestTaxon == "Lagenorhynchus obliquidens")
 
 # make a version of the data where detected is species-agnostic
-cetacean.data.collapsed <- cetacean.data %>% 
+cetacean.data.collapsed <- detect_species_meta %>% 
+  filter(BestTaxon != "Balaenoptera") %>%
   ungroup() %>%
   select(-BestTaxon, -Family, -Suborder, -Prey.family) %>%
   group_by(Plate, NWFSCsampleID, utm.lon, utm.lat, volume, depth, primer, DilutionP, nTechReps) %>%
   summarize(Detected = ifelse(sum(Detected>=1), 1, 0))
+
+
+cetacean.data.collapsed %>% group_by(primer) %>% summarize(sum(Detected)/length(Detected))
 
 # each biological replicate needs a unique ID, IDK why it needs to be numeric/ordered
 cetacean.data.collapsed$Bio_UID <- as.numeric(factor(cetacean.data.collapsed$NWFSCsampleID))
