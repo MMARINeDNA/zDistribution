@@ -35,8 +35,8 @@ detect_data <- readr::read_csv(detect_list, id = "file_name") %>%
                                TRUE ~ BestTaxon)) %>% 
   separate(Sample_name, 
            into = c("primer","NWFSCpopID","NWFSCsampNum","dilution","techRep"),
-           sep = "-",
-           remove = FALSE) %>% 
+           sep = "-", remove= FALSE) %>% 
+  separate(Sample_name, into = c("Sample_name", NA), sep = "_") %>% 
   filter(NWFSCpopID == 52193) %>% 
   unite(NWFSCsampleID, NWFSCpopID:NWFSCsampNum, sep = "-") %>% 
   separate(techRep, into = c("techRep",NA), sep = "_") %>% 
@@ -52,7 +52,8 @@ data_samples <- readr::read_csv(detect_list, id = "file_name") %>%
   distinct() %>% 
   filter(!(grepl("DL", Sample_name))) %>% 
   separate(file_name, into = c(NA,NA,"data",NA,NA), sep = "/") %>% 
-  separate(data, into = c(NA,"Plate",NA,NA), sep = "_")
+  separate(data, into = c(NA,"Plate",NA,NA), sep = "_") %>% 
+  separate(Sample_name, into = c("Sample_name", NA), sep = "_")
 
 # All DL samples (whether there they passed pipeline or not)
 DL_list <- list.files(path = "./Data/sample_sheets", pattern = ".csv", 
@@ -200,4 +201,4 @@ detect_species_divetime <- detect_species_meta %>%
 save(detect_data, detect_species_meta, detect_species_divetime, samples_info_onedil,
      file = "./ProcessedData/detect_species_meta.RData")
 
-write.csv(samples_info_onedil, file = paste("MURIsampleInfo_", as.character(Sys.Date()), ".csv"))       
+#write.csv(samples_info_onedil, file = paste("MURIsampleInfo_", as.character(Sys.Date()), ".csv"))       
