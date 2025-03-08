@@ -31,11 +31,11 @@ detect_by_station <- detect_data_meta %>%
   filter(detect == 1)
 
 #### Bubbleplot ----------------------------------------------------------------
-detectDepth_bubble <- ggplot(filter(detect_by_station, Family %in% c("Balaenopteridae", "Delphinidae", "Ziphiidae")), 
-                                    aes(y = BestTaxon, x = depth, 
-                              fill = Family, color = Family)) +
+detectDepth_bubble <- ggplot(detect_by_station, aes(y = BestTaxon, x = depth, 
+                              fill = Broad_taxa, color = Broad_taxa)) +
   geom_count() +
-  facet_wrap(~Family, scales = "free_x") +
+  scale_size_area(max_size = 10) +
+  facet_wrap(~Broad_taxa, scales = "free_x") +
   theme_minimal() + 
   coord_flip() +
   scale_x_reverse() +
@@ -72,6 +72,27 @@ detectDepth_ridge <- ggplot(detect_by_station, aes(y = BestTaxon, x = depth,
                                pnw_palette("Sunset",12, type = "continuous")[1:12])) +
   scale_color_manual(values = c(pnw_palette("Cascades",12, type = "continuous"),
                                 pnw_palette("Sunset",12, type = "continuous")[1:12])) +
+  theme(legend.position = "none")
+
+#### Identity ridgeplot --------------------------------------------------------
+
+sumDetect_by_station <- detect_by_station %>% 
+  group_by(BestTaxon, depth) %>% 
+  mutate(total = sum(detect))
+
+detectDepth_iridge <- ggplot(sumDetect_by_station, aes(y = BestTaxon, x = depth, 
+                                                   fill = Broad_taxa, color = Broad_taxa)) +
+  geom_ridgeline(data = sumDetect_by_station, aes(height = total/10)) +
+  geom_point(data = lowdetect_subset, aes()) +
+  facet_wrap(~Broad_taxa, scales = "free") +
+  theme_minimal() + 
+  coord_flip() +
+  scale_x_reverse() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+  scale_fill_manual(values = c(pnw_palette("Cascades",3, type = "continuous"),
+                               pnw_palette("Sunset",3, type = "continuous")[1:3])) +
+  scale_color_manual(values = c(pnw_palette("Cascades",3, type = "continuous"),
+                                pnw_palette("Sunset",3, type = "continuous")[1:3])) +
   theme(legend.position = "none")
 
 #### Save figures -------------------------------------------------------------
