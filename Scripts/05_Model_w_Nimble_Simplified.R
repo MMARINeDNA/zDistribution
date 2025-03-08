@@ -15,23 +15,13 @@ load("./ProcessedData/detect_species_meta.RData")
 
 # make a version of the data where detected is species-agnostic
 cetacean.data.collapsed <- detect_species_meta %>% 
-  filter(BestTaxon != "Balaenoptera") %>%
   ungroup() %>%
   select(-BestTaxon, -Family, -Suborder, -Prey.family) %>%
   group_by(Plate, NWFSCsampleID, utm.lon, utm.lat, volume, depth, primer, DilutionP, nTechReps) %>%
   summarize(Detected = ifelse(sum(Detected>=1), 1, 0))
 
-
-cetacean.data.collapsed %>% group_by(primer) %>% summarize(sum(Detected)/length(Detected))
-
 # each biological replicate needs a unique ID, IDK why it needs to be numeric/ordered
 cetacean.data.collapsed$Bio_UID <- as.numeric(factor(cetacean.data.collapsed$NWFSCsampleID))
-
-
-
-
-# interim fix for mislabeled plate
-cetacean.data.collapsed <- filter(cetacean.data.collapsed, primer != "DLL1")
 
 # create a site variable that can hold multiple depths
 cetacean.data.collapsed$Site <- as.numeric(factor(paste0(cetacean.data.collapsed$utm.lat, cetacean.data.collapsed$utm.lon)))
@@ -94,7 +84,7 @@ edna_code_vol_depth_meth_randCap <- nimbleCode({
   }
   
   # Priors for the parameters
-  prob_occurrence ~ dbeta(1, 1) # set this to 1 to fix occupancy
+  prob_occurrence <- 1 # set this to 1 to fix occupancy
   b_depth ~ dnorm(0, 1)
   b_vol ~ dnorm(0, 1)
   b_dilution ~ dnorm(0, 1)
@@ -293,7 +283,7 @@ medians_detection <- df_prob_detection %>%
   summarize(Median = median(Probability))
 
 viridis_cols <- viridis(3, begin = 0.3, end = 0.7)
-names(viridis_cols) <- c("Dloop", "MarVer", "MiFish")
+names(viridis_cols) <- c("Dloop", "MiFish", "MarVer")
 
 p3 <- ggplot(df_prob_detection, aes(x = Probability, fill = Method, color = Method)) +
   geom_histogram(aes(y = after_stat(density)), alpha = 0.3, position = "identity", bins = 30) +
