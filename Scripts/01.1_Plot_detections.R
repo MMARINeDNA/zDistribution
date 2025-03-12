@@ -34,19 +34,21 @@ detect_by_station <- detect_data_meta %>%
 detectDepth_bubble <- ggplot(detect_by_station, aes(y = BestTaxon, x = depth, 
                               fill = Broad_taxa, color = Broad_taxa)) +
   geom_count() +
-  scale_size_area(max_size = 10) +
+  scale_size_area(max_size = 15) +
   facet_wrap(~Broad_taxa, scales = "free_x") +
   theme_minimal() + 
   coord_flip() +
   scale_x_reverse() +
-  xlab("Species")+
-  ylab("Sample Depth (m)")+
+  xlab("Sample Depth (m)")+
+  ylab("Species")+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
   scale_fill_manual(values = c(pnw_palette("Cascades",3, type = "continuous"),
                                pnw_palette("Sunset",3, type = "continuous")[1:3])) +
   scale_color_manual(values = c(pnw_palette("Cascades",3, type = "continuous"),
                                 pnw_palette("Sunset",3, type = "continuous")[1:3])) +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+        strip.text = element_text(size = 14),
+        axis.title = element_text(size = 14))
 
 #### Ridgeplot -----------------------------------------------------------------
 
