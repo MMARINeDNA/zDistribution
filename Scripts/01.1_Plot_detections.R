@@ -8,6 +8,7 @@
 library(tidyverse)
 library(PNWColors)
 library(ggridges)
+library(ggOceanMaps)
 
 load("./ProcessedData/detect_species_meta.RData")
 metadata <- read.csv("./Data/Hake_2019_metadata.csv")
@@ -108,4 +109,6 @@ dev.off()
 pdf(file = "./Figures/detectDepth_ridge.pdf")
 detectDepth_ridge
 dev.off()
+
+
 

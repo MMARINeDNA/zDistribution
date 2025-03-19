@@ -135,6 +135,10 @@ check.final <- samples_info_onedil %>%
   group_by(NWFSCsampleID, primer, techRep) %>%
   filter(n() > 1) #should be an empty dataframe
 
+# now remove any detections not on the sample list
+detect_data_filt <- detect_data %>% 
+  filter(Sample_name %in% samples_info_onedil$Sample_name)
+
 # okay, now want a record for each possible species x sample
 
 samples_info_species <- expand_grid(SampleUID = samples_info_onedil$SampleUID, 
@@ -150,7 +154,7 @@ diluteProp <- function(d){
   return(prop)
 }
 
-binary_detect_species <- left_join(samples_info_species, detect_data,
+binary_detect_species <- left_join(samples_info_species, detect_data_filt,
                                    by = c("Plate", "Sample_name", "primer", 
                                           "NWFSCsampleID", "dilution", "techRep", 
                                           "BestTaxon", "SampleUID")) %>%

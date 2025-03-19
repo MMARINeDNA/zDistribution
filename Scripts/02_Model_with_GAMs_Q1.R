@@ -292,6 +292,36 @@ summary(m1.2f)
 AIC(m1.2f)
 # 3477.885
 
+m1.2f_predictions <- expand_grid(depth = 0:500, time_per_m = min(detect_species_divetime$time_per_m):max(detect_species_divetime$time_per_m),
+                                 BestTaxon = as.factor(unique(detect_species_divetime$BestTaxon)))
+m1.2f_predictions$pred <- predict.gam(m1.2f, m1.2f_predictions, type = "response")
+
+ggplot(m1.2f_predictions) +
+  geom_line(aes(x=time_per_m, y = pred, group = BestTaxon, color = BestTaxon)) +
+  xlab("Time at depth")+
+  ylab("POD")+
+  theme_bw()
+
+m1.2fpreds <- predict(m1.2f, m1.2f_predictions, se.fit = TRUE)
+
+m1.2f_sePreds <- data.frame(m1.2f_predictions,
+                            mu   = exp(m1.2fpreds$fit),
+                            low  = exp(m1.2fpreds$fit - 1.96 * m1.2fpreds$se.fit),
+                            high = exp(m1.2fpreds$fit + 1.96 * m1.2fpreds$se.fit)) %>% 
+  left_join(mmEcoEvo, by = c("BestTaxon" = "Species"))
+
+ggplot(m1.2f_sePreds, aes(x = depth, y = mu, color = BestTaxon, fill = BestTaxon)) +
+  geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity", 
+              alpha = 0.2) +
+  
+  ylab("POD") +
+  xlab("Depth") +
+  scale_fill_manual(values = c(pnw_palette("Bay",24, type = "continuous"))) +
+  scale_color_manual(values = c(pnw_palette("Bay",24, type = "continuous"))) +
+  facet_wrap(Broad_taxa~BestTaxon, scales = "free") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
 ### H2g: POD by time-at-depth across depths ------------------------------------
 
 bins <- c(0, 100, 300, 500)
