@@ -25,12 +25,21 @@ m1.0_predictions$pred <- predict.gam(m1.0, m1.0_predictions, type = "response")
 plot(m1.0_predictions$depth, m1.0_predictions$pred, 
      type = "l", xlab = "Depth", ylab = "P(Detection)")
 
-m1.0preds <- predict(m1.0, m1.0_predictions, se.fit = TRUE)
+m1.0preds <- predict(m1.0, m1.0_predictions, se.fit = TRUE, type = "response")
 
 m1.0_sePreds <- data.frame(m1.0_predictions,
-                           mu   = exp(m1.0preds$fit),
-                           low  = exp(m1.0preds$fit - 1.96 * m1.0preds$se.fit),
-                           high = exp(m1.0preds$fit + 1.96 * m1.0preds$se.fit))
+                           mu   = m1.0preds$fit,
+                           low  = m1.0preds$fit - 1.96 * m1.0preds$se.fit,
+                           high = m1.0preds$fit + 1.96 * m1.0preds$se.fit)
+
+# compare gam to jags version of the same model
+# m1.0_sePreds$mu_jags <- exp(predict(jam,newdata=pd, scale = "response"))
+# ggplot(m1.0_sePreds) +
+#   geom_line(aes(x=depth, y = mu))+
+#   geom_line(aes(x=depth, y = mu_jags), color = "blue")+
+#   ylab("P(Detection)")+
+#   xlab("Depth")+
+#   theme_bw()
 
 ggplot(m1.0_sePreds, aes(x = depth, y = mu)) +
   geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity", 

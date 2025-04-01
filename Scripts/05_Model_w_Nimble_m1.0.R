@@ -1,4 +1,3 @@
-# simplified to probability of detecting *any* cetacean (not species-specific)
 library(MCMCvis)
 library(boot)
 library(tidyverse)
@@ -13,21 +12,14 @@ library(nimble)
 
 load("./ProcessedData/detect_species_meta.RData")
 #cetacean.data <- filter(detect_species_meta, BestTaxon == "Lagenorhynchus obliquidens")
-
-# make a version of the data where detected is species-agnostic
-cetacean.data.collapsed <- detect_species_meta %>% 
-  ungroup() %>%
-  select(-BestTaxon, -Family, -Suborder, -Prey.family) %>%
-  group_by(Plate, NWFSCsampleID, utm.lon, utm.lat, volume, depth, primer, DilutionP, nTechReps) %>%
-  summarize(Detected = ifelse(sum(Detected>=1), 1, 0))
-
+cetacean.data <- filter(detect_species_meta, Family != "Otariidae", Family != "Phocidae") # take out pinnipeds
 # each biological replicate needs a unique ID, IDK why it needs to be numeric/ordered
-cetacean.data.collapsed$Bio_UID <- as.numeric(factor(cetacean.data.collapsed$NWFSCsampleID))
+cetacean.data$Bio_UID <- as.numeric(factor(cetacean.data$NWFSCsampleID))
 
 # create a site variable that can hold multiple depths
-cetacean.data.collapsed$Site <- as.numeric(factor(paste0(cetacean.data.collapsed$utm.lat, cetacean.data.collapsed$utm.lon)))
+cetacean.data$Site <- as.numeric(factor(paste0(cetacean.data$utm.lat, cetacean.data$utm.lon)))
 
-biosamp_data <- cetacean.data.collapsed %>%
+biosamp_data <- cetacean.data %>%
   group_by(Bio_UID) %>%
   slice(1) %>%
   ungroup()
@@ -39,20 +31,20 @@ biosamp_depth_Depth_m <- as.numeric(biosamp_data$depth) - mean(as.numeric(biosam
 biosamp_dilution_p <- biosamp_data$DilutionP - mean(biosamp_data$DilutionP)
 biosamp_techreps <- biosamp_data$nTechReps - mean(biosamp_data$nTechReps)
 
-Y_primer_index <- as.numeric(factor(cetacean.data.collapsed$primer))
-Y_biosamp_index <- cetacean.data.collapsed$Bio_UID
+Y_primer_index <- as.numeric(factor(cetacean.data$primer))
+Y_biosamp_index <- cetacean.data$Bio_UID
 
-N <- nrow(cetacean.data.collapsed)
-n_sites <- length(unique(cetacean.data.collapsed$Site))
-n_biosamples <- length(unique(cetacean.data.collapsed$Bio_UID))
-n_primers <- length(unique(cetacean.data.collapsed$primer))
+N <- nrow(cetacean.data)
+n_sites <- length(unique(cetacean.data$Site))
+n_biosamples <- length(unique(cetacean.data$Bio_UID))
+n_primers <- length(unique(cetacean.data$primer))
 
-Y <- cetacean.data.collapsed$Detected
+Y <- cetacean.data$Detected
 
 
 edna_code_vol_depth_meth_randCap <- nimbleCode({
   cap_prob_hat ~ dnorm(0,1.7) 
-  cap_prob_SD ~ dexp(1)
+  cap_prob_SD~ dexp(1)
   
   for (i in 1:n_sites) {
     # Site-level occurrence probability
@@ -85,12 +77,12 @@ edna_code_vol_depth_meth_randCap <- nimbleCode({
   }
   
   # Priors for the parameters
-  prob_occurrence <- 1 # set this to 1 to fix occupancy
+  prob_occurrence ~ dbeta(1, 1)
   b_depth ~ dnorm(0, 1)
   b_vol ~ dnorm(0, 1)
   b_dilution ~ dnorm(0, 1)
   b_techreps ~ dnorm(0, 1)
-  prob_detection[1] ~ dbeta(1, 1) #detection probs for dloop, MiFish, MarVer
+  prob_detection[1] ~ dbeta(1, 1) #detection prob for dloop, MiFish, MarVer
   prob_detection[2] ~ dbeta(1, 1) 
   prob_detection[3] ~ dbeta(1, 1)
 })
@@ -284,7 +276,7 @@ medians_detection <- df_prob_detection %>%
   summarize(Median = median(Probability))
 
 viridis_cols <- viridis(3, begin = 0.3, end = 0.7)
-names(viridis_cols) <- c("Dloop", "MiFish", "MarVer")
+names(viridis_cols) <- c("Dloop", "MarVer", "MiFish")
 
 p3 <- ggplot(df_prob_detection, aes(x = Probability, fill = Method, color = Method)) +
   geom_histogram(aes(y = after_stat(density)), alpha = 0.3, position = "identity", bins = 30) +
