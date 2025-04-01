@@ -1,5 +1,5 @@
 ---
-title: "Behavior and ecological preferences drive z-distribution of rare species eDNA in pelagic marine environments"
+title: "Behavioral and ecological preferences drive z-distribution of rare species eDNA in pelagic marine environments"
 format: html
 editor: visual
 execute:

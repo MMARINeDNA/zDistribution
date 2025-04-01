@@ -25,7 +25,8 @@ detect_data_deep <- detect_data_meta %>%
   filter(depth > 250) %>% 
   mutate(distToBottom = bottom.depth.consensus - depth) %>% 
   group_by(station, depth, BestTaxon) %>% 
-  slice_head()
+  slice_head() %>% 
+  filter(Broad_taxa != "Beaked whale")
 
 ggplot(detect_data_deep, aes(x= distToBottom, fill = Broad_taxa)) +
   geom_histogram(binwidth = 50) +
@@ -69,7 +70,8 @@ detectKW <- detect_data_meta %>%
   filter(BestTaxon == "Orcinus orca") %>% 
   distinct(BestTaxon, station) %>% 
   left_join(deepDetect_noFall, by = "station", multiple = "all") %>% 
-  filter(!is.na(BestTaxon.y))
+  filter(!is.na(BestTaxon.y)) %>% 
+  filter(BestTaxon.y != "Orcinus orca")
 
 basemap(limits = c(min(deepDetect_noFall$lon)-0.25,
                    max(deepDetect_noFall$lon)+0.25,
