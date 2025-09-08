@@ -7,19 +7,21 @@ library(mgcv)
 library(tidyverse)
 library(PNWColors)
 
-load("./ProcessedData/detect_species_meta.RData")
+load("./ProcessedData/detect_data.RData")
 mmEcoEvo <- read.csv("./Data/MM_metadata.csv")
 
-# Q1: Does the probability of a detecting cetaceans in eDNA samples vary with sample depth?
+# Q1: Does the probability of detecting cetaceans in eDNA samples vary with sample depth?
 # H0: Probability of detection does not vary with depth.
 # H1: Probability of detection varies across depth agnostic to species or functional group.
 # H2: Probability of detection varies across depth according to species or functional group.
 
 ### H1: POD by depth alone -----------------------------------------------------
 # basic model with no species-specific terms
-m1.0 <- gam(Detected ~ s(depth), family = "binomial", data = detect_species_meta) 
-# depth p-value = 0.085
-# AIC 3694.004
+m1.0 <- gam(Detected ~ s(depth), family = "binomial", data = detect_data) 
+summary(m1.0)
+# depth p-value = 2.6e-06
+AIC(m1.0)
+# AIC 4800
 m1.0_predictions <- data.frame(depth = 0:500)
 m1.0_predictions$pred <- predict.gam(m1.0, m1.0_predictions, type = "response")
 plot(m1.0_predictions$depth, m1.0_predictions$pred, 
@@ -49,10 +51,11 @@ ggplot(m1.0_sePreds, aes(x = depth, y = mu)) +
 
 ### H2: POD by depth across species --------------------------------------------
 # this model will have a different intercept for each species, but spline will be same shape
-m1.1 <- gam(Detected ~ s(depth) + BestTaxon, family = "binomial", data = detect_species_meta)
-m1.1_predictions <- expand_grid(depth = 0:500, BestTaxon = as.factor(unique(detect_species_meta$BestTaxon)))
+m1.1 <- gam(Detected ~ s(depth) + BestTaxon, family = "binomial", data = detect_data)
+m1.1_predictions <- expand_grid(depth = 0:500, BestTaxon = as.factor(unique(detect_data$BestTaxon)))
 m1.1_predictions$pred <- predict.gam(m1.1, m1.1_predictions, type = "response")
-# AIC = 3257
+AIC(m1.1)
+# AIC = 4343
 
 ggplot(m1.1_predictions) +
   geom_line(aes(x=depth, y = pred, group = BestTaxon)) +
@@ -81,10 +84,14 @@ ggplot(m1.1_sePreds, aes(x = depth, y = mu, color = BestTaxon, fill = BestTaxon)
 
 
 # this model will have separate smooths for each species
-m1.2 <- gam(Detected ~ s(depth, by = as.factor(BestTaxon)), family = "binomial", data = detect_species_meta)
-# Depth significant for some taxa
-# AIC 3355.708
-m1.2_predictions <- expand_grid(depth = 0:500, BestTaxon = as.factor(unique(detect_species_meta$BestTaxon)))
+m1.2 <- gam(Detected ~ s(depth, by = as.factor(BestTaxon)), family = "binomial", data = detect_data)
+summary(m1.2)
+# Depth significant for some taxa. There's a pretty good cutoff at 10 detections.
+# All species with <10 detections are nonsignificant (except M. stenjegeri).
+# All species with >10 detections are significant.
+AIC(m1.2)
+# AIC 4297
+m1.2_predictions <- expand_grid(depth = 0:500, BestTaxon = as.factor(unique(detect_data$BestTaxon)))
 m1.2_predictions$pred <- predict.gam(m1.2, m1.2_predictions, type = "response")
 
 ggplot(m1.2_predictions) +
@@ -100,32 +107,35 @@ m1.2_sePreds <- data.frame(m1.2_predictions,
                       high = exp(m1.2preds$fit + 1.96 * m1.2preds$se.fit)) %>% 
   left_join(mmEcoEvo, by = c("BestTaxon" = "Species"))
 
-ggplot(m1.2_sePreds, aes(x = depth, color = BestTaxon, fill = BestTaxon)) +
+ggplot(m1.2_sePreds, aes(x = depth, color = Broad_taxa, fill = Broad_taxa)) +
   geom_line(aes(y = mu)) +
   geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity") +
-  scale_fill_manual(values = c(pnw_palette("Cascades",9, type = "continuous"),
-                               pnw_palette("Sunset",9, type = "continuous"))) +
-  scale_color_manual(values = c(pnw_palette("Cascades",9, type = "continuous"),
-                                pnw_palette("Sunset",9, type = "continuous"))) +
+  scale_fill_manual(values = c(pnw_palette("Cascades",2, type = "continuous"),
+                               pnw_palette("Sunset",2, type = "continuous"))) +
+  scale_color_manual(values = c(pnw_palette("Cascades",2, type = "continuous"),
+                                pnw_palette("Sunset",2, type = "continuous"))) +
   facet_wrap(~BestTaxon, scales = "free_y") +
-  geom_rug(data = detect_species_meta, aes(x=depth), color = "grey")+
-  geom_rug(data = filter(detect_species_meta, Detected == 1), aes(x=depth))+
+  geom_rug(data = detect_data, aes(x=depth), color = "grey")+
+  geom_rug(data = filter(detect_data, Detected == 1), aes(x=depth))+
   
   #coord_cartesian(ylim = c(0,0.25)) +
   theme_minimal() +
-  theme(legend.position = "none")
+  theme(legend.position = "bottom")
 
-#save(m1.2, file = "./ProcessedData/m1.2.RData")
+save(m1.2, file = "./ProcessedData/m1.2.RData")
 
 ### H2a: POD by depth across taxonomic family ----------------------------------
 m1.2a <- gam(Detected ~ s(depth, by = as.factor(Family)), 
-            family = "binomial", data = detect_species_meta)
+            family = "binomial", data = detect_data)
 summary(m1.2a)
-#significant for some families but not e.g. grey whales or bowhead whales (too few detections?)
+# significant for some families. Similar to m1.2,
+# no families with < 30 detections are significant
+# All are significant > 30 detections except Phocoenidae
 AIC(m1.2a)
-#AIC 4057.063: fit seems better by species than family
+#AIC 4645
+#by species is lower
 
-m1.2a_predictions <- expand_grid(depth = 0:500, Family = as.factor(unique(detect_species_meta$Family)))
+m1.2a_predictions <- expand_grid(depth = 0:500, Family = as.factor(unique(detect_data$Family)))
 m1.2a_predictions$pred <- predict.gam(m1.2a, m1.2a_predictions, type = "response")
 
 ggplot(m1.2a_predictions) +
@@ -152,13 +162,14 @@ ggplot(m1.2a_sePreds, aes(x = depth, y = mu, color = Family, fill = Family)) +
 ### H2b:POD by depth across prey category --------------------------------------
 
 m1.2b <- gam(Detected ~ s(depth, by = as.factor(Prey.family)), 
-             family = "binomial", data = detect_species_meta)
+             family = "binomial", data = detect_data)
 summary(m1.2b)
 #significant for all three types
 AIC(m1.2b)
-#AIC 4075.112: even worse!
+#AIC 4706
 
-m1.2b_predictions <- expand_grid(depth = 0:500, Prey.family = as.factor(unique(detect_species_meta$Prey.family)))
+
+m1.2b_predictions <- expand_grid(depth = 0:500, Prey.family = as.factor(unique(detect_data$Prey.family)))
 m1.2b_predictions$pred <- predict.gam(m1.2b, m1.2b_predictions, type = "response")
 
 ggplot(m1.2b_predictions) +
@@ -190,7 +201,7 @@ m1.2c <- gam(Detected ~ s(time_per_m),
 summary(m1.2c)
 #p<2e-16
 AIC(m1.2c)
-#AIC 3185.768 - still better across depth by individual species
+#AIC 4486 - still better across depth by individual species
 
 m1.2c_predictions <- data.frame(time_per_m = seq(min(detect_species_divetime$time_per_m),max(detect_species_divetime$time_per_m), by = 0.1))
 m1.2c_predictions$pred <- predict.gam(m1.2c, m1.2c_predictions, type = "response")
@@ -222,7 +233,7 @@ m1.2d <- gam(Detected ~ s(time_per_m, by = as.factor(Family)),
 summary(m1.2d)
 #significant for all but bowhead and grey whale
 AIC(m1.2d)
-#3732.61 - still higher than depth by species
+#4299 - within ~2 of depth-by-species
 
 m1.2d_predictions <- expand_grid(time_per_m = seq(min(detect_species_divetime$time_per_m),max(detect_species_divetime$time_per_m), by = 0.1),
                                  Family = as.factor(unique(detect_species_divetime$Family)))
@@ -257,10 +268,10 @@ ggplot(m1.2d_sePreds, aes(x = time_per_m, y = mu, color = Family, fill = Family)
 m1.2e <- gam(Detected ~ s(time_per_m, by = as.factor(BestTaxon)), 
              family = "binomial", data = detect_species_divetime)
 summary(m1.2e)
-#significant for some species but not all (e.g. lissos, grey whale, bowhead, minke, 
-#blue whale, killer whale, all beaked whales, harbor seal)
+# significant for some all species with > 10 detections
+# not significant for species with < 10 detections
 AIC(m1.2e)
-#3428.249 - better than by family but still not as good as by depth
+#3862 
 
 m1.2e_predictions <- expand_grid(time_per_m = min(detect_species_divetime$time_per_m):max(detect_species_divetime$time_per_m),
                                  BestTaxon = as.factor(unique(detect_species_divetime$BestTaxon)))
@@ -290,6 +301,8 @@ ggplot(m1.2e_sePreds, aes(x = time_per_m, y = mu, color = BestTaxon, fill = Best
   facet_wrap(~BestTaxon, scales = "free_y") +
   theme_minimal() +
   theme(legend.position = "none")
+
+save(m1.2e, file = "./ProcessedData/m1.2e.RData")
 
 ### H2f: POD by depth + time-at-depth across species ---------------------------
 ## This one takes a really long time to run.
@@ -342,7 +355,7 @@ m1.2g <- gam(Detected ~ s(time_per_m, by = as.factor(depth_bin)),
 summary(m1.2g)
 
 AIC(m1.2g)
-# 3876.487
+# 4273
 
 m1.2g2 <- gam(Detected ~ s(time_per_m, by = depth), 
              family = "binomial", data = detect_species_divetime)
@@ -350,7 +363,7 @@ summary(m1.2g2)
 
 AIC(m1.2g2)
 # 3991.547
-m1.2g_predictions <- expand_grid(time_per_m = min(detect_species_depthbin$time_per_m):max(detect_species_depthbin$time_per_m),
+m1.2g_predictions <- expand_grid(time_per_m = min(detect_species_depthbin$time_per_m, na.rm = TRUE):max(detect_species_depthbin$time_per_m, na.rm = TRUE),
                                  depth_bin = as.factor(unique(detect_species_depthbin$depth_bin)))
 m1.2g_predictions$pred <- predict.gam(m1.2g, m1.2g_predictions, type = "response")
 
@@ -377,9 +390,9 @@ ggplot(m1.2g_sePreds, aes(x = time_per_m, y = mu, color = depth_bin, fill = dept
 
 ### Aggregate model AIC --------------------------------------------------------
 
-modelAIC <- AIC(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e, m1.2f, m1.2g)
+modelAIC <- AIC(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e, m1.2g)
 
-########
+######## save all models -------------------------------------------------------
 
-save(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e, m1.2f, m1.2g,
-     file = "ProcessedData/H1models.RData")
+save(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e, m1.2g, modelAIC,
+     file = "./ProcessedData/H1models.RData")

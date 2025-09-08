@@ -13,20 +13,15 @@ tax_data <- read.csv("Data/MFU_database.csv") %>%
   bind_rows(read.csv("Data/MV1_database.csv")) %>% 
   distinct(BestTaxon, .keep_all = TRUE)
 
-#### Add metadata --------------------------------------------------------------
-
-detect_data_meta <- detect_data %>% 
-  left_join(metadata, by = c("NWFSCsampleID" = "sampleID")) %>%
-  left_join(mmEcoEvo, by = c("BestTaxon" = "Species"))
-
 #### Look @ bottom depth of deep detections ------------------------------------
 
 detect_data_deep <- detect_data_meta %>% 
   filter(depth > 250) %>% 
+  filter(Detected == 1) %>% 
   mutate(distToBottom = bottom.depth.consensus - depth) %>% 
   group_by(station, depth, BestTaxon) %>% 
   slice_head() %>% 
-  filter(Broad_taxa != "Beaked whale")
+  filter(Broad_taxa != "Beaked whale") 
 
 ggplot(detect_data_deep, aes(x= distToBottom, fill = Broad_taxa)) +
   geom_histogram(binwidth = 50) +
@@ -50,7 +45,7 @@ basemap(limits = c(min(potential_whalefall$lon)-0.9,
                                 aes(x = lon, y = lat, color = BestTaxon),
                                 size = 4, alpha = 0.8, fill = "transparent") +
   guides(fill = "none") +
-  scale_color_manual(values = c(pnw_palette("Sunset",4, type = "continuous"))) +
+  scale_color_manual(values = c(pnw_palette("Sunset",6, type = "continuous"))) +
   theme(legend.key = element_blank()) +
   theme_minimal() +
   geom_label(data = potential_whalefall, aes(x = lon-0.5, y = lat+0.25, label = round(distToBottom, digits = 2)))
@@ -67,6 +62,7 @@ deepDetect_noFall <- detect_data_deep %>%
   filter(distToBottom > 100) 
 
 detectKW <- detect_data_meta %>% 
+  filter(Detected == 1) %>% 
   filter(BestTaxon == "Orcinus orca") %>% 
   distinct(BestTaxon, station) %>% 
   left_join(deepDetect_noFall, by = "station", multiple = "all") %>% 
