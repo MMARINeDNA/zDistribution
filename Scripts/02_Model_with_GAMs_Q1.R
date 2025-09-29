@@ -21,7 +21,7 @@ m1.0 <- gam(Detected ~ s(depth), family = "binomial", data = detect_data)
 summary(m1.0)
 # depth p-value = 2.6e-06
 AIC(m1.0)
-# AIC 4800
+# AIC 4935
 m1.0_predictions <- data.frame(depth = 0:500)
 m1.0_predictions$pred <- predict.gam(m1.0, m1.0_predictions, type = "response")
 plot(m1.0_predictions$depth, m1.0_predictions$pred, 
@@ -55,7 +55,7 @@ m1.1 <- gam(Detected ~ s(depth) + BestTaxon, family = "binomial", data = detect_
 m1.1_predictions <- expand_grid(depth = 0:500, BestTaxon = as.factor(unique(detect_data$BestTaxon)))
 m1.1_predictions$pred <- predict.gam(m1.1, m1.1_predictions, type = "response")
 AIC(m1.1)
-# AIC = 4343
+# AIC = 4542
 
 ggplot(m1.1_predictions) +
   geom_line(aes(x=depth, y = pred, group = BestTaxon)) +
@@ -84,13 +84,28 @@ ggplot(m1.1_sePreds, aes(x = depth, y = mu, color = BestTaxon, fill = BestTaxon)
 
 
 # this model will have separate smooths for each species
-m1.2 <- gam(Detected ~ s(depth, by = as.factor(BestTaxon)), family = "binomial", data = detect_data)
+m1.2 <- gam(Detected ~ s(depth, by = as.factor(BestTaxon)), 
+            family = "binomial", 
+            data = detect_data)
+
+# m1.2 <- bam(Detected ~ s(depth, by = as.factor(BestTaxon)), 
+#             family = "binomial", 
+#             data = detect_data,
+#             discrete = TRUE,
+#             nthreads = 40)
+
+save(m1.2, file = "./ProcessedData/m1.2.RData")
+
+#m1.2nowf <- gam(Detected ~ s(depth, by = as.factor(BestTaxon)), family = "binomial", data = detect_data_nowf)
+
+load("./ProcessedData/m1.2.RData")
+
 summary(m1.2)
-# Depth significant for some taxa. There's a pretty good cutoff at 10 detections.
-# All species with <10 detections are nonsignificant (except M. stenjegeri).
-# All species with >10 detections are significant.
+# Depth significant for some taxa. 
+# Non significant for taxa with < 10 detections, and for Oorc, Bbai, 
 AIC(m1.2)
-# AIC 4297
+# AIC 4579
+
 m1.2_predictions <- expand_grid(depth = 0:500, BestTaxon = as.factor(unique(detect_data$BestTaxon)))
 m1.2_predictions$pred <- predict.gam(m1.2, m1.2_predictions, type = "response")
 
@@ -121,8 +136,6 @@ ggplot(m1.2_sePreds, aes(x = depth, color = Broad_taxa, fill = Broad_taxa)) +
   #coord_cartesian(ylim = c(0,0.25)) +
   theme_minimal() +
   theme(legend.position = "bottom")
-
-save(m1.2, file = "./ProcessedData/m1.2.RData")
 
 ### H2a: POD by depth across taxonomic family ----------------------------------
 m1.2a <- gam(Detected ~ s(depth, by = as.factor(Family)), 
@@ -268,7 +281,7 @@ ggplot(m1.2d_sePreds, aes(x = time_per_m, y = mu, color = Family, fill = Family)
 m1.2e <- gam(Detected ~ s(time_per_m, by = as.factor(BestTaxon)), 
              family = "binomial", data = detect_species_divetime)
 summary(m1.2e)
-# significant for some all species with > 10 detections
+# significant for all species with > 10 detections
 # not significant for species with < 10 detections
 AIC(m1.2e)
 #3862 

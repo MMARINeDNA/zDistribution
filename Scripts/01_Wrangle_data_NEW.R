@@ -85,17 +85,32 @@ detect_data_meta <- detect_data_1rep %>%
 ## Check species are all marine mammals
 unique(detect_data_meta$BestTaxon)
 
+## Remove Delphinidae family and all pinniped species
+detect_data <- detect_data_meta %>% 
+  filter(!(BestTaxon %in% c('Delphinidae', "Callorhinus ursinus",
+                            "Eumetopias jubatus", "Phoca vitulina",
+                            "Zalophus californianus", "Mirounga angustirostris")))
+  
+## Check species are all cetaceans
+unique(detect_data$BestTaxon)
+
 ## Remove delphinid and baleen detections <100m from bottom (likely whalefall) -
 
-detect_data <- detect_data_meta %>% 
-  mutate(dist_to_bottom = bottom.depth.consensus - depth) %>% 
-  filter(!(dist_to_bottom < 100 & 
-             Detected == 1 & 
-             Broad_taxa %in% c("Baleen whale", "Pinniped", "Dolphin/Porpoise")))
+detect_data_nowf <- detect_data %>%
+  mutate(dist_to_bottom = bottom.depth.consensus - depth) %>%
+  mutate(Detected = case_when(dist_to_bottom < 100 &
+                  Detected == 1 &
+                  bottom.depth.consensus > 200 &
+                  Broad_taxa %in% c("Baleen whale", "Dolphin/Porpoise")~0,
+                  TRUE~Detected))
 
 ## count number of detections by species ---------------------------------------
 
 detect_per_species <- detect_data %>% 
+  group_by(BestTaxon) %>% 
+  summarize(nDetect = sum(Detected))
+
+detect_per_species_nowf <- detect_data_nowf %>% 
   group_by(BestTaxon) %>% 
   summarize(nDetect = sum(Detected))
 
@@ -111,8 +126,7 @@ maxDepth_species <- read.csv("./Data/MM_dive_time_expand.csv") %>%
   summarize(maxDepth = max(depth))
 
 detect_species_divetime <- detect_data %>% 
-  filter(!(BestTaxon %in% c("Balaenoptera", "Delphinidae"))) %>% 
-  mutate(commoan_name = case_when(common_name == "killer whale"~"mammal eating killer whale",
+  mutate(common_name = case_when(common_name == "killer whale"~"mammal eating killer whale",
                                  TRUE~common_name)) %>% 
   left_join(timeAtDepth, by = c("common_name" = "Species", "depth" = "depth")) %>% 
   left_join(maxDepth_species, by = c("common_name" = "Species")) %>% 
