@@ -38,7 +38,7 @@ All raw data are in "Data", and intermediate data products are in "ProcessedData
 - Incorporate smooths from GAMs into occupancy model
 - Run model diagnostics, select best model, interpret results within ecological context, develop recommendations for eDNA monitoring of marine mammals.
 
-# Analysis 3
+# Analysis 3: depth variability across xy or oceanography
 
 - Model 1: xy + z. If both are significant, move to Model 2.
 - Model 2: xyz covariation. If this is significant, move to Model 3.
