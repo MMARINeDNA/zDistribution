@@ -1,3 +1,6 @@
+# simple nimble model with just a spline on depth
+# using the jagam object 
+
 library(MCMCvis)
 library(boot)
 library(tidyverse)
@@ -10,287 +13,109 @@ library(viridis)
 library(patchwork)
 library(nimble)
 
-load("./ProcessedData/detect_species_meta.RData")
-#cetacean.data <- filter(detect_species_meta, BestTaxon == "Lagenorhynchus obliquidens")
-cetacean.data <- filter(detect_species_meta, Family != "Otariidae", Family != "Phocidae") # take out pinnipeds
-# each biological replicate needs a unique ID, IDK why it needs to be numeric/ordered
-cetacean.data$Bio_UID <- as.numeric(factor(cetacean.data$NWFSCsampleID))
+load("./ProcessedData/detect_data.RData")
+load("ProcessedData/jagam_m1.0.RData")
 
-# create a site variable that can hold multiple depths
-cetacean.data$Site <- as.numeric(factor(paste0(cetacean.data$utm.lat, cetacean.data$utm.lon)))
-
-biosamp_data <- cetacean.data %>%
-  group_by(Bio_UID) %>%
-  slice(1) %>%
-  ungroup()
-
-# note this is each loc as a unique biosamp station
-biosamp_station_index <- biosamp_data$Site
-biosamp_Volume_filt_mL <- as.numeric(biosamp_data$volume) - mean(as.numeric(biosamp_data$volume))
-biosamp_depth_Depth_m <- as.numeric(biosamp_data$depth) - mean(as.numeric(biosamp_data$depth))
-biosamp_dilution_p <- biosamp_data$DilutionP - mean(biosamp_data$DilutionP)
-biosamp_techreps <- biosamp_data$nTechReps - mean(biosamp_data$nTechReps)
-
-Y_primer_index <- as.numeric(factor(cetacean.data$primer))
-Y_biosamp_index <- cetacean.data$Bio_UID
-
-N <- nrow(cetacean.data)
-n_sites <- length(unique(cetacean.data$Site))
-n_biosamples <- length(unique(cetacean.data$Bio_UID))
-n_primers <- length(unique(cetacean.data$primer))
-
-Y <- cetacean.data$Detected
-
-
-edna_code_vol_depth_meth_randCap <- nimbleCode({
-  cap_prob_hat ~ dnorm(0,1.7) 
-  cap_prob_SD~ dexp(1)
-  
-  for (i in 1:n_sites) {
-    # Site-level occurrence probability
-    site_occurrence[i] ~ dbern(prob_occurrence)
-    cap_prob_logit[i] ~ dnorm(cap_prob_hat, cap_prob_SD)
+# define the model
+m1.0_nimble <- nimbleCode({
+    eta[1:27540] <- X[1:27540, 1:10] %*% b[1:10] ## linear predictor (b is beta)
+    for (i in 1:n) { mu[i] <-  ilogit(eta[i]) } ## expected response (not needed for full model)
+    for (i in 1:n) { y[i] ~ dbin(mu[i],w[i]) } ## response (not needed for full model)
+    ## Parametric effect priors CHECK tau=1/11^2 is appropriate!
+    for (i in 1:1) { b[i] ~ dnorm(0,0.0087) }
+    ## prior for s(depth)... 
+    K1[1:9,1:9] <- S1[1:9,1:9] * lambda[1]  + S1[1:9,10:18] * lambda[2]
+    b[2:10] ~ dmnorm(zero[2:10],K1[1:9,1:9]) 
+    ## smoothing parameter priors CHECK...
+    for (i in 1:2) {
+      lambda[i] ~ dgamma(.05,.005)
+      rho[i] <- log(lambda[i])
   }
-  
-  for (i in 1:n_biosamples) {
-    
-    logit(prob_capture[i]) <- cap_prob_logit[biosamp_station_index[i]] +   # categorical differences in capture method # removed [biosamp_method_index[i]]
-      b_depth * biosamp_depth_Depth_m[i] +    # continuous effect of depth
-      b_vol * biosamp_Volume_filt_mL[i]  +    # continuous effect of volume
-      b_dilution * biosamp_dilution_p[i] + # continuous effect of dilution proportion
-      b_techreps * biosamp_techreps[i] # continuous effect of tech rep volume
-    
-    # biosample-level occurrence probability
-    bio_capture[i] ~ dbern(site_occurrence[biosamp_station_index[i]] *
-                             prob_capture[i])
-    # `biosamp_station_index` -- index vector that specifies which site each 
-    # biosample belongs to
-    # `biosamp_method_index` -- index vector that specifies which method each 
-    # biosample belongs to
-  }
-  
-  # Likelihood of detecting in each lab sample (tech replicate)
-  for (i in 1:N) {
-    Y[i] ~ dbern(bio_capture[Y_biosamp_index[i]] * prob_detection[Y_primer_index[i]]) 
-    # `Y_biosamp_index[i]` -- index vector that specifies which biological sample each 
-    # observation belongs to
-  }
-  
-  # Priors for the parameters
-  prob_occurrence ~ dbeta(1, 1)
-  b_depth ~ dnorm(0, 1)
-  b_vol ~ dnorm(0, 1)
-  b_dilution ~ dnorm(0, 1)
-  b_techreps ~ dnorm(0, 1)
-  prob_detection[1] ~ dbeta(1, 1) #detection prob for dloop, MiFish, MarVer
-  prob_detection[2] ~ dbeta(1, 1) 
-  prob_detection[3] ~ dbeta(1, 1)
 })
 
-# Define the constants, data, and initial values
-constants <- list(
-  n_sites = n_sites,
-  n_biosamples = n_biosamples,
-  n_primers = n_primers,
-  N = N,
-  biosamp_station_index = biosamp_station_index,
-  Y_biosamp_index = Y_biosamp_index,
-  Y_primer_index = Y_primer_index
-)
+# Data
+data <- list(y = q1Model_m1.0$jags.data$y,
+             X = q1Model_m1.0$jags.data$X,
+             S1 = q1Model_m1.0$jags.data$S1)
 
+# Constants
+constants <- list(n = q1Model_m1.0$jags.data$n, # number of data points
+                  w = q1Model_m1.0$jags.data$w, # not sure what this is
+                  zero = q1Model_m1.0$jags.data$zero)
 
-# Define the data
-data <- list(
-  Y = Y, # detections by sample
-  biosamp_Volume_filt_mL = biosamp_Volume_filt_mL, #centered water volumes
-  biosamp_depth_Depth_m = biosamp_depth_Depth_m, #centered sample depths
-  biosamp_dilution_p = biosamp_dilution_p, # centered sample dilution proportions
-  biosamp_techreps = biosamp_techreps # centered sample number of tech reps
-)
-
-inits <- list(
-  prob_occurrence = 0.5,  # Initial value for probability of site occurrence
-  site_occurrence = rep(1, n_sites),  # Initial values for site occurrence, all set to 1 (can be set randomly between 0 and 1)
-  #bio_capture = rep(1, n_biosamples),  # Initial values for biosample capture
-  
-  # Initial values for method-specific parameters
-  #prob_detection = rep(0.5, n_methods),  # Initial values for detection probability
-  
-  # Initial values for coefficients
-  b_depth = 0,  # Initial value for depth coefficient
-  b_vol = 0,     # Initial value for volume coefficient
-  b_dilution = 0,
-  b_techreps = 0
-)
-
+# Initial values
+inits <- list(lambda = q1Model_m1.0$jags.ini$lambda, # 2 vec
+              rho = log(q1Model_m1.0$jags.ini$lambda),
+              b = q1Model_m1.0$jags.ini$b, # 10 vec
+              eta = rep(0, 27540),
+              mu = rep(0, 27540),
+              K1 = matrix(rep(0, 9*9), nrow = 9))
 
 # Run NIMBLE model
-edna_code_vol_depth_meth_randCap.run <- nimbleMCMC(code = edna_code_vol_depth_meth_randCap, 
-                                                   constants = constants, 
-                                                   data = data, 
-                                                   inits = inits,
-                                                   niter = 200000, 
-                                                   nburnin = 10000, 
-                                                   thin = 100, 
-                                                   nchains = 3,
-                                                   summary=TRUE,
-                                                   samplesAsCodaMCMC = TRUE,
-                                                   WAIC = TRUE)
+nimbleOut_m1.0 <- nimbleMCMC(code = m1.0_nimble, 
+                             data = data, 
+                             inits = inits,
+                             constants = constants,
+                             niter = 50000, 
+                             nburnin = 10000, 
+                             thin = 100, 
+                             nchains = 4,
+                             summary=TRUE,
+                             samplesAsCodaMCMC = TRUE,
+                             WAIC = TRUE)
 
 # Gelman-Rubin diagnostic
-MCMCsummary(edna_code_vol_depth_meth_randCap.run$samples)
+MCMCsummary(nimbleOut_m1.0$samples)
 
 # Visualize MCMC chains
-mcmcplot(edna_code_vol_depth_meth_randCap.run$samples)
+mcmcplot(nimbleOut_m1.0$samples)
 
-n.post <- 1900
-post.samples <- rbind.data.frame(edna_code_vol_depth_meth_randCap.run$samples$chain1,
-                                 edna_code_vol_depth_meth_randCap.run$samples$chain2,
-                                 edna_code_vol_depth_meth_randCap.run$samples$chain3)
-b_depth <- post.samples$b_depth
-b_vol <- post.samples$b_vol
-b_techreps <- post.samples$b_techreps
-b_dilution <- post.samples$b_dilution
-prob_detection_1 <- post.samples$`prob_detection[1]`
-prob_detection_2 <- post.samples$`prob_detection[2]`
-prob_detection_3 <- post.samples$`prob_detection[3]`
+n.post <- 1600
+post.samples <- rbind.data.frame(nimbleOut_m1.0$samples$chain1,
+                                 nimbleOut_m1.0$samples$chain2,
+                                 nimbleOut_m1.0$samples$chain3,
+                                 nimbleOut_m1.0$samples$chain4)
 
-# --- Define sequences for depth and volume ---
-depth_min <- min(as.numeric(biosamp_data$depth))
-depth_max <- max(as.numeric(biosamp_data$depth))
-n_depth_steps <- 100
-depth_seq <- seq(from = depth_min, to = depth_max, length.out = n_depth_steps)
+# reconstruct the model expectation
 
-vol_min <- min(as.numeric(biosamp_data$volume))
-vol_max <- max(as.numeric(biosamp_data$volume))
-n_vol_steps <- 100
-vol_seq <- seq(from = vol_min, to = vol_max, length.out = n_vol_steps)
+mu.post <- matrix(rep(0, 27540*nrow(post.samples)), nrow = 27540)
 
-dil_min <- 0
-dil_max <- 1
-n_dil_steps <- 100
-dil_seq <- seq(from = dil_min, to = dil_max, length.out = n_dil_steps)
+# create a new lp matrix
 
-techreps_min <- 1
-techreps_max <- 5
-techrep_seq <- techreps_min:techreps_max
+predict.gam(object = m1.0, type = "lpmatrix")
 
-# --- Calculate predicted probabilities ---
-plot.stor.depth <- matrix(data = NA, n.post, length(depth_seq))
-plot.stor.vol <- matrix(data = NA, n.post, length(vol_seq))
-plot.stor.dil <- matrix(data = NA, n.post, length(dil_seq))
-plot.stor.techreps <- matrix(data = NA, n.post, length(techrep_seq))
+X = q1Model_m1.0$jags.data$X
 
-for (i in 1:length(depth_seq)) {
-  for (j in 1:n.post) {
-    plot.stor.depth[j, i] <- inv.logit(b_depth[j] * (depth_seq[i]-mean(as.numeric(biosamp_data$depth))))
-  }
-}
+for (i in 1:nrow(post.samples)){
+  eta.post <- X[1:27540, 1:10] %*% as.numeric(post.samples[i,1:10])
+  mu.post[1:27540, i] <- as.numeric(ilogit(eta.post))}
 
-for (i in 1:length(vol_seq)) {
-  for (j in 1:n.post) {
-    plot.stor.vol[j, i] <- inv.logit(b_vol[j] * (vol_seq[i]-mean(as.numeric(biosamp_data$volume))))
-  }
-}
+mu.post.long <- as.data.frame(cbind(Depth = detect_species_meta$depth, mu.post)) %>%
+  pivot_longer(cols = 2:(nrow(post.samples)+1), names_to = "Chain", values_to = "PDetect")
 
-for (i in 1:length(dil_seq)) {
-  for (j in 1:n.post) {
-    plot.stor.dil[j, i] <- inv.logit(b_dilution[j] * (dil_seq[i]-mean(as.numeric(biosamp_data$DilutionP))))
-  }
-}
+mu.post.med <- mu.post.long %>%
+  group_by(Depth) %>%
+  summarize(Med = median(PDetect),
+            LCI = quantile(PDetect, 0.025),
+            UCI = quantile(PDetect, 0.975))
 
-for (i in 1:length(techrep_seq)) {
-  for (j in 1:n.post) {
-    plot.stor.techreps[j, i] <- inv.logit(b_techreps[j] * (techrep_seq[i]-mean(as.numeric(biosamp_data$nTechReps))))
-  }
-}
+p <- ggplot() +
+  geom_ribbon(data = mu.post.med, 
+            aes(x=Depth, ymin= LCI, ymax = UCI), fill = "lightgrey") +
+  geom_line(data = mu.post.med, aes(x=Depth, y = Med)) +
+  theme_bw()
 
-# --- Create plot data frames ---
-plot_data_lineribbon_depth <- data.frame(
-  x_value = rep(depth_seq, each = n.post),
-  value = as.vector(plot.stor.depth)
-)
+ggsave(plot = p, file = "./Figures/m1.0_nimble.png", width = 4, height = 4, units = "in")
 
-plot_data_lineribbon_vol <- data.frame(
-  x_value = rep(vol_seq, each = n.post),
-  value = as.vector(plot.stor.vol)
-)
+# this doesn't work -- not sure what m1.0_sePreds is/was?
 
-plot_data_lineribbon_dilution <- data.frame(
-  x_value = rep(dil_seq, each = n.post),
-  value = as.vector(plot.stor.dil)
-)
+names(m1.0_sePreds)[1] <- "Depth"
+m1.0_compare <- left_join(m1.0_sePreds, mu.post.med, by = "Depth")
 
-plot_data_lineribbon_techreps <- data.frame(
-  x_value = rep(techrep_seq, each = n.post),
-  value = as.vector(plot.stor.techreps)
-)
-
-# --- Create plots ---
-p.depth <- ggplot(plot_data_lineribbon_depth, aes(x = x_value, y = value)) +
-  stat_lineribbon(aes(y = value), alpha = 0.25, fill = "#808080", color = "#000000", .width = c(0.25, 0.5, 0.75)) +
-  labs(x = "Depth Sampled", y = "Probability of Capture", title = "Probability of Capture Covariates") +
-  theme_minimal()
-
-p.volume <- ggplot(plot_data_lineribbon_vol, aes(x = x_value, y = value)) +
-  stat_lineribbon(aes(y = value), alpha = 0.25, fill = "#808080", color = "#000000", .width = c(0.25, 0.5, 0.75)) +
-  labs(x = "Volume Sampled", y = "Probability of Capture") +
-  theme_minimal()
-
-p.dilution <- ggplot(plot_data_lineribbon_dilution, aes(x = x_value, y = value)) +
-  stat_lineribbon(aes(y = value), alpha = 0.25, fill = "#808080", color = "#000000", .width = c(0.25, 0.5, 0.75)) +
-  labs(x = "Dilution (Proportion)", y = "Probability of Capture")+
-  theme_minimal()
-
-p.techreps <- ggplot(plot_data_lineribbon_techreps, aes(x = x_value, y = value)) +
-  stat_lineribbon(aes(y = value), alpha = 0.25, fill = "#808080", color = "#000000", .width = c(0.25, 0.5, 0.75)) +
-  labs(x = "Number of Tech Reps", y = "Probability of Capture") +
-  theme_minimal()
-
-# --- Combine plots ---
-combined_data <- rbind(
-  data.frame(variable = "Depth (m)", plot_data_lineribbon_depth),
-  data.frame(variable = "Volume Filtered (mL)", plot_data_lineribbon_vol),
-  data.frame(variable = "Dilution (Proportion)", plot_data_lineribbon_dilution),
-  data.frame(variable = "Number of Tech Reps", plot_data_lineribbon_techreps)
-)
-
-p <- ggplot(combined_data, aes(x = x_value, y = value)) +
-  stat_lineribbon(aes(y = value), alpha = 0.25, fill = "#808080", color = "#000000", .width = c(0.25, 0.5, 0.75)) +
-  facet_wrap(~ variable, scales = "free_x", nrow = 2) +
-  labs(x = "", y = "Probability of Capture", title = "Prob. of Capture Covariates") +
-  theme_minimal()
-
-print(p)
-
-# --- Plot 3: Probability of Detection (given occurrence) ---
-# Prepare data frame
-df_prob_detection <- data.frame(
-  Probability = c(prob_detection_1, prob_detection_2, prob_detection_3),
-  Method = rep(c("dloop", "Marver", "MiFish"), each = length(prob_detection_1))
-)
-
-# Calculate medians
-medians_detection <- df_prob_detection %>%
-  group_by(Method) %>%
-  summarize(Median = median(Probability))
-
-viridis_cols <- viridis(3, begin = 0.3, end = 0.7)
-names(viridis_cols) <- c("Dloop", "MarVer", "MiFish")
-
-p3 <- ggplot(df_prob_detection, aes(x = Probability, fill = Method, color = Method)) +
-  geom_histogram(aes(y = after_stat(density)), alpha = 0.3, position = "identity", bins = 30) +
-  geom_density(size = 1.2) +
-  geom_vline(data = medians_detection, aes(xintercept = Median, color = Method), linetype = "dashed", size = 1) +
-  annotate("text", x = Inf, y = Inf, label = names(viridis_cols), color = viridis_cols, hjust = 1.1, vjust = c(3, 4.5, 6), size = 5) +
-  scale_fill_viridis(discrete = TRUE, alpha = 0.3, begin = 0.3, end = 0.7) +
-  scale_color_viridis(discrete = TRUE, begin = 0.3, end = 0.7) +
-  labs(x = "Detection Probability", y = "Density", title = "Primers") +
-  theme_bw() + theme(panel.grid = element_blank(), legend.position = "none")
-#p3 <- p3 + scale_x_continuous(limits = c(0, 0.25)) # Set x-axis limits
-p3
-# Combine the plots using patchwork - Probability of Detection at the bottom
-combined_plot <- p.depth / p3 
-
-print(combined_plot)
-
+ggplot(m1.0_compare) +
+  geom_line(aes(x=Depth, y = mu))+
+  geom_line(aes(x=Depth, y = mu_jags), color = "blue")+
+  geom_point(aes(x=Depth, y = Med), color = "green")+
+  ylab("P(Detection)")+
+  xlab("Depth")+
+  theme_bw()
