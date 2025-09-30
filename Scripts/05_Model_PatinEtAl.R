@@ -13,9 +13,9 @@ library(nimble)
 
 source("./Scripts/attach.nimble_v2.R")
 
-# Import the CSV file
-load("./ProcessedData/detect_species_meta.RData")
-mm.data <- detect_species_meta
+# Import the data
+load("./ProcessedData/detect_data.RData")
+mm.data <- detect_data
 
 # because I've removed some of the unique biosample reference numbers with the above 
 # methods removal, I need to renumber the unique biosamples so that they are consecutive
@@ -35,7 +35,7 @@ biosamp_dat <- mm.data %>%
   ungroup()
 
 # make data, index vectors and constants for nimble work
-biosamp_station_index <- biosamp_dat$Site
+biosamp_station_index <- biosamp_dat$site.numeric
 #biosamp_method_index <- biosamp_dat$Collection_method_numeric
 Y_biosamp_index <- mm.data$unique_biorep_numeric
 biosamp_Volume_filt_mL <- as.numeric(biosamp_dat$volume) - mean(as.numeric(biosamp_dat$volume)) #centered water volumes
@@ -121,6 +121,8 @@ edna_code_site_depth_occupancy <- nimbleCode({
   b_vol ~ dnorm(0, 1)
   prob_detection[1] ~ dbeta(1, 1)
   prob_detection[2] ~ dbeta(1, 1)
+  prob_detection[3] ~ dbeta(1, 1)
+  prob_detection[4] ~ dbeta(1, 1)
 
 })
 
@@ -169,7 +171,7 @@ inits_fn_sitedepth <- function(){
     cap_prob_hat = 0,
     cap_prob_SD = 1,
     cap_prob_logit_site = rep(0, n_sites),
-    b_meth = c(NA, 0, 0), # NA for the first fixed element, 0 for the others
+#    b_meth = c(NA, 0, 0), # NA for the first fixed element, 0 for the others
     prob_detection = rep(0.5, n_primers)
   )
 }
@@ -237,8 +239,9 @@ plot_data_capture_vol <- data.frame(
 
 # Detection comparison
 df_detection_new <- data.frame(
-  Probability = c(prob_detection[, 1], prob_detection[, 2]),
-  Method = rep(c("d-loop", "MiFish"), each = nrow(prob_detection))
+  Probability = c(prob_detection[, 1], prob_detection[, 2],
+                  prob_detection[, 3], prob_detection[, 4]),
+  Method = rep(unique(mm.data$primer), each = nrow(prob_detection))
 )
 
 # Create 4-panel plot for site x depth model
@@ -246,32 +249,34 @@ p1_new <- ggplot(plot_data_occupancy_depth,
                  aes(x = depth, y = occupancy)) +
   stat_lineribbon(alpha = 0.25, fill = "#4CAF50", color = "#2E7D32", 
                   .width = c(0.25, 0.5, 0.75)) +
-  labs(x = "Depth (m)", y = "Probability of Occupancy", title = "Site x Depth: Depth Effect on Occupancy") +
+  labs(x = "Depth (m)", y = "Probability of Occupancy") +
   theme_minimal()
+
+ggsave(plot = p1_new, file = "./Figures/PatinEtAl_OccupancyByDepth.png",
+       width = 5, height = 3, units = "in")
 
 p2_new <- ggplot(plot_data_capture_vol, 
                  aes(x = volume, y = capture)) +
   stat_lineribbon(alpha = 0.25, fill = "#EE7AE9", color = "#DA70D6", 
                   .width = c(0.25, 0.5, 0.75)) +
-  labs(x = "Volume Filtered (mL)", y = "Probability of Capture", 
-       title = "Site x Depth: Volume Effect on Capture") +
+  labs(x = "Volume Filtered (mL)", y = "Probability of Capture") +
   theme_minimal()
+
+ggsave(plot = p2_new, file = "./Figures/PatinEtAl_CaptureByVolume.png",
+       width = 5, height = 3, units = "in")
 
 p4_new <- ggplot(df_detection_new, 
                  aes(x = Probability, fill = Method, color = Method)) +
   geom_histogram(aes(y = after_stat(density)), 
                  alpha = 0.3, position = "identity", bins = 30) +
   geom_density(size = 1.2) +
-  scale_fill_viridis(discrete = TRUE, alpha = 0.3, begin = 0.3, end = 0.7) +
-  scale_color_viridis(discrete = TRUE, begin = 0.3, end = 0.7) +
-  labs(x = "Detection Probability", y = "Density", 
-       title = "Site x Depth: d-loop vs. MiFish") +
+  scale_fill_viridis(discrete = TRUE, alpha = 0.3) +
+  scale_color_viridis(discrete = TRUE) +
+  labs(x = "Detection Probability", y = "Density") +
   theme_bw() + theme(panel.grid = element_blank(), legend.position = "bottom") +
-  scale_x_continuous(limits = c(0, 1))
+  scale_x_continuous(limits = c(0, 0.1))
 
-sitedepth_4panel <- (p1_new | p2_new) / (p3_new | p4_new)
-sitedepth_2panel <- p2_new / p3_new
-print("=== SITE x DEPTH MODEL 4-PANEL PLOT ===")
-print(sitedepth_4panel)
+ggsave(plot = p4_new, file = "./Figures/PatinEtAl_DetectionByPrimer.png",
+       width = 5, height = 3, units = "in")
 
 
