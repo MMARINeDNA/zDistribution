@@ -78,6 +78,11 @@ Sys.time()
 
 save(m3.0c, file = "./ProcessedData/m3.0c.RData")
 
+summary(m3.0c)
+#all sp significant except stejneger's, lissos, Bmus, ad Bmys
+
+AIC(m3.0c)
+#3804
 ### m3.0c predictions ----------------------------------------------------------
 
 m3.0c_pred_grid <- expand_grid(depth = seq(0,500, by = 100),
