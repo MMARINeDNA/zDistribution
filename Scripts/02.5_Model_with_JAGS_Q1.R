@@ -7,21 +7,25 @@ library(mgcv)
 library(tidyverse)
 library(rjags)
 
-load("./ProcessedData/detect_species_meta.RData")
+load("./ProcessedData/detect_data.RData")
 load("./ProcessedData/H1models.Rdata")
 
 ### Aggregate model AIC --------------------------------------------------------
 
-modelAIC <- AIC(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e, m1.2f, m1.2g)
+modelAIC <- AIC(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e, m1.2g)
 #m1.2f has lowest AIC
 
 ### Build jags model -----------------------------------------------------------
 
 # simplest model to start with
+# NOTE b splines are probably better than thin plate splines
+# use eigen effect, more spread out
+# bs = bs (b-splines better in Bayesian, bc more local, sampling would be more efficient)
 q1Model_m1.0 <- jagam(Detected ~ s(depth), 
                       family = "binomial", data = detect_species_meta,
                       file = "./ProcessedData/m1.0.jag")
 
+save(q1Model_m1.0, file = "ProcessedData/jagam_m1.0.RData")
 # depth by species
 q1Model_m1.2 <- jagam(Detected ~ s(depth, by = as.factor(BestTaxon)), 
                            family = "binomial", data = detect_species_meta,
