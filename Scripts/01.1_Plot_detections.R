@@ -8,49 +8,41 @@
 library(tidyverse)
 library(PNWColors)
 library(ggridges)
-library(ggOceanMaps)
 
-load("./ProcessedData/detect_species_meta.RData")
+load("./ProcessedData/detect_data.RData")
 metadata <- read.csv("./Data/Hake_2019_metadata.csv")
 mmEcoEvo <- read.csv("./Data/MM_metadata.csv")
 
-#### Add metadata --------------------------------------------------------------
-
-detect_data_meta <- detect_data %>% 
-  left_join(metadata, by = c("NWFSCsampleID" = "sampleID")) %>%
-  left_join(mmEcoEvo, by = c("BestTaxon" = "Species"))
-
 #### Collapse by station/species -----------------------------------------------
 
-detect_by_station <- detect_data_meta %>% 
-  group_by(station, depth, techRep, BestTaxon) %>% 
+detect_by_station <- detect_data %>% 
+  group_by(station, depth, BestTaxon) %>% 
   mutate(totReads = sum(nReads)) %>% 
-  mutate(detect = case_when(totReads > 1 ~ 1,
+  mutate(detect = case_when(totReads > 0 ~ 1,
                             TRUE ~ 0)) %>% 
   slice_head() %>% 
   ungroup() %>% 
   filter(detect == 1)
 
 #### Bubbleplot ----------------------------------------------------------------
-detectDepth_bubble <- ggplot(detect_by_station, aes(y = BestTaxon, x = depth, 
+detectDepth_bubble <- ggplot(detect_by_station, aes(y = common_name, x = depth, 
                               fill = Broad_taxa, color = Broad_taxa)) +
-  geom_count() +
-  scale_size_area(max_size = 15) +
-  facet_wrap(~Broad_taxa, scales = "free_x") +
+  geom_count(alpha = 0.7) +
+  scale_size_area(max_size = 11) +
+  facet_wrap(~Broad_taxa, scales = "free_x", ncol = 1) +
   theme_minimal() + 
   coord_flip() +
   scale_x_reverse() +
   xlab("Sample Depth (m)")+
-  ylab("Species")+
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-  scale_fill_manual(values = c(pnw_palette("Cascades",3, type = "continuous"),
-                               pnw_palette("Sunset",3, type = "continuous")[1:3])) +
-  scale_color_manual(values = c(pnw_palette("Cascades",3, type = "continuous"),
-                                pnw_palette("Sunset",3, type = "continuous")[1:3])) +
+  ylab("")+
+  theme(axis.text.x = element_text(angle = 15, vjust = 1, hjust=0.6)) +
+  scale_fill_manual(values = c(pnw_palette("Cascades",5, type = "continuous")[3:5])) +
+  scale_color_manual(values = c(pnw_palette("Cascades",5, type = "continuous")[3:5])) +
   theme(legend.position = "none",
-        strip.text = element_text(size = 14),
-        axis.title = element_text(size = 14))
+        strip.text = element_text(size = 12),
+        axis.title = element_text(size = 12))
 
+detectDepth_bubble
 #### Ridgeplot -----------------------------------------------------------------
 
 lowdetect_subset <- detect_by_station %>% 
@@ -100,15 +92,8 @@ detectDepth_iridge <- ggplot(sumDetect_by_station, aes(y = BestTaxon, x = depth,
 
 #### Save figures -------------------------------------------------------------
 
-save(detectDepth_bubble, detectDepth_ridge, file = "./ProcessedData/detectDepth_plots.Rdata")
+save(detectDepth_bubble, detectDepth_ridge, file = "./Figures/detectDepth_plots.Rdata")
 
 pdf(file = "./Figures/detectDepth_bubble.pdf")
 detectDepth_bubble
 dev.off()
-
-pdf(file = "./Figures/detectDepth_ridge.pdf")
-detectDepth_ridge
-dev.off()
-
-
-

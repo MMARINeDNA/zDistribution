@@ -85,14 +85,17 @@ detect_data_meta <- detect_data_1rep %>%
 ## Check species are all marine mammals
 unique(detect_data_meta$BestTaxon)
 
-## Remove Delphinidae family and all pinniped species
+## Remove Delphinidae family and all pinniped species, add common names
 detect_data <- detect_data_meta %>% 
   filter(!(BestTaxon %in% c('Delphinidae', "Callorhinus ursinus",
                             "Eumetopias jubatus", "Phoca vitulina",
-                            "Zalophus californianus", "Mirounga angustirostris")))
+                            "Zalophus californianus", "Mirounga angustirostris")))  
+
   
 ## Check species are all cetaceans
 unique(detect_data$BestTaxon)
+unique(detect_data$common_name)
+
 
 ## Remove delphinid and baleen detections <100m from bottom (likely whalefall) -
 
@@ -133,4 +136,5 @@ detect_species_divetime <- detect_data %>%
   mutate(time_per_m = case_when(depth > maxDepth~0,
                                 TRUE~time_per_m))
 
-save(detect_data, detect_species_divetime, file = "./ProcessedData/detect_data.Rdata")
+save(detect_data, detect_species_divetime,
+     detect_per_species, detect_per_family, file = "./ProcessedData/detect_data.Rdata")

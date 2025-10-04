@@ -1,0 +1,154 @@
+---
+title: "Species-specific behavior and ecology drive depth distribution of rare species eDNA in pelagic marine environments"
+author: "Amy M. Van Cise^1\\*^, Eiren K. Jacobson^2^, Megan Shaffer^3^, Pedro Brandao^3^, Ryan Kelly^3^, Brice Semmens^4^,  Kim M. Parsons^5^"
+format: html
+editor: visual
+execute:
+  echo: false
+  message: false
+  warning: false
+project:
+  output-dir: Docs
+---
+
+1.  School of Aquatic and Fishery Sciences, University of Washington, Seattle, WA, USA
+2.  Centre for Research into Ecological and Environmental Modelling, University of St Andrews, St Andrews, Scotland
+3.  School of Environmental and Marine Affairs, University of Washington, Seattle, WA, USA
+4.  Scripps Institution of Oceanography, University of California San Diego, San Diego, CA, USA
+5.  Northwest Fisheries Science Center, National Marine Fisheries Service, National Oceanic and Atmospheric Administration, Seattle, WA, USA
+
+<br>
+
+^\*^Corresponding author email: avancise\@gmail.com
+
+<br>
+
+Running page head: Depth distribution of rare target detections
+
+```{r}
+library(tidyverse)
+library(patchwork)
+library(cowplot)
+
+# load data
+load("ProcessedData/detect_data.RData")
+load("ProcessedData/H1models.RData")
+
+# load plots
+load("Figures/sampling_map.Rdata")
+load("Figures/detectDepth_plots.Rdata")
+
+metadata <- read.csv("./Data/Hake_2019_metadata.csv")
+```
+
+## Introduction
+
+All analyses of community composition face a similar challenge: rare species dropout,. This leads to inaccurate estimates of biodiversity or community composition and greater difficulty assessing changes in ecosystem resilience, as well as inaccurate characterization of a rare species distribution and greater difficulty assessing changes in distribution in response to environmental perturbations.
+
+Many methodological approaches have been developed to address this problem, both in the experimental design phase (REFS) and in the data analysis phase (REFS). Statistical approaches aim to quantify and minimize the effect of rare species dropout, while sampling approaches aim to reduce the rate of dropout via robust sampling design. Within the latter category, it has been shown that adopting an ensemble approach, i.e. integrating across multiple types of observation methods in order to smooth across the weaknesses of each approach individually, often produces more robust estimates of species' distributions and community composition than using single methods alone.
+
+eDNA is emerging as a viable tool for improving spatial distribution models for rare marine species, especially when used jointly with existing sampling methods, e.g. visual and passive acoustic surveys for marine mammals, or net tows, active acoustics, and/or bottom trawls for fishes and invertebrates. In the case of marine mammals - notably some of the rarest species in the marine environment - two survey techniques are traditionally used. Visual surveys are most common, in which observers aboard a ship will record detections of any marine mammals within 3km of the ship's transect, covering the survey area in a systematic pattern. These surveys are limited to the surface of the ocean, where most marine mammals spend very little of their time, and to daylight hours - and their effectiveness decreases in poor weather or sea state. Acoustic surveys collect recordings along similar systematic transects, and can often detect species up to XX kilometers away from the ship in any direction. They do have the same limitations at visual surveys, but only detect species that are actively vocalizing. eDNA surveys, where water samples are collected along similar transects, and often at systematic point locations along the transect do not share limitations related to depth, daylight, weather conditions, or species' vocal activity, but notably have a detection range that is much smaller than either of the two previous surveys and strongly affected by diffusion and transport by oceanographic features (REFS).
+
+In open ocean, deepwater environments, our understanding of species' distributions may be affected by sampling depth, a fundamental aspect of experimental design often overlooked in 3D environments. This is especially true for mobile species capable of utilizing a broad swath of the water column. In the pelagic marine environment, some rare species have depth distributions spanning 3km or greater, which complicates decision-making regarding where to collect point-samples with the aim of describing x-y distribution, either independently of or alongside z-distribution.
+
+Because eDNA samples have a limited radius of detection, and because they are costly both to collect and to process, studies targeting a specific set of rare species may benefit from restricting their range of sampling depths, especially when describing x-y distribution has a higher priority than describing z-distribution. However, there is currently a lack of published data providing guidance regarding the range of sampling depths that can be used to target certain species, taxonomic groups, or ecological groups of rare species, or what ecological or observational processes may drive variability in the probability of detecting specific species across depths.
+
+Here, we aim improve our understanding of the depth distribution of rare species' eDNA in the water column and identify major environmental and ecological drivers of observed patterns. We specifically ask three questions:
+
+1.  Does eDNA distribution vary in the z-dimension? If so, what major ecological factors (e.g. preferred prey, time spent at depth, or phylogeny) can be used to predict eDNA distribution across depths?
+2.  Do common sources of observational bias, e.g. technical replication, choice of primers, or sampling volume, interect with sampling depth to affect probability of detection?
+3.  Does x-y variability in eDNA distribution interact with depth variability to affect probability of detection?
+
+To answer these questions, we utilize eDNA samples collected throughout the California Current from the northern extent of the United States' EEZ to the latitude of XXX in southern California, and between XXX and XXX miles offshore. By collapsing eDNA detections across x and y dimensions and focusing only on the z-distribution of sampling effort (0-500 m), we aim to determine (1) whether species- or taxon-specific detection probability varies with depth and (2) how depth-dependent detection probability varies with increasing sample volume, primer specificity, and technical replication. Finally, we explicitly re-introduce x-y dimensions in order to determine (3) whether depth-dependent detection probability varies with latitude or longitude.
+
+## Methods
+
+### Sample Collection
+
+For this study, we use previously collected water samples acquired during biennial NOAA surveys quantifying hake abundance and distribution \[\@shelton_etal22\]. Samples were collected in tandem with nightly CTD casts, as described in Shelton et al. \[-\@shelton_etal22\]. We targeted 0, 50, 150, 300, and 500 m depth strata along east-west transects with a western terminus at XXX and an eastern terminus at the continental shelf break, generally \~XX km from shore (Figure 1).
+
+### Sample Processing
+
+We extracted DNA from all samples using a phenol-chloroform extraction protocol as described in XXX (Shaffer? Valdivia? another?). We then amplified each sample using three different primers: MiFish Universal (hereafter MFU, REF), targeting the 12S region of fishes, which often captures marine mammals; Marine Vertebrates 1 (hereafter MarVer1, REF), targeting the 12S region of marine vertebrates broadly; and D-loop (hereafter DL, REF) targeting the control region of cetaceans specifically. We amplified one technical replicate for MFU, and three technical replicates each for DL and MV1. Our PCR amplification protocols ... **MORE HERE FROM MEGAN?**
+
+### Bioinformatic Processing
+
+All raw sequence data were processed using a custom dada2-based pipeline and custom reference database based on NCBI sequence data. The pipeline and code for reference database generation can be found at \[GITHUB REPO HERE\]. Briefly, we ... **MORE HERE FROM PEDRO?**
+
+Once the raw sequences were trimmed, filtered, merged, clustered to ASVs, and once chimeras were removed, we assigned ASV taxonomy using ... **MORE HERE FROM PEDRO?**
+
+For each primer region, we built a custom reference database using all available sequence data from NCBI with the following filtering parameters. First, because the 12S mtDNA region has generally low resolution across many cetacean species, we filtered the reference database to exclude any species not observed in the North Pacific Ocean, excepting a few species known to occasionally visit from nearby regions, e.g. bowhead and beluga whales. We also exclude any pf NCBI's sequence IDs that were not manually validated by a human, due to the fact that NCBI's automated ID pipeline is still in beta mode and can produce erroneous identifications (REF here?).
+
+### Data QAQC
+
+We defined a sample as a station/depth/technical replicate combination, and first removed any samples considered to be sequencing failures. Sequencing failures were defined for MV1 and MFU as samples for which no fish were successfully sequenced. Because DL targets marine mammals and excludes fish, we did not define a sequencing failure for this primer and instead included all samples run. Positive marine mammal detections were defined as samples containing at least one marine mammal DNA sequence for each of the three primers, following XXX (REF HERE). We filtered out any non-target (non-cetacean) species, and also removed any detections of bottlenose dolphins and unidentified Balaenopterids or Delphinids.
+
+To obtain non-detections, we included all MFU and MV1 samples that had at least one marine species detected, but no marine mammals - excluding any samples that completely failed sequencing. Because our DL primer specifically targets a subset of very rare species, we assume that sequencing failure indicates a non-detection - therefore, for this primer we included any station/depth/species combination that was not detected as a non-detect.
+
+### Data Analysis
+
+#### Question 1: Does POD vary with depth?
+
+We addressed this question using generalized additive models (GAMs) implemented using mgcv in R (REF). For all models, we optimized model smoothness using REML and assessed model fit with AIC. Models examining depth effect alone were built iteratively, including starting with (1) assessing POD \~ depth, then (2) allowing y-intercept to vary by species, and finally (3) allowing model smooth to vary by species.
+
+In addition to examining depth variability across species-level strata, we examined several other ecological stratification schemes in order to determine whether depth variability in detection probability is driven by (1) evolutionary inertia (i.e. taxonomic family) or (2) preferred prey type.
+
+Finally, we examined the relationship between probability of detection and time-at-depth on a species specific basis. For this model, all estimates of time-at-depth were acquired from XXX (REF).
+
+#### Question 2: Does depth variability in POD covary with observation bias?
+
+To address this question, we extracted smooths from the best fit model in Q1 and input them into a Bayesian hierarchical occupancy model, developed based on Patin et al. (*in prep*) to explicitly examine depth variability alongside potential sources of observational bias, including technical replication, primer specificity, sampling volume, and number of freeze/thaw cycles. **MORE HERE**
+
+#### Question 3: Does depth variability in POD covary with xy variability?
+
+We returned to the use of GAMs to address this question, and again built iterative models in order to examine covariability between depth, latitude, and longitude. We began by examining whether xy variability explained a significant amount of remaining variability left in the model after depth variability was account for (i.e. POD \~ z + xy), then tested whether x,y, and z covary (i.e. POD \~ xyz). Finally, we allowed the model of xyz covariability to vary idependently by species.
+
+## Results
+
+We selected `r length(unique(detect_data$NWFSCsampleID))` water samples collected at `r length(unique(detect_data$station))` unique locations during the 2019 NOAA hake abundance survey (@fig-bubble), targeting 0, 50, 150, 300, and 500 m sampling depths at each station. Where the bottom was less than 500 m deep, we did not collect a sample at 500 m. We amplified and sequenced these samples in 1 technical replicate using MFU, 3 technical replicates using MV1, and 3-5 technical replicates using DL, resulting in a final total of `r detect_data %>% group_by(primer, NWFSCsampleID) %>% n_groups()` amplified and sequenced samples.
+
+Across all samples, we observed `r sum(detect_data$Detected)` positive detections of `r length(unique(detect_data$BestTaxon))` cetacean species. @fig-bubble illustrates the distribution of detections across sampling depths, ignoring x-y distribution, for all cetacean species included in the study.
+
+```{r}
+#| label: fig-bubble
+#| fig-cap: "Left: Geographic distribution of samples used in this study, acquired from water collected during a 2019 survey of hake distribution in the California Current. Right: Distribution of detections across sampling depths for all species included in the study. Species are grouped as follows: Baleen whales includes the Balaenopteridae, Balaenidae, and Eschericthidae; Dolphins/Porpoises includes all Delphinidae and Phocoenidae; Beaked whales includes all Ziphiidae."
+#| fig-width: 8
+#| fig-height: 6
+
+aligned <- align_plots(map, detectDepth_bubble, align = "v", axis = "tblr")
+plot_grid(plotlist = aligned, ncol = 2, rel_widths = c(1, 3))
+```
+
+### Question 1: Does POD vary with depth?
+
+GAM-based model selection of detection probability across sampling depths negated the null hypothesis of no variation across depth, and indicated that the best alternative model allows probability of detection to vary by sampling depth on a species-specific basis (AIC = XXX).
+
+*For each of the three "ecological" strata and the time-at-depth model, describe significance and report AIC. In the discussion, talk about how these strata may be used to guide sampling for lesser known-species - e.g. if we don't have any information about a particular baleen whale species, we might let the prey distribution model guide our sampling strategy and choose to sample at 50-100m and \~300m (where poop is).*
+
+#### Question 2: Does depth variability in POD covary with observation bias?
+
+#### Question 3: Does depth variability in POD covary with xy variability?
+
+*Depth does covary with xy. Don't go so far as to make 3D maps here (those will go in the Big Product, but maybe choose 1-2 species with the most samples/highest significant and 1) make figures showing depth variability at 3 latitudes holding longitude constant, and 2) figures showing depth variability at 3 longitudes holding latitude constant.*
+
+## Discussion
+
+#### Question 1:
+
+1.  Sampling depth matters. To target rare species, optimizing sampling depth could increase detection rates and improve xy distributional models while minimizing cost.
+
+2.  Sampling depth varies by species, and roughly according to some basic ecological principles, e.g. generally eDNA was found where the animals spend most of their time, and prey type was indicative of POD across depth.
+
+3.  Notable caveats are: whalefall and poop (the latter mostly noticeable for baleen whales). *Include some figures of potential whalefall here or in supplement? Or add this as an explicit method/result? Include poop sinking equations here or in a supplement?*
+
+    #### Question 2:
+
+4.  Increasing technical replication (and primer specificity?) increases POD. *and this covaries with depth effect?*
+
+    #### Question 3:
+
+5.  Effect of depth varies across x and y dimensions.
+
+6.  Over the large geographic range covered by this study and the large range of mobile rare species, we expect that this at least partially reflects true distribution of the animals.
+
+7.  It could also reflect, e.g. shorter residence time of eDNA in warmer water to the south, or higher probability of eDNA sinking below 500 meters in deeper offshore water. *What else could be causing this?*
