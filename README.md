@@ -17,7 +17,7 @@ Modelling 3D distributions of marine mammal detections from eDNA samples, with t
 
 # The Plan
 
-All raw data are in "Data", and intermediate data products are in "ProcessedData."
+All raw data are in "Data", and intermediate data products are in "ProcessedData." Dive data come from [here](https://apps.dtic.mil/sti/tr/pdf/ADA560975.pdf) and [here](https://www.nepa.navy.mil/Portals/20/Documents/aftteis4/Dive%20Profile%20and%20Group%20Size_TR_2017_05_22.pdf).
 
 # Analysis 1: collapse data across X and Y
 
