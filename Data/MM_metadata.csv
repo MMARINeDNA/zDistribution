@@ -1,25 +1,25 @@
-Species,Suborder,Family,common_name,Prey family,Broad_taxa,,abbrev
-Megaptera novaeangliae,Mysticeti,Balaenopteridae,humpback whale,invert,Baleen whale,,Mnov
-Phocoena phocoena,Odontoceti,Phocoenidae,harbor porpoise,fish,Dolphin/Porpoise,,Ppho
-Stenella coeruleoalba,Odontoceti,Delphinidae,striped dolphin,fish,Dolphin/Porpoise,,Scoe
-Lagenorhynchus obliquidens,Odontoceti,Delphinidae,Pacific white-sided dolphin,fish,Dolphin/Porpoise,,Lobl
-Balaenoptera acutorostrata,Mysticeti,Balaenopteridae,minke whale,invert,Baleen whale,,Bacu
-Zalophus californianus,Carnivora,Otariidae,California sea lion,invert,Pinniped,,Zcal
-Ziphius cavirostris,Odontoceti,Ziphiidae,goose-beaked whale,squid,Beaked whale,,Zcav
-Phoca vitulina,Carnivora,Phocidae,harbor seal,fish,Pinniped,,Pvit
-Phocoenoides dalli,Odontoceti,Phocoenidae,Dall's porpoise,fish,Dolphin/Porpoise,,Pdal
-Eschrichtius robustus,Mysticeti,Eschrichtiidae,gray whale,invert,Baleen whale,,Erob
-Delphinidae,Odontoceti,Delphinidae,delphinids,fish,Dolphin/Porpoise,,Delph
-Balaenoptera physalus,Mysticeti,Balaenopteridae,fin whale,invert,Baleen whale,,Bphy
-Callorhinus ursinus,Carnivora,Otariidae,northern fur seal,fish,Pinniped,,Curs
-Mirounga angustirostris,Carnivora,Phocidae,elephant seal,squid,Pinniped,,Mang
-Eumetopias jubatus,Carnivora,Otariidae,Steller sea lion,fish,Pinniped,,Ejub
-Berardius bairdii,Odontoceti,Ziphiidae,northern giant bottlenose whale,squid,Beaked whale,,Bbai
-Balaenoptera musculus,Mysticeti,Balaenopteridae,blue whale,invert,Baleen whale,,Bmus
-Balaenoptera,Mysticeti,Balaenopteridae,balaenoptera,invert,Baleen whale,,Balaen
-Orcinus orca,Odontoceti,Delphinidae,killer whale,fish,Dolphin/Porpoise,,Oorc
-Grampus griseus,Odontoceti,Delphinidae,Risso's dolphin,fish,Dolphin/Porpoise,,Ggris
-Balaena mysticetus,Mysticeti,Balaenidae,bowhead whale,invert,Baleen whale,,Bmys
-Lissodelphis borealis,Odontoceti,Delphinidae,northern right whale dolphin,fish,Dolphin/Porpoise,,Lbor
-Mesoplodon stejnegeri,Odontoceti,Ziphiidae,saber-toothed whale,squid,Beaked whale,,Mste
-Tursiops truncatus,Odontoceti,Delphinidae,bottlenose dolphin,fish,Dolphin/Porpoise,,Ttru
+Species,Suborder,Family,common_name,Prey family,Broad_taxa,abbrev
+Megaptera novaeangliae,Mysticeti,Balaenopteridae,humpback whale,invert,Baleen whale,Mnov
+Phocoena phocoena,Odontoceti,Phocoenidae,harbor porpoise,fish,Dolphin/Porpoise,Ppho
+Stenella coeruleoalba,Odontoceti,Delphinidae,striped dolphin,fish,Dolphin/Porpoise,Scoe
+Lagenorhynchus obliquidens,Odontoceti,Delphinidae,Pacific white-sided dolphin,fish,Dolphin/Porpoise,Lobl
+Balaenoptera acutorostrata,Mysticeti,Balaenopteridae,minke whale,invert,Baleen whale,Bacu
+Zalophus californianus,Carnivora,Otariidae,California sea lion,invert,Pinniped,Zcal
+Ziphius cavirostris,Odontoceti,Ziphiidae,goose-beaked whale,squid,Beaked whale,Zcav
+Phoca vitulina,Carnivora,Phocidae,harbor seal,fish,Pinniped,Pvit
+Phocoenoides dalli,Odontoceti,Phocoenidae,Dall's porpoise,fish,Dolphin/Porpoise,Pdal
+Eschrichtius robustus,Mysticeti,Eschrichtiidae,gray whale,invert,Baleen whale,Erob
+Delphinidae,Odontoceti,Delphinidae,delphinids,fish,Dolphin/Porpoise,Delph
+Balaenoptera physalus,Mysticeti,Balaenopteridae,fin whale,invert,Baleen whale,Bphy
+Callorhinus ursinus,Carnivora,Otariidae,northern fur seal,fish,Pinniped,Curs
+Mirounga angustirostris,Carnivora,Phocidae,elephant seal,squid,Pinniped,Mang
+Eumetopias jubatus,Carnivora,Otariidae,Steller sea lion,fish,Pinniped,Ejub
+Berardius bairdii,Odontoceti,Ziphiidae,northern giant bottlenose whale,squid,Beaked whale,Bbai
+Balaenoptera musculus,Mysticeti,Balaenopteridae,blue whale,invert,Baleen whale,Bmus
+Balaenoptera,Mysticeti,Balaenopteridae,balaenoptera,invert,Baleen whale,Balaen
+Orcinus orca,Odontoceti,Delphinidae,killer whale,fish,Dolphin/Porpoise,Oorc
+Grampus griseus,Odontoceti,Delphinidae,Risso's dolphin,fish,Dolphin/Porpoise,Ggris
+Balaena mysticetus,Mysticeti,Balaenidae,bowhead whale,invert,Baleen whale,Bmys
+Lissodelphis borealis,Odontoceti,Delphinidae,northern right whale dolphin,fish,Dolphin/Porpoise,Lbor
+Mesoplodon stejnegeri,Odontoceti,Ziphiidae,saber-toothed whale,squid,Beaked whale,Mste
+Tursiops truncatus,Odontoceti,Delphinidae,bottlenose dolphin,fish,Dolphin/Porpoise,Ttru
