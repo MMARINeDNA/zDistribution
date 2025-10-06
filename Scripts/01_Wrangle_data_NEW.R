@@ -131,10 +131,17 @@ maxDepth_species <- read.csv("./Data/MM_dive_time_expand.csv") %>%
 detect_species_divetime <- detect_data %>% 
   mutate(common_name = case_when(common_name == "killer whale"~"mammal eating killer whale",
                                  TRUE~common_name)) %>% 
+  mutate(depth = case_when(depth == 0~1,
+                           TRUE~depth)) %>% 
   left_join(timeAtDepth, by = c("common_name" = "Species", "depth" = "depth")) %>% 
   left_join(maxDepth_species, by = c("common_name" = "Species")) %>% 
   mutate(time_per_m = case_when(depth > maxDepth~0,
-                                TRUE~time_per_m))
+                                TRUE~time_per_m)) %>% 
+  mutate(time_10m = case_when(depth > maxDepth~0,
+                              TRUE~time_10m)) %>% 
+  mutate(time_equalBin = case_when(depth > maxDepth~0,
+                                   TRUE~time_equalBin))
 
 save(detect_data, detect_species_divetime,
-     detect_per_species, detect_per_family, file = "./ProcessedData/detect_data.Rdata")
+     detect_per_species, detect_per_family, 
+     maxDepth_species, file = "./ProcessedData/detect_data.Rdata")

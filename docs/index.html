@@ -137,7 +137,7 @@ ul.task-list li input[type="checkbox"] {
 <section id="results" class="level2">
 <h2 class="anchored" data-anchor-id="results">Results</h2>
 <p>We selected 573 water samples collected at 182 unique locations during the 2019 NOAA hake abundance survey (<a href="#fig-bubble" class="quarto-xref">Figure&nbsp;1</a>), targeting 0, 50, 150, 300, and 500 m sampling depths at each station. Where the bottom was less than 500 m deep, we did not collect a sample at 500 m. We amplified and sequenced these samples in 1 technical replicate using MFU, 3 technical replicates using MV1, and 3-5 technical replicates using DL, resulting in a final total of 1568 amplified and sequenced samples.</p>
-<p>Across all samples, we observed 462 positive detections of 16 cetacean species. <a href="#fig-bubble" class="quarto-xref">Figure&nbsp;1</a> illustrates the distribution of detections across sampling depths, ignoring x-y distribution, for all cetacean species included in the study.</p>
+<p>Across all samples, we observed 462 positive detections of 16 cetacean species, including 6 baleen whale species, 5 dolphin species, 2 porpoise species, and 3 beaked whale species (Table 1). <a href="#fig-bubble" class="quarto-xref">Figure&nbsp;1</a> illustrates the distribution of detections across sampling depths, ignoring x-y distribution, for all cetacean species included in the study.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-bubble" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -146,7 +146,7 @@ ul.task-list li input[type="checkbox"] {
 <img src="index_files/figure-html/fig-bubble-1.png" class="img-fluid figure-img" width="768">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bubble-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Left: Geographic distribution of samples used in this study, acquired from water collected during a 2019 survey of hake distribution in the California Current. Right: Distribution of detections across sampling depths for all species included in the study. Species are grouped as follows: Baleen whales includes the Balaenopteridae, Balaenidae, and Eschericthidae; Dolphins/Porpoises includes all Delphinidae and Phocoenidae; Beaked whales includes all Ziphiidae.
+Figure&nbsp;1: Left: Distribution of detections across sampling depths for all species included in the study. Species are grouped as follows: Baleen whales includes the Balaenopteridae, Balaenidae, and Eschericthidae; Dolphins/Porpoises includes all Delphinidae and Phocoenidae; Beaked whales includes all Ziphiidae. Right: Geographic distribution of samples used in this study, acquired from water collected during a 2019 survey of hake distribution in the California Current.
 </figcaption>
 </figure>
 </div>
@@ -154,14 +154,42 @@ Figure&nbsp;1: Left: Geographic distribution of samples used in this study, acqu
 </div>
 <section id="question-1-does-pod-vary-with-depth-1" class="level3">
 <h3 class="anchored" data-anchor-id="question-1-does-pod-vary-with-depth-1">Question 1: Does POD vary with depth?</h3>
-<p>GAM-based model selection of detection probability across sampling depths negated the null hypothesis of no variation across depth, and indicated that the best alternative model allows probability of detection to vary by sampling depth on a species-specific basis (AIC = XXX).</p>
+<p>GAM-based model selection of detection probability across sampling depths negated the null hypothesis of no variation across depth, and indicated that the best alternative model allows probability of detection to vary by t (AIC = XXX).</p>
 <p><em>For each of the three “ecological” strata and the time-at-depth model, describe significance and report AIC. In the discussion, talk about how these strata may be used to guide sampling for lesser known-species - e.g.&nbsp;if we don’t have any information about a particular baleen whale species, we might let the prey distribution model guide our sampling strategy and choose to sample at 50-100m and ~300m (where poop is).</em></p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-H1POD" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-H1POD-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-H1POD-1.png" class="img-fluid figure-img" width="960">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-H1POD-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Left: Species-specific probability of detection across all depths sampled in this study. Solid line shows POD; shaded region shows 95% confidence interval. Dashed line shows proportional time at depth. Species abbreviation codes can be found in Table 1; plots are colored by taxonomic category as outlined in Table 1. Right: Probability of detection across depths sampled in this study for species stratified based on broad prey categories.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
 <section id="question-2-does-depth-variability-in-pod-covary-with-observation-bias-1" class="level4">
 <h4 class="anchored" data-anchor-id="question-2-does-depth-variability-in-pod-covary-with-observation-bias-1">Question 2: Does depth variability in POD covary with observation bias?</h4>
 </section>
 <section id="question-3-does-depth-variability-in-pod-covary-with-xy-variability-1" class="level4">
 <h4 class="anchored" data-anchor-id="question-3-does-depth-variability-in-pod-covary-with-xy-variability-1">Question 3: Does depth variability in POD covary with xy variability?</h4>
 <p><em>Depth does covary with xy. Don’t go so far as to make 3D maps here (those will go in the Big Product, but maybe choose 1-2 species with the most samples/highest significant and 1) make figures showing depth variability at 3 latitudes holding longitude constant, and 2) figures showing depth variability at 3 longitudes holding latitude constant.</em></p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-H3PODlat" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-H3PODlat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-H3PODlat-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-H3PODlat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Latitude-driven variability in POD across three species included in this study; species chosen were those with the largest number of detections in each of the three broad taxonomic categories included in the study. POD was estimated at three latitudes, representing the high, low, and middle latitudes of the study survey area. Longitude is constant.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
 </section>
 </section>
 </section>
@@ -172,7 +200,8 @@ Figure&nbsp;1: Left: Geographic distribution of samples used in this study, acqu
 <ol type="1">
 <li><p>Sampling depth matters. To target rare species, optimizing sampling depth could increase detection rates and improve xy distributional models while minimizing cost.</p></li>
 <li><p>Sampling depth varies by species, and roughly according to some basic ecological principles, e.g.&nbsp;generally eDNA was found where the animals spend most of their time, and prey type was indicative of POD across depth.</p></li>
-<li><p>Notable caveats are: whalefall and poop (the latter mostly noticeable for baleen whales). <em>Include some figures of potential whalefall here or in supplement? Or add this as an explicit method/result? Include poop sinking equations here or in a supplement?</em></p>
+<li><p>Notable caveats are: whalefall and poop (the latter mostly noticeable for baleen whales). <em>Include some figures of potential whalefall here or in supplement? Or add this as an explicit method/result? Include poop sinking equations here or in a supplement?</em></p></li>
+<li><p>Beaked whale distributions are poorly understood and could be improved the most by eDNA sampling/monitoring. Talk here about how eDNA depth distributions compare to what we know about beaked whale distributions, e.g.&nbsp;two of the detected species are found most often around 300m, where they are thought to take resting dives. (Is this where they spend most of their time according to Navy reports?) Stejnegers was found deeper. Sampling deeper than 500m may increase detection for deeper diving beaked whales, e.g.&nbsp;some of the ones that are almost never detected at the surface.</p>
 <h4 id="question-2" class="anchored">Question 2:</h4></li>
 <li><p>Increasing technical replication (and primer specificity?) increases POD. <em>and this covaries with depth effect?</em></p>
 <h4 id="question-3" class="anchored">Question 3:</h4></li>
