@@ -109,7 +109,7 @@ We returned to the use of GAMs to address this question, and again built iterati
 
 We selected `r length(unique(detect_data$NWFSCsampleID))` water samples collected at `r length(unique(detect_data$station))` unique locations during the 2019 NOAA hake abundance survey (@fig-bubble), targeting 0, 50, 150, 300, and 500 m sampling depths at each station. Where the bottom was less than 500 m deep, we did not collect a sample at 500 m. We amplified and sequenced these samples in 1 technical replicate using MFU, 3 technical replicates using MV1, and 3-5 technical replicates using DL, resulting in a final total of `r detect_data %>% group_by(primer, NWFSCsampleID) %>% n_groups()` amplified and sequenced samples.
 
-Across all samples, we observed `r sum(detect_data$Detected)` positive detections of `r length(unique(detect_data$BestTaxon))` cetacean species, including 6 baleen whale species, 5 dolphin species, 2 porpoise species, and 3 beaked whale species (Table 1). @fig-bubble illustrates the distribution of detections across sampling depths, ignoring x-y distribution, for all cetacean species included in the study.
+Across all samples, we observed `r sum(detect_data$Detected)` positive detections of `r length(unique(detect_data$BestTaxon))` cetacean species, including 6 baleen whale species, 5 dolphin species, 2 porpoise species, and 3 beaked whale species (Table 1 will include species-specific common names, abbreviations, n detections, etc). XX species were observed most frequently, and XXX least frequently. *More here about detection frequency in the overall study.* @fig-bubble illustrates the distribution of detections across sampling depths, ignoring x-y distribution, for all cetacean species included in the study.
 
 ```{r}
 #| label: fig-bubble
@@ -123,9 +123,13 @@ plot_grid(plotlist = aligned, ncol = 2, rel_widths = c(3, 1))
 
 ### Question 1: Does POD vary with depth?
 
-GAM-based model selection of detection probability across sampling depths negated the null hypothesis of no variation across depth, and indicated that the best alternative model allows probability of detection to vary by t (AIC = XXX).
+GAM-based model selection of detection probability across sampling depths negated the null hypothesis of no variation across depth. The best alternative model allows probability of detection to vary by time spent at depth with a species-specific smooth (AIC = XXX). *Model diagnostics here, include table of AIC values?*
 
-*For each of the three "ecological" strata and the time-at-depth model, describe significance and report AIC. In the discussion, talk about how these strata may be used to guide sampling for lesser known-species - e.g. if we don't have any information about a particular baleen whale species, we might let the prey distribution model guide our sampling strategy and choose to sample at 50-100m and \~300m (where poop is).*
+Species-specific detections were broadly highest at depths where they are predicted to spend the most time, especially within the Dephinidae, with notable exceptions among the beaked whales and baleen whales (@fig-H1POD). We present predictions of POD by depth in @fig-H1POD alongside trends in relative time spent at each depth to illustrate the depth at which each species in the study is most likely to be detected, as well as which species can be detected where they spend time and which are more likely to be detected elsewhere. As noted above, all three beaked whale observed in the study are more likely to be detected at depths greater than 300m, despite being predicted to spend the majority of their time above 100m. Similarly, baleen whales rarely travel below 100m (*check this number*) but in this study two patterns emerged: two species had highest POD at the surface and 500m (fin and humpback whales), and three species had increasing POD with increasing depth (minke, blue, and bowhead whales).
+
+When detections were stratified according to broad prey category (fish, small invertebrates, or squid), we found that POD by depth was significant within each of these three strata (@fig-H1POD). This model had an AIC lower than all of the models stratified by species (AIC = `r round(filter(modelAIC, model == "m1.2b")$AIC, digits = 0)`, indicating species-specific variability that is not accounted for when aggregating by preferred diet.
+
+*In the discussion, talk about how ecological strata may be used to guide sampling for lesser known-species - e.g. if we don't have any information about a particular baleen whale species, we might let the prey distribution model guide our sampling strategy and choose to sample at 50-100m and \~500m (where poop is).*
 
 ```{r}
 #| label: fig-H1POD
@@ -138,6 +142,8 @@ m1.2POD + m1.2bPOD + plot_layout(widths = c(4,1), guides = "collect", axis_title
 ```
 
 #### Question 2: Does depth variability in POD covary with observation bias?
+
+Technical replication increases probability of detection.
 
 #### Question 3: Does depth variability in POD covary with xy variability?
 
