@@ -397,7 +397,8 @@ save(m1.2e, file = "./ProcessedData/m1.2e.RData")
 
 ### Aggregate model AIC --------------------------------------------------------
 
-modelAIC <- AIC(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e)
+modelAIC <- AIC(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e) %>% 
+  rownames_to_column(var = "model")
 
 ######## save all models -------------------------------------------------------
 

@@ -137,7 +137,7 @@ ul.task-list li input[type="checkbox"] {
 <section id="results" class="level2">
 <h2 class="anchored" data-anchor-id="results">Results</h2>
 <p>We selected 573 water samples collected at 182 unique locations during the 2019 NOAA hake abundance survey (<a href="#fig-bubble" class="quarto-xref">Figure&nbsp;1</a>), targeting 0, 50, 150, 300, and 500 m sampling depths at each station. Where the bottom was less than 500 m deep, we did not collect a sample at 500 m. We amplified and sequenced these samples in 1 technical replicate using MFU, 3 technical replicates using MV1, and 3-5 technical replicates using DL, resulting in a final total of 1568 amplified and sequenced samples.</p>
-<p>Across all samples, we observed 462 positive detections of 16 cetacean species, including 6 baleen whale species, 5 dolphin species, 2 porpoise species, and 3 beaked whale species (Table 1). <a href="#fig-bubble" class="quarto-xref">Figure&nbsp;1</a> illustrates the distribution of detections across sampling depths, ignoring x-y distribution, for all cetacean species included in the study.</p>
+<p>Across all samples, we observed 462 positive detections of 16 cetacean species, including 6 baleen whale species, 5 dolphin species, 2 porpoise species, and 3 beaked whale species (Table 1 will include species-specific common names, abbreviations, n detections, etc). XX species were observed most frequently, and XXX least frequently. <em>More here about detection frequency in the overall study.</em> <a href="#fig-bubble" class="quarto-xref">Figure&nbsp;1</a> illustrates the distribution of detections across sampling depths, ignoring x-y distribution, for all cetacean species included in the study.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-bubble" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -154,8 +154,10 @@ Figure&nbsp;1: Left: Distribution of detections across sampling depths for all s
 </div>
 <section id="question-1-does-pod-vary-with-depth-1" class="level3">
 <h3 class="anchored" data-anchor-id="question-1-does-pod-vary-with-depth-1">Question 1: Does POD vary with depth?</h3>
-<p>GAM-based model selection of detection probability across sampling depths negated the null hypothesis of no variation across depth, and indicated that the best alternative model allows probability of detection to vary by t (AIC = XXX).</p>
-<p><em>For each of the three “ecological” strata and the time-at-depth model, describe significance and report AIC. In the discussion, talk about how these strata may be used to guide sampling for lesser known-species - e.g.&nbsp;if we don’t have any information about a particular baleen whale species, we might let the prey distribution model guide our sampling strategy and choose to sample at 50-100m and ~300m (where poop is).</em></p>
+<p>GAM-based model selection of detection probability across sampling depths negated the null hypothesis of no variation across depth. The best alternative model allows probability of detection to vary by time spent at depth with a species-specific smooth (AIC = XXX). <em>Model diagnostics here, include table of AIC values?</em></p>
+<p>Species-specific detections were broadly highest at depths where they are predicted to spend the most time, especially within the Dephinidae, with notable exceptions among the beaked whales and baleen whales (<a href="#fig-H1POD" class="quarto-xref">Figure&nbsp;2</a>). We present predictions of POD by depth in <a href="#fig-H1POD" class="quarto-xref">Figure&nbsp;2</a> alongside trends in relative time spent at each depth to illustrate the depth at which each species in the study is most likely to be detected, as well as which species can be detected where they spend time and which are more likely to be detected elsewhere. As noted above, all three beaked whale observed in the study are more likely to be detected at depths greater than 300m, despite being predicted to spend the majority of their time above 100m. Similarly, baleen whales rarely travel below 100m (<em>check this number</em>) but in this study two patterns emerged: two species had highest POD at the surface and 500m (fin and humpback whales), and three species had increasing POD with increasing depth (minke, blue, and bowhead whales).</p>
+<p>When detections were stratified according to broad prey category (fish, small invertebrates, or squid), we found that POD by depth was significant within each of these three strata (<a href="#fig-H1POD" class="quarto-xref">Figure&nbsp;2</a>). This model had an AIC lower than all of the models stratified by species (AIC = 4506, indicating species-specific variability that is not accounted for when aggregating by preferred diet.</p>
+<p><em>In the discussion, talk about how ecological strata may be used to guide sampling for lesser known-species - e.g.&nbsp;if we don’t have any information about a particular baleen whale species, we might let the prey distribution model guide our sampling strategy and choose to sample at 50-100m and ~500m (where poop is).</em></p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-H1POD" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -172,6 +174,7 @@ Figure&nbsp;2: Left: Species-specific probability of detection across all depths
 </div>
 <section id="question-2-does-depth-variability-in-pod-covary-with-observation-bias-1" class="level4">
 <h4 class="anchored" data-anchor-id="question-2-does-depth-variability-in-pod-covary-with-observation-bias-1">Question 2: Does depth variability in POD covary with observation bias?</h4>
+<p>Technical replication increases probability of detection.</p>
 </section>
 <section id="question-3-does-depth-variability-in-pod-covary-with-xy-variability-1" class="level4">
 <h4 class="anchored" data-anchor-id="question-3-does-depth-variability-in-pod-covary-with-xy-variability-1">Question 3: Does depth variability in POD covary with xy variability?</h4>
