@@ -17,7 +17,7 @@ mmEcoEvo <- read.csv("./Data/MM_metadata.csv")
 
 ### H1: POD by depth alone -----------------------------------------------------
 # basic model with no species-specific terms
-m1.0 <- gam(Detected ~ s(depth), family = "binomial", data = detect_data) 
+m1.0 <- gam(Detected ~ s(depth), family = "binomial", data = detect_data, method="REML") 
 summary(m1.0)
 # depth p-value = 2.6e-06
 AIC(m1.0)
@@ -51,7 +51,7 @@ ggplot(m1.0_sePreds, aes(x = depth, y = mu)) +
 
 ### H2: POD by depth across species --------------------------------------------
 # this model will have a different intercept for each species, but spline will be same shape
-m1.1 <- gam(Detected ~ s(depth) + BestTaxon, family = "binomial", data = detect_data)
+m1.1 <- gam(Detected ~ s(depth) + BestTaxon, family = "binomial", data = detect_data, method="REML")
 summary(m1.1)
 
 AIC(m1.1)
@@ -90,7 +90,18 @@ ggplot(m1.1_sePreds, aes(x = depth, y = mu, color = BestTaxon, fill = BestTaxon)
 # this model will have separate smooths for each species
 m1.2 <- gam(Detected ~ s(depth, by = as.factor(BestTaxon)), 
             family = "binomial", 
-            data = detect_data)
+            data = detect_data, method="REML")
+# could use this setup
+# to separate the depth effect from the taxon effect
+# from the depth-taxon effect. 
+# for random effect taxon needs to be a factor
+detect_data$BestTaxon <- as.factor(detect_data$BestTaxon)
+m1.2_ti <- gam(Detected ~ 
+              ti(depth, k=5, bs="ts")+
+              ti(BestTaxon, k=16, bs="re")+
+              ti(depth, BestTaxon, k=c(5, 16), bs=c("ts","re")),
+            family = "binomial", data = detect_data)
+# AIC = 5410
 
 save(m1.2, file = "./ProcessedData/m1.2.RData")
 
@@ -137,7 +148,7 @@ ggplot(m1.2_sePreds, aes(x = depth, color = Broad_taxa, fill = Broad_taxa)) +
 
 ### H2a: POD by depth across taxonomic family ----------------------------------
 m1.2a <- gam(Detected ~ s(depth, by = as.factor(Family)), 
-            family = "binomial", data = detect_data)
+            family = "binomial", data = detect_data, method="REML")
 summary(m1.2a)
 # significant for some families. Similar to m1.2,
 # no families with < 30 detections are significant
@@ -173,7 +184,7 @@ ggplot(m1.2a_sePreds, aes(x = depth, y = mu, color = Family, fill = Family)) +
 ### H2b:POD by depth across prey category --------------------------------------
 
 m1.2b <- gam(Detected ~ s(depth, by = as.factor(Prey.family)), 
-             family = "binomial", data = detect_data)
+             family = "binomial", data = detect_data, method="REML")
 summary(m1.2b)
 #significant for all three types
 AIC(m1.2b)
@@ -208,7 +219,7 @@ ggplot(m1.2b_sePreds, aes(x = depth, y = mu, color = Prey.family, fill = Prey.fa
 ### H2c: POD by time-at-depth --------------------------------------------------
 
 m1.2c <- gam(Detected ~ s(time_10m), 
-             family = "binomial", data = detect_species_divetime)
+             family = "binomial", data = detect_species_divetime, method="REML")
 summary(m1.2c)
 #p<2e-16
 AIC(m1.2c)
@@ -235,7 +246,7 @@ ggplot(m1.2c_sePreds, aes(x = time_10m, y = mu)) +
 ### H2d: POD by time-at-depth across Family ------------------------------------
 
 m1.2d <- gam(Detected ~ s(time_10m, by = as.factor(Family)), 
-             family = "binomial", data = detect_species_divetime)
+             family = "binomial", data = detect_species_divetime, method="REML")
 summary(m1.2d)
 #significant for all but bowhead and grey whale
 AIC(m1.2d)
@@ -268,7 +279,7 @@ ggplot(m1.2d_sePreds, aes(x = time_10m, y = mu, color = Family, fill = Family)) 
 ## This one takes a really long time to run.
 
 m1.2e <- gam(Detected ~ s(time_10m, by = as.factor(BestTaxon)), 
-             family = "binomial", data = detect_species_divetime)
+             family = "binomial", data = detect_species_divetime, method="REML")
 summary(m1.2e)
 #10m bin summary:
 #sig: Bphy, Lobl, Lbor, Mnov, Ppho, Pdal, Scoe
@@ -404,3 +415,6 @@ modelAIC <- AIC(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e) %>%
 
 save(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e, modelAIC,
      file = "./ProcessedData/H1models.RData")
+# 1.2e
+# 1.1
+# 1.2
