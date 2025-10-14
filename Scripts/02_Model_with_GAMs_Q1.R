@@ -86,17 +86,13 @@ ggplot(m1.1_sePreds, aes(x = depth, y = mu, color = BestTaxon, fill = BestTaxon)
   coord_cartesian(ylim = c(0,0.1)) +
   theme_minimal()
 
-
-# this model will have separate smooths for each species
-m1.2 <- gam(Detected ~ s(depth, by = as.factor(BestTaxon)), 
-            family = "binomial", 
-            data = detect_data, method="REML")
-# could use this setup
-# to separate the depth effect from the taxon effect
+# separate the depth effect from the taxon effect
 # from the depth-taxon effect. 
+
 # for random effect taxon needs to be a factor
 detect_data$BestTaxon <- as.factor(detect_data$BestTaxon)
-m1.2_ti <- gam(Detected ~ 
+
+m1.2 <- gam(Detected ~ 
               ti(depth, k=5, bs="ts")+
               ti(BestTaxon, k=16, bs="re")+
               ti(depth, BestTaxon, k=c(5, 16), bs=c("ts","re")),
@@ -105,15 +101,12 @@ m1.2_ti <- gam(Detected ~
 
 save(m1.2, file = "./ProcessedData/m1.2.RData")
 
-#m1.2nowf <- gam(Detected ~ s(depth, by = as.factor(BestTaxon)), family = "binomial", data = detect_data_nowf)
-
 load("./ProcessedData/m1.2.RData")
 
 summary(m1.2)
-# Depth significant for some taxa. 
-# Non significant for taxa with < 10 detections, and for Oorc, Bbai, 
+
 AIC(m1.2)
-# AIC 4579
+# AIC 5410
 
 m1.2_predictions <- expand_grid(depth = 0:500, BestTaxon = as.factor(unique(detect_data$BestTaxon)))
 m1.2_predictions$pred <- predict.gam(m1.2, m1.2_predictions, type = "response")
@@ -147,8 +140,12 @@ ggplot(m1.2_sePreds, aes(x = depth, color = Broad_taxa, fill = Broad_taxa)) +
   theme(legend.position = "bottom")
 
 ### H2a: POD by depth across taxonomic family ----------------------------------
-m1.2a <- gam(Detected ~ s(depth, by = as.factor(Family)), 
-            family = "binomial", data = detect_data, method="REML")
+detect_data$Family <- as.factor(detect_data$Family)
+m1.2a <- gam(Detected ~ 
+               ti(depth, k=5, bs="ts")+
+               ti(Family, k=6, bs="re")+
+               ti(depth, Family, k=c(5, 6), bs=c("ts","re")),
+             family = "binomial", data = detect_data, method = "REML")
 summary(m1.2a)
 # significant for some families. Similar to m1.2,
 # no families with < 30 detections are significant
@@ -182,9 +179,12 @@ ggplot(m1.2a_sePreds, aes(x = depth, y = mu, color = Family, fill = Family)) +
   theme_minimal()
 
 ### H2b:POD by depth across prey category --------------------------------------
-
-m1.2b <- gam(Detected ~ s(depth, by = as.factor(Prey.family)), 
-             family = "binomial", data = detect_data, method="REML")
+detect_data$Prey.family <- as.factor(detect_data$Prey.family)
+m1.2b <-  gam(Detected ~ 
+                     ti(depth, k=5, bs="ts")+
+                     ti(Prey.family, k=3, bs="re")+
+                     ti(depth, Prey.family, k=c(5, 3), bs=c("ts","re")),
+                   family = "binomial", data = detect_data,  method = "REML")
 summary(m1.2b)
 #significant for all three types
 AIC(m1.2b)
@@ -217,110 +217,110 @@ ggplot(m1.2b_sePreds, aes(x = depth, y = mu, color = Prey.family, fill = Prey.fa
   ylab("POD")
 
 ### H2c: POD by time-at-depth --------------------------------------------------
-
-m1.2c <- gam(Detected ~ s(time_10m), 
-             family = "binomial", data = detect_species_divetime, method="REML")
-summary(m1.2c)
-#p<2e-16
-AIC(m1.2c)
-
-
-m1.2c_predictions <- data.frame(time_10m = seq(min(detect_species_divetime$time_10m),
-                                                 max(detect_species_divetime$time_10m), 
-                                                 by = 5))
-
-m1.2cpreds <- predict(m1.2c, m1.2c_predictions, type = "response", se.fit = TRUE)
-
-m1.2c_sePreds <- data.frame(m1.2c_predictions,
-                           mu   = exp(m1.2cpreds$fit),
-                           low  = exp(m1.2cpreds$fit - 1.96 * m1.2cpreds$se.fit),
-                           high = exp(m1.2cpreds$fit + 1.96 * m1.2cpreds$se.fit))
-
-ggplot(m1.2c_sePreds, aes(x = time_10m, y = mu)) +
-  geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity", 
-              alpha = 0.2, color = "#74677e", fill = "#74677e") +
-  ylab("POD") +
-  xlab("Time at depth") +
-  theme_minimal()
+# 
+# m1.2c <- gam(Detected ~ s(time_10m), 
+#              family = "binomial", data = detect_species_divetime, method="REML")
+# summary(m1.2c)
+# #p<2e-16
+# AIC(m1.2c)
+# 
+# 
+# m1.2c_predictions <- data.frame(time_10m = seq(min(detect_species_divetime$time_10m),
+#                                                  max(detect_species_divetime$time_10m), 
+#                                                  by = 5))
+# 
+# m1.2cpreds <- predict(m1.2c, m1.2c_predictions, type = "response", se.fit = TRUE)
+# 
+# m1.2c_sePreds <- data.frame(m1.2c_predictions,
+#                            mu   = exp(m1.2cpreds$fit),
+#                            low  = exp(m1.2cpreds$fit - 1.96 * m1.2cpreds$se.fit),
+#                            high = exp(m1.2cpreds$fit + 1.96 * m1.2cpreds$se.fit))
+# 
+# ggplot(m1.2c_sePreds, aes(x = time_10m, y = mu)) +
+#   geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity", 
+#               alpha = 0.2, color = "#74677e", fill = "#74677e") +
+#   ylab("POD") +
+#   xlab("Time at depth") +
+#   theme_minimal()
 
 ### H2d: POD by time-at-depth across Family ------------------------------------
-
-m1.2d <- gam(Detected ~ s(time_10m, by = as.factor(Family)), 
-             family = "binomial", data = detect_species_divetime, method="REML")
-summary(m1.2d)
-#significant for all but bowhead and grey whale
-AIC(m1.2d)
-#4299 - within ~2 of depth-by-species
-
-m1.2d_predictions <- expand_grid(time_10m = seq(min(detect_species_divetime$time_10m),
-                                                max(detect_species_divetime$time_10m), 
-                                                by = 5),
-                                 Family = as.factor(unique(detect_species_divetime$Family)))
-
-m1.2dpreds <- predict(m1.2d, m1.2d_predictions, type = "response", se.fit = TRUE)
-
-m1.2d_sePreds <- data.frame(m1.2d_predictions,
-                            mu   = exp(m1.2dpreds$fit),
-                            low  = exp(m1.2dpreds$fit - 1.96 * m1.2dpreds$se.fit),
-                            high = exp(m1.2dpreds$fit + 1.96 * m1.2dpreds$se.fit))
-
-ggplot(m1.2d_sePreds, aes(x = time_10m, y = mu, color = Family, fill = Family)) +
-  geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity", 
-              alpha = 0.2) +
-  
-  ylab("POD") +
-  xlab("Time at depth") +
-  scale_fill_manual(values = c(pnw_palette("Bay",8, type = "continuous"))) +
-  scale_color_manual(values = c(pnw_palette("Bay",8, type = "continuous"))) +
-  facet_wrap(~Family, scales = "free_y") +
-  theme_minimal()
-
-### H2e: POD by time-at-depth across species -----------------------------------
-## This one takes a really long time to run.
-
-m1.2e <- gam(Detected ~ s(time_10m, by = as.factor(BestTaxon)), 
-             family = "binomial", data = detect_species_divetime, method="REML")
-summary(m1.2e)
-#10m bin summary:
-#sig: Bphy, Lobl, Lbor, Mnov, Ppho, Pdal, Scoe
-#<0.09: Zcav, Ggri, Erob, Bbai, Bmus, Bacu, Bmys
-#no sig: Mste, Oorc
-#13.2% deviance explained
-
-AIC(m1.2e)
-#10m bins = 4075
-#equal bins = 4082
-
-m1.2e_predictions <- expand_grid(time_10m = seq(min(detect_species_divetime$time_10m),
-                                                  max(detect_species_divetime$time_10m), 
-                                                  by = 5),
-                                 BestTaxon = as.factor(unique(detect_species_divetime$BestTaxon)))
-
-m1.2epreds <- predict(m1.2e, m1.2e_predictions, type = "response", se.fit = TRUE)
-
-m1.2e_sePreds <- data.frame(m1.2e_predictions,
-                            mu   = exp(m1.2epreds$fit),
-                            low  = exp(m1.2epreds$fit - 1.96 * m1.2epreds$se.fit),
-                            high = exp(m1.2epreds$fit + 1.96 * m1.2epreds$se.fit)) %>% 
-  left_join(mmEcoEvo, by = c("BestTaxon" = "Species"))
-
-ggplot(m1.2e_sePreds, aes(x = time_10m, color = Broad_taxa, fill = Broad_taxa)) +
-  geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity", 
-              alpha = 0.2) +
-  ylab("POD") +
-  xlab("Prop time at depth") +
-  facet_wrap(~abbrev, scales = "free_y") +
-  scale_fill_manual(values = c(pnw_palette("Cascades",2, type = "continuous"),
-                               pnw_palette("Sunset",2, type = "continuous"))) +
-  scale_color_manual(values = c(pnw_palette("Cascades",2, type = "continuous"),
-                                pnw_palette("Sunset",2, type = "continuous"))) +
-  geom_rug(data = detect_species_divetime, aes(x=time_10m), color = "grey")+
-  geom_rug(data = filter(detect_species_divetime, Detected == 1), aes(x=time_10m))+
-  theme_minimal() +
-  theme(legend.position = "bottom")
-  
-
-save(m1.2e, file = "./ProcessedData/m1.2e.RData")
+# 
+# m1.2d <- gam(Detected ~ s(time_10m, by = as.factor(Family)), 
+#              family = "binomial", data = detect_species_divetime, method="REML")
+# summary(m1.2d)
+# #significant for all but bowhead and grey whale
+# AIC(m1.2d)
+# #4299 - within ~2 of depth-by-species
+# 
+# m1.2d_predictions <- expand_grid(time_10m = seq(min(detect_species_divetime$time_10m),
+#                                                 max(detect_species_divetime$time_10m), 
+#                                                 by = 5),
+#                                  Family = as.factor(unique(detect_species_divetime$Family)))
+# 
+# m1.2dpreds <- predict(m1.2d, m1.2d_predictions, type = "response", se.fit = TRUE)
+# 
+# m1.2d_sePreds <- data.frame(m1.2d_predictions,
+#                             mu   = exp(m1.2dpreds$fit),
+#                             low  = exp(m1.2dpreds$fit - 1.96 * m1.2dpreds$se.fit),
+#                             high = exp(m1.2dpreds$fit + 1.96 * m1.2dpreds$se.fit))
+# 
+# ggplot(m1.2d_sePreds, aes(x = time_10m, y = mu, color = Family, fill = Family)) +
+#   geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity", 
+#               alpha = 0.2) +
+#   
+#   ylab("POD") +
+#   xlab("Time at depth") +
+#   scale_fill_manual(values = c(pnw_palette("Bay",8, type = "continuous"))) +
+#   scale_color_manual(values = c(pnw_palette("Bay",8, type = "continuous"))) +
+#   facet_wrap(~Family, scales = "free_y") +
+#   theme_minimal()
+# 
+# ### H2e: POD by time-at-depth across species -----------------------------------
+# ## This one takes a really long time to run.
+# 
+# m1.2e <- gam(Detected ~ s(time_10m, by = as.factor(BestTaxon)), 
+#              family = "binomial", data = detect_species_divetime, method="REML")
+# summary(m1.2e)
+# #10m bin summary:
+# #sig: Bphy, Lobl, Lbor, Mnov, Ppho, Pdal, Scoe
+# #<0.09: Zcav, Ggri, Erob, Bbai, Bmus, Bacu, Bmys
+# #no sig: Mste, Oorc
+# #13.2% deviance explained
+# 
+# AIC(m1.2e)
+# #10m bins = 4075
+# #equal bins = 4082
+# 
+# m1.2e_predictions <- expand_grid(time_10m = seq(min(detect_species_divetime$time_10m),
+#                                                   max(detect_species_divetime$time_10m), 
+#                                                   by = 5),
+#                                  BestTaxon = as.factor(unique(detect_species_divetime$BestTaxon)))
+# 
+# m1.2epreds <- predict(m1.2e, m1.2e_predictions, type = "response", se.fit = TRUE)
+# 
+# m1.2e_sePreds <- data.frame(m1.2e_predictions,
+#                             mu   = exp(m1.2epreds$fit),
+#                             low  = exp(m1.2epreds$fit - 1.96 * m1.2epreds$se.fit),
+#                             high = exp(m1.2epreds$fit + 1.96 * m1.2epreds$se.fit)) %>% 
+#   left_join(mmEcoEvo, by = c("BestTaxon" = "Species"))
+# 
+# ggplot(m1.2e_sePreds, aes(x = time_10m, color = Broad_taxa, fill = Broad_taxa)) +
+#   geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity", 
+#               alpha = 0.2) +
+#   ylab("POD") +
+#   xlab("Prop time at depth") +
+#   facet_wrap(~abbrev, scales = "free_y") +
+#   scale_fill_manual(values = c(pnw_palette("Cascades",2, type = "continuous"),
+#                                pnw_palette("Sunset",2, type = "continuous"))) +
+#   scale_color_manual(values = c(pnw_palette("Cascades",2, type = "continuous"),
+#                                 pnw_palette("Sunset",2, type = "continuous"))) +
+#   geom_rug(data = detect_species_divetime, aes(x=time_10m), color = "grey")+
+#   geom_rug(data = filter(detect_species_divetime, Detected == 1), aes(x=time_10m))+
+#   theme_minimal() +
+#   theme(legend.position = "bottom")
+#   
+# 
+# save(m1.2e, file = "./ProcessedData/m1.2e.RData")
 
 ### H2f: POD by depth + time-at-depth across species ---------------------------
 ## This one takes a really long time to run.
@@ -413,7 +413,7 @@ modelAIC <- AIC(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e) %>%
 
 ######## save all models -------------------------------------------------------
 
-save(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e, modelAIC,
+save(m1.0, m1.1, m1.2, m1.2a, m1.2b, modelAIC,
      file = "./ProcessedData/H1models.RData")
 # 1.2e
 # 1.1
