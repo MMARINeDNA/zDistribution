@@ -10,6 +10,7 @@ library(tidyverse)
 metadata <- read.csv("./Data/Hake_2019_metadata.csv")
 timeAtDepth <- read.csv("./Data/MM_dive_time_expand.csv")
 mmEcoEvo <- read.csv("./Data/MM_metadata.csv")
+freezethaw <- read.csv("./Data/HAKE2019_miseq_runs_thaw.csv")
 
 detect_data_raw <- read.csv("./Data/M3_compiled_taxon_table_wide.csv") %>% 
   pivot_longer(-c(BestTaxon, Class), names_to = "SampleUID", values_to = "nReads") %>% 
@@ -24,12 +25,25 @@ detect_data_raw <- read.csv("./Data/M3_compiled_taxon_table_wide.csv") %>%
   filter(Class == "Mammalia") %>% 
   filter(!BestTaxon %in% c("Moschus", "Equus caballus"))
 
+## Add freeze/thaw info INCOMPLETE
+
+freezethaw_mod <- freezethaw %>%
+  select(-Plate) %>% # take this out to avoid confusion
+  mutate("plate" = paste0("MURI", RunNo)) %>%
+  rename("primer" = Markers) %>%
+  mutate(plate = as.character(plate))
+
+detect_data_thaw <- detect_data_raw %>%
+  left_join(freezethaw_mod, by = c("plate", "primer"))
+
 ## Filter out DLL1, C16 primer, plate 309, and DL/DLL1 from plate 314 ----------
 
 detect_data_filt <- detect_data_raw %>% 
   filter(plate != "MURI309") %>% 
   filter(!(primer %in% c("DLL1N", "C16"))) %>% 
   filter(!(primer == "DL" & plate == "MURI314"))
+
+
 
 ## Reduce sequencing reps ------------------------------------------------------
 
@@ -61,12 +75,14 @@ detect_data_1dil <- detect_data_1seq %>%
           
 
 ## Reduce tech reps ------------------------------------------------------------
-
-detect_data_1rep <- detect_data_1dil %>% 
-  group_by(primer, NWFSCsampleID, BestTaxon) %>% 
-  mutate(nReps = n()) %>% 
-  mutate(Detected = max(Detected)) %>% 
-  slice_head()
+## EKJ Note I think we don't want to do this anymore, since
+## each tech rep will have a different number of freeze-thaw cycles
+## associated with it.
+# detect_data_1rep <- detect_data_1dil %>% 
+#   group_by(primer, NWFSCsampleID, BestTaxon) %>% 
+#   mutate(nReps = n()) %>% 
+#   mutate(Detected = max(Detected)) %>% 
+#   slice_head()
   
 ## Count number of samples -----------------------------------------------------
 

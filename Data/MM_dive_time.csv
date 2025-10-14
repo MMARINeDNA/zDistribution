@@ -1,0 +1,297 @@
+Species,max_depth,percent_time,depth_bin_m,time_per_m,surrogate
+humpback whale,4,37,4,9.25,
+humpback whale,20,25,16,1.5625,
+humpback whale,35,7,15,0.466666667,
+humpback whale,50,3,15,0.2,
+humpback whale,100,6,50,0.12,
+humpback whale,150,7,50,0.14,
+humpback whale,200,7.5,50,0.15,
+humpback whale,300,7.195,100,0.07195,
+humpback whale,400,0.27,100,0.0027,
+humpback whale,500,0.035,100,0.00035,
+harbor porpoise,15,68.45,15,4.563333333,
+harbor porpoise,30,18.32,15,1.221333333,
+harbor porpoise,45,9.99,15,0.666,
+harbor porpoise,60,2.86,15,0.190666667,
+harbor porpoise,75,0.37,15,0.024666667,
+striped dolphin,2,20.4,2,10.2,spotted dolphin
+striped dolphin,4,10.7,2,5.35,spotted dolphin
+striped dolphin,6,8.6,2,4.3,spotted dolphin
+striped dolphin,8,9,2,4.5,spotted dolphin
+striped dolphin,10,9.5,2,4.75,spotted dolphin
+striped dolphin,20,21.3,10,2.13,spotted dolphin
+striped dolphin,30,8.8,10,0.88,spotted dolphin
+striped dolphin,40,3.8,10,0.38,spotted dolphin
+striped dolphin,50,2.5,10,0.25,spotted dolphin
+striped dolphin,60,1.9,10,0.19,spotted dolphin
+striped dolphin,70,1.1,10,0.11,spotted dolphin
+striped dolphin,80,0.6,10,0.06,spotted dolphin
+striped dolphin,90,0.6,10,0.06,spotted dolphin
+striped dolphin,100,0.4,10,0.04,spotted dolphin
+striped dolphin,110,0.4,10,0.04,spotted dolphin
+striped dolphin,120,0.3,10,0.03,spotted dolphin
+striped dolphin,130,0.1,10,0.01,spotted dolphin
+striped dolphin,140,0.1,10,0.01,spotted dolphin
+striped dolphin,150,0.1,10,0.01,spotted dolphin
+striped dolphin,160,0.1,10,0.01,spotted dolphin
+striped dolphin,170,0.1,10,0.01,spotted dolphin
+Pacific white-sided dolphin,2,20.4,2,10.2,spotted dolphin
+Pacific white-sided dolphin,4,10.7,2,5.35,spotted dolphin
+Pacific white-sided dolphin,6,8.6,2,4.3,spotted dolphin
+Pacific white-sided dolphin,8,9,2,4.5,spotted dolphin
+Pacific white-sided dolphin,10,9.5,2,4.75,spotted dolphin
+Pacific white-sided dolphin,20,21.3,10,2.13,spotted dolphin
+Pacific white-sided dolphin,30,8.8,10,0.88,spotted dolphin
+Pacific white-sided dolphin,40,3.8,10,0.38,spotted dolphin
+Pacific white-sided dolphin,50,2.5,10,0.25,spotted dolphin
+Pacific white-sided dolphin,60,1.9,10,0.19,spotted dolphin
+Pacific white-sided dolphin,70,1.1,10,0.11,spotted dolphin
+Pacific white-sided dolphin,80,0.6,10,0.06,spotted dolphin
+Pacific white-sided dolphin,90,0.6,10,0.06,spotted dolphin
+Pacific white-sided dolphin,100,0.4,10,0.04,spotted dolphin
+Pacific white-sided dolphin,110,0.4,10,0.04,spotted dolphin
+Pacific white-sided dolphin,120,0.3,10,0.03,spotted dolphin
+Pacific white-sided dolphin,130,0.1,10,0.01,spotted dolphin
+Pacific white-sided dolphin,140,0.1,10,0.01,spotted dolphin
+Pacific white-sided dolphin,150,0.1,10,0.01,spotted dolphin
+Pacific white-sided dolphin,160,0.1,10,0.01,spotted dolphin
+Pacific white-sided dolphin,170,0.1,10,0.01,spotted dolphin
+minke whale,25,79.7,25,3.188,
+minke whale,65,20.3,40,0.5075,
+California sea lion,10,84.87,10,8.487,
+California sea lion,20,2.89,10,0.289,
+California sea lion,30,3.85,10,0.385,
+California sea lion,40,4.4,10,0.44,
+California sea lion,50,1.46,10,0.146,
+California sea lion,60,1.45,10,0.145,
+California sea lion,70,0.87,10,0.087,
+California sea lion,80,0.2,10,0.02,
+California sea lion,90,0.01,10,0.001,
+goose-beaked whale,100,31.9,100,0.319,
+goose-beaked whale,200,10.3,100,0.103,
+goose-beaked whale,300,11.7,100,0.117,
+goose-beaked whale,400,5.5,100,0.055,
+goose-beaked whale,500,4.1,100,0.041,
+harbor seal,4,85.01,4,21.2525,
+harbor seal,50,12.22,46,0.265652174,
+harbor seal,100,2.32,50,0.0464,
+harbor seal,150,0.37,50,0.0074,
+harbor seal,200,0.05,50,0.001,
+harbor seal,250,0.01,50,0.0002,
+harbor seal,300,0,50,0,
+Dall's porpoise,1,5.33,1,5.33,
+Dall's porpoise,2,15.67,1,15.67,
+Dall's porpoise,3,8.83,1,8.83,
+Dall's porpoise,4,3.17,1,3.17,
+Dall's porpoise,5,3.75,1,3.75,
+Dall's porpoise,6,1.67,1,1.67,
+Dall's porpoise,7,1,1,1,
+Dall's porpoise,8,1.33,1,1.33,
+Dall's porpoise,9,1.25,1,1.25,
+Dall's porpoise,10,1.83,1,1.83,
+Dall's porpoise,11,1.33,1,1.33,
+Dall's porpoise,20,11.67,9,1.296666667,
+Dall's porpoise,30,8.33,10,0.833,
+Dall's porpoise,40,6.83,10,0.683,
+Dall's porpoise,50,6.17,10,0.617,
+Dall's porpoise,60,4.75,10,0.475,
+Dall's porpoise,70,4.67,10,0.467,
+Dall's porpoise,80,3.83,10,0.383,
+Dall's porpoise,90,2.25,10,0.225,
+Dall's porpoise,100,2,10,0.2,
+Dall's porpoise,110,1.08,10,0.108,
+Dall's porpoise,120,0.67,10,0.067,
+Dall's porpoise,130,0.42,10,0.042,
+Dall's porpoise,140,0.5,10,0.05,
+Dall's porpoise,150,0.42,10,0.042,
+Dall's porpoise,160,0.33,10,0.033,
+Dall's porpoise,170,0.25,10,0.025,
+Dall's porpoise,180,0.33,10,0.033,
+Dall's porpoise,190,0.25,10,0.025,
+Dall's porpoise,200,0,10,0,
+gray whale,4,39,4,9.75,
+gray whale,8,8.5,4,2.125,
+gray whale,12,7,4,1.75,
+gray whale,16,16,4,4,
+gray whale,20,28,4,7,
+gray whale,22,1.5,2,0.75,
+fin whale,50,40,50,0.8,
+fin whale,70,13.9,20,0.695,
+fin whale,90,9.6,20,0.48,
+fin whale,110,8.14,20,0.407,
+fin whale,130,11.43,20,0.5715,
+fin whale,150,8.41,20,0.4205,
+fin whale,170,3.48,20,0.174,
+fin whale,190,2.01,20,0.1005,
+fin whale,210,1.37,20,0.0685,
+fin whale,230,0.55,20,0.0275,
+fin whale,250,0.64,20,0.032,
+fin whale,270,0.18,20,0.009,
+fin whale,290,0.09,20,0.0045,
+fin whale,310,0.18,20,0.009,
+northern fur seal,20,48.36,20,2.418,
+northern fur seal,50,42.32,30,1.410666667,
+northern fur seal,80,5.94,30,0.198,
+northern fur seal,110,0.96,30,0.032,
+northern fur seal,140,1.99,30,0.066333333,
+northern fur seal,170,0.39,30,0.013,
+northern fur seal,200,0.04,30,0.001333333,
+elephant seal,100,21.4,100,0.214,
+elephant seal,200,7.65,100,0.0765,
+elephant seal,300,8.86,100,0.0886,
+elephant seal,400,13.42,100,0.1342,
+elephant seal,500,18.06,100,0.1806,
+elephant seal,600,16.34,100,0.1634,
+elephant seal,700,9.98,100,0.0998,
+elephant seal,800,2.15,100,0.0215,
+elephant seal,900,0.77,100,0.0077,
+elephant seal,1000,0.52,100,0.0052,
+elephant seal,1100,0.52,100,0.0052,
+elephant seal,1200,0.43,100,0.0043,
+Steller sea lion,4,77.9,4,19.475,
+Steller sea lion,10,8.8,6,1.466666667,
+Steller sea lion,20,6.6,10,0.66,
+Steller sea lion,50,4.3,30,0.143333333,
+Steller sea lion,100,1.9,50,0.038,
+Steller sea lion,236,0.5,136,0.003676471,
+northern giant bottlenose whale,100,31.9,100,0.319,goose-beaked whale
+northern giant bottlenose whale,200,10.3,100,0.103,goose-beaked whale
+northern giant bottlenose whale,300,11.7,100,0.117,goose-beaked whale
+northern giant bottlenose whale,400,5.5,100,0.055,goose-beaked whale
+northern giant bottlenose whale,500,4.1,100,0.041,goose-beaked whale
+blue whale,15,43.078,15,2.871866667,
+blue whale,30,29.621,15,1.974733333,
+blue whale,45,9.376,15,0.625066667,
+blue whale,60,2.334,15,0.1556,
+blue whale,75,2.342,15,0.156133333,
+blue whale,90,2.341,15,0.156066667,
+blue whale,105,2.264,15,0.150933333,
+blue whale,120,2.094,15,0.1396,
+blue whale,135,1.859,15,0.123933333,
+blue whale,150,1.528,15,0.101866667,
+blue whale,165,1.187,15,0.079133333,
+blue whale,180,0.819,15,0.0546,
+blue whale,195,0.532,15,0.035466667,
+blue whale,210,0.312,15,0.0208,
+blue whale,225,0.172,15,0.011466667,
+blue whale,249,0.084,24,0.0035,
+blue whale,255,0.035,6,0.005833333,
+blue whale,270,0.013,15,0.000866667,
+blue whale,285,0.005,15,0.000333333,
+blue whale,300,0.002,15,0.000133333,
+blue whale,315,0.001,15,6.67E-05,
+fish eating killer whale,30,97.59,30,3.253,
+fish eating killer whale,228,2.41,198,0.012171717,
+mammal eating killer whale,5,24,5,4.8,
+mammal eating killer whale,10,3.5,5,0.7,
+mammal eating killer whale,15,2.5,5,0.5,
+mammal eating killer whale,20,4.2,5,0.84,
+mammal eating killer whale,25,8,5,1.6,
+mammal eating killer whale,30,12,5,2.4,
+mammal eating killer whale,35,11,5,2.2,
+mammal eating killer whale,40,8.5,5,1.7,
+mammal eating killer whale,45,10.9,5,2.18,
+mammal eating killer whale,50,8.5,5,1.7,
+mammal eating killer whale,55,5,5,1,
+mammal eating killer whale,60,1.5,5,0.3,
+mammal eating killer whale,65,0.4,5,0.08,
+Risso's dolphin,1,24.75,1,24.75,
+Risso's dolphin,2,13.5,1,13.5,
+Risso's dolphin,10,16.5,8,2.0625,
+Risso's dolphin,50,43.5,40,1.0875,
+Risso's dolphin,100,1.1875,50,0.02375,
+Risso's dolphin,150,0.1375,50,0.00275,
+Risso's dolphin,600,0.425,450,0.000944444,
+bowhead whale,1,4.5,1,4.5,
+bowhead whale,16,60,15,4,
+bowhead whale,96,33,80,0.4125,
+bowhead whale,352,2.5,256,0.009765625,
+northern right whale dolphin,2,20.4,2,10.2,spotted dolphin
+northern right whale dolphin,4,10.7,2,5.35,spotted dolphin
+northern right whale dolphin,6,8.6,2,4.3,spotted dolphin
+northern right whale dolphin,8,9,2,4.5,spotted dolphin
+northern right whale dolphin,10,9.5,2,4.75,spotted dolphin
+northern right whale dolphin,20,21.3,10,2.13,spotted dolphin
+northern right whale dolphin,30,8.8,10,0.88,spotted dolphin
+northern right whale dolphin,40,3.8,10,0.38,spotted dolphin
+northern right whale dolphin,50,2.5,10,0.25,spotted dolphin
+northern right whale dolphin,60,1.9,10,0.19,spotted dolphin
+northern right whale dolphin,70,1.1,10,0.11,spotted dolphin
+northern right whale dolphin,80,0.6,10,0.06,spotted dolphin
+northern right whale dolphin,90,0.6,10,0.06,spotted dolphin
+northern right whale dolphin,100,0.4,10,0.04,spotted dolphin
+northern right whale dolphin,110,0.4,10,0.04,spotted dolphin
+northern right whale dolphin,120,0.3,10,0.03,spotted dolphin
+northern right whale dolphin,130,0.1,10,0.01,spotted dolphin
+northern right whale dolphin,140,0.1,10,0.01,spotted dolphin
+northern right whale dolphin,150,0.1,10,0.01,spotted dolphin
+northern right whale dolphin,160,0.1,10,0.01,spotted dolphin
+northern right whale dolphin,170,0.1,10,0.01,spotted dolphin
+saber-toothed whale,20,43.447,20,2.17235,dense-beaked whale
+saber-toothed whale,40,8.743,20,0.43715,dense-beaked whale
+saber-toothed whale,60,7.166,20,0.3583,dense-beaked whale
+saber-toothed whale,80,5.665,20,0.28325,dense-beaked whale
+saber-toothed whale,100,4.134,20,0.2067,dense-beaked whale
+saber-toothed whale,120,2.793,20,0.13965,dense-beaked whale
+saber-toothed whale,140,1.74,20,0.087,dense-beaked whale
+saber-toothed whale,160,1.127,20,0.05635,dense-beaked whale
+saber-toothed whale,180,0.772,20,0.0386,dense-beaked whale
+saber-toothed whale,200,0.597,20,0.02985,dense-beaked whale
+saber-toothed whale,220,0.5,20,0.025,dense-beaked whale
+saber-toothed whale,240,0.47,20,0.0235,dense-beaked whale
+saber-toothed whale,260,0.46,20,0.023,dense-beaked whale
+saber-toothed whale,280,0.455,20,0.02275,dense-beaked whale
+saber-toothed whale,300,0.454,20,0.0227,dense-beaked whale
+saber-toothed whale,320,0.454,20,0.0227,dense-beaked whale
+saber-toothed whale,340,0.456,20,0.0228,dense-beaked whale
+saber-toothed whale,360,0.458,20,0.0229,dense-beaked whale
+saber-toothed whale,380,0.458,20,0.0229,dense-beaked whale
+saber-toothed whale,400,0.46,20,0.023,dense-beaked whale
+saber-toothed whale,420,0.461,20,0.02305,dense-beaked whale
+saber-toothed whale,440,0.465,20,0.02325,dense-beaked whale
+saber-toothed whale,460,0.478,20,0.0239,dense-beaked whale
+saber-toothed whale,480,0.492,20,0.0246,dense-beaked whale
+saber-toothed whale,500,0.505,20,0.02525,dense-beaked whale
+saber-toothed whale,520,0.52,20,0.026,dense-beaked whale
+saber-toothed whale,540,0.528,20,0.0264,dense-beaked whale
+saber-toothed whale,560,0.553,20,0.02765,dense-beaked whale
+saber-toothed whale,580,0.576,20,0.0288,dense-beaked whale
+saber-toothed whale,600,0.589,20,0.02945,dense-beaked whale
+saber-toothed whale,620,0.605,20,0.03025,dense-beaked whale
+saber-toothed whale,640,0.642,20,0.0321,dense-beaked whale
+saber-toothed whale,660,0.697,20,0.03485,dense-beaked whale
+saber-toothed whale,680,0.715,20,0.03575,dense-beaked whale
+saber-toothed whale,700,0.708,20,0.0354,dense-beaked whale
+saber-toothed whale,720,0.694,20,0.0347,dense-beaked whale
+saber-toothed whale,740,0.727,20,0.03635,dense-beaked whale
+saber-toothed whale,760,0.739,20,0.03695,dense-beaked whale
+saber-toothed whale,780,0.741,20,0.03705,dense-beaked whale
+saber-toothed whale,800,0.758,20,0.0379,dense-beaked whale
+saber-toothed whale,820,0.781,20,0.03905,dense-beaked whale
+saber-toothed whale,840,0.775,20,0.03875,dense-beaked whale
+saber-toothed whale,860,0.694,20,0.0347,dense-beaked whale
+saber-toothed whale,880,0.624,20,0.0312,dense-beaked whale
+saber-toothed whale,900,0.601,20,0.03005,dense-beaked whale
+saber-toothed whale,920,0.566,20,0.0283,dense-beaked whale
+saber-toothed whale,940,0.512,20,0.0256,dense-beaked whale
+saber-toothed whale,960,0.444,20,0.0222,dense-beaked whale
+saber-toothed whale,980,0.384,20,0.0192,dense-beaked whale
+saber-toothed whale,1000,0.33,20,0.0165,dense-beaked whale
+saber-toothed whale,1020,0.285,20,0.01425,dense-beaked whale
+saber-toothed whale,1040,0.228,20,0.0114,dense-beaked whale
+saber-toothed whale,1060,0.182,20,0.0091,dense-beaked whale
+saber-toothed whale,1080,0.146,20,0.0073,dense-beaked whale
+saber-toothed whale,1100,0.11,20,0.0055,dense-beaked whale
+saber-toothed whale,1120,0.078,20,0.0039,dense-beaked whale
+saber-toothed whale,1140,0.057,20,0.00285,dense-beaked whale
+saber-toothed whale,1160,0.048,20,0.0024,dense-beaked whale
+saber-toothed whale,1180,0.05,20,0.0025,dense-beaked whale
+saber-toothed whale,1200,0.045,20,0.00225,dense-beaked whale
+saber-toothed whale,1220,0.03,20,0.0015,dense-beaked whale
+saber-toothed whale,1240,0.015,20,0.00075,dense-beaked whale
+saber-toothed whale,1260,0.004,20,0.0002,dense-beaked whale
+saber-toothed whale,1280,0.004,20,0.0002,dense-beaked whale
+saber-toothed whale,1300,0.001,20,0.00005,dense-beaked whale
+saber-toothed whale,1320,0.001,20,0.00005,dense-beaked whale
+saber-toothed whale,1340,0.001,20,0.00005,dense-beaked whale
+saber-toothed whale,1360,0.001,20,0.00005,dense-beaked whale
