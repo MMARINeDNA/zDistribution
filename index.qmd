@@ -9,6 +9,7 @@ execute:
   warning: false
 project:
   output-dir: Docs
+bibliography: references.bib
 ---
 
 1.  School of Aquatic and Fishery Sciences, University of Washington, Seattle, WA, USA
@@ -67,7 +68,7 @@ To answer these questions, we utilize eDNA samples collected throughout the Cali
 
 ### Sample Collection
 
-For this study, we use previously collected water samples acquired during biennial NOAA surveys quantifying hake abundance and distribution \[\@shelton_etal22\]. Samples were collected in tandem with nightly CTD casts, as described in Shelton et al. \[-\@shelton_etal22\]. We targeted 0, 50, 150, 300, and 500 m depth strata along east-west transects with a western terminus at XXX and an eastern terminus at the continental shelf break, generally \~XX km from shore (Figure 1).
+For this study, we use previously collected water samples acquired during biennial NOAA surveys quantifying hake abundance and distribution \[\@shelton_etal22\]. Samples were collected in tandem with nightly CTD casts, as described in Shelton et al. \[-\@shelton_etal22\]. We targeted 0, 50, 150, 300, and 500 m depth strata along east-west transects with a western terminus at XXX and an eastern terminus at the continental shelf break, generally \~XX km from shore (Figure 1). *Describe oceanography of this area, e.g. California Current is an eastern boundary current, source of significant upwelling along shelf break, sampling transects capture that shelf break (right?). Is there an inshore counter current? Where is the OMZ?*
 
 ### Sample Processing
 
@@ -91,11 +92,13 @@ To obtain non-detections, we included all MFU and MV1 samples that had at least 
 
 #### Question 1: Does POD vary with depth?
 
-We addressed this question using generalized additive models (GAMs) implemented using mgcv in R (REF). For all models, we optimized model smoothness using REML and assessed model fit with AIC. Models examining depth effect alone were built iteratively, including starting with (1) assessing POD \~ depth, then (2) allowing y-intercept to vary by species, and finally (3) allowing model smooth to vary by species.
+We addressed this question using generalized additive models (GAMs; @Wood2017) implemented using the mgcv package in R [@RCoreTeam2016]. GAMs have previously been demonstrated to be an appropriate tool for modeling spatial use in cetaceans (e.g. @Becker2016; @becker2020; @becker2022; @Becker2019; @abrahmsetal_19c). We first collapsed our detection data across all technical replicates at each sampling station and depth and defined a positive detection at that location and depth as detection in at least one technical replicate. We fit all GAMs using 0/1 detections as the response variable with a binomial distribution and logit link function, and estimated model parameters using REML. Models examining depth effect alone were built iteratively, starting with (1) assessing probability of detection (POD) across all species at sampling depths between 1 and 500m, then (2) allowing y-intercept to vary by species, and finally (3) allowing model smooth to vary by species.
 
 In addition to examining depth variability across species-level strata, we examined several other ecological stratification schemes in order to determine whether depth variability in detection probability is driven by (1) evolutionary inertia (i.e. taxonomic family) or (2) preferred prey type.
 
 Finally, we examined the relationship between probability of detection and time-at-depth on a species specific basis. For this model, all estimates of time-at-depth were acquired from XXX (REF).
+
+We assessed model fit using AIC, and model performance using standard metrics including the percent of deviance explained, the area under the receiver operating characteristic curve (AUC; Fawcett 2006 REF), the true skill statistic (TSS, Allouche et al. 2006 REF), and a visual comparison of predicted vs. observed detection rates across sampling depths.
 
 #### Question 2: Does depth variability in POD covary with observation bias?
 
@@ -103,7 +106,7 @@ To address this question, we extracted smooths from the best fit model in Q1 and
 
 #### Question 3: Does depth variability in POD covary with xy variability?
 
-We returned to the use of GAMs to address this question, and again built iterative models in order to examine covariability between depth, latitude, and longitude. We began by examining whether xy variability explained a significant amount of remaining variability left in the model after depth variability was account for (i.e. POD \~ z + xy), then tested whether x,y, and z covary (i.e. POD \~ xyz). Finally, we allowed the model of xyz covariability to vary idependently by species.
+We returned to the use of GAMs to address this question, and again built iterative models in order to examine covariability between depth, latitude, and longitude. We began by examining whether xy variability explained a significant amount of remaining variability left in the model after depth variability was account for (i.e. POD \~ z + xy), then tested whether x,y, and z covary (i.e. POD \~ xyz). Finally, we allowed the model of xyz covariability to vary independently by species.
 
 ## Results
 

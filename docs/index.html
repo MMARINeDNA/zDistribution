@@ -21,7 +21,27 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="index_files/libs/clipboard/clipboard.min.js"></script>
@@ -99,7 +119,7 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="methods">Methods</h2>
 <section id="sample-collection" class="level3">
 <h3 class="anchored" data-anchor-id="sample-collection">Sample Collection</h3>
-<p>For this study, we use previously collected water samples acquired during biennial NOAA surveys quantifying hake abundance and distribution [@shelton_etal22]. Samples were collected in tandem with nightly CTD casts, as described in Shelton et al.&nbsp;[-@shelton_etal22]. We targeted 0, 50, 150, 300, and 500 m depth strata along east-west transects with a western terminus at XXX and an eastern terminus at the continental shelf break, generally ~XX km from shore (Figure 1).</p>
+<p>For this study, we use previously collected water samples acquired during biennial NOAA surveys quantifying hake abundance and distribution [@shelton_etal22]. Samples were collected in tandem with nightly CTD casts, as described in Shelton et al.&nbsp;[-@shelton_etal22]. We targeted 0, 50, 150, 300, and 500 m depth strata along east-west transects with a western terminus at XXX and an eastern terminus at the continental shelf break, generally ~XX km from shore (Figure 1). <em>Describe oceanography of this area, e.g.&nbsp;California Current is an eastern boundary current, source of significant upwelling along shelf break, sampling transects capture that shelf break (right?). Is there an inshore counter current? Where is the OMZ?</em></p>
 </section>
 <section id="sample-processing" class="level3">
 <h3 class="anchored" data-anchor-id="sample-processing">Sample Processing</h3>
@@ -120,9 +140,10 @@ ul.task-list li input[type="checkbox"] {
 <h3 class="anchored" data-anchor-id="data-analysis">Data Analysis</h3>
 <section id="question-1-does-pod-vary-with-depth" class="level4">
 <h4 class="anchored" data-anchor-id="question-1-does-pod-vary-with-depth">Question 1: Does POD vary with depth?</h4>
-<p>We addressed this question using generalized additive models (GAMs) implemented using mgcv in R (REF). For all models, we optimized model smoothness using REML and assessed model fit with AIC. Models examining depth effect alone were built iteratively, including starting with (1) assessing POD ~ depth, then (2) allowing y-intercept to vary by species, and finally (3) allowing model smooth to vary by species.</p>
+<p>We addressed this question using generalized additive models (GAMs; <span class="citation" data-cites="Wood2017">(<a href="#ref-Wood2017" role="doc-biblioref"><strong>Wood2017?</strong></a>)</span>) implemented using the mgcv package in R <span class="citation" data-cites="RCoreTeam2016">(<a href="#ref-RCoreTeam2016" role="doc-biblioref">R Core Team 2016</a>)</span>. GAMs have previously been demonstrated to be an appropriate tool for modeling spatial use in cetaceans (e.g. <span class="citation" data-cites="Becker2016">Elizabeth A. Becker et al. (<a href="#ref-Becker2016" role="doc-biblioref">2016</a>)</span>; <span class="citation" data-cites="becker2020">Elizabeth A. Becker et al. (<a href="#ref-becker2020" role="doc-biblioref">2020</a>)</span>; <span class="citation" data-cites="becker2022">Elizabeth A. Becker et al. (<a href="#ref-becker2022" role="doc-biblioref">2022</a>)</span>; <span class="citation" data-cites="Becker2019">Elizabeth A. Becker et al. (<a href="#ref-Becker2019" role="doc-biblioref">2019</a>)</span>; <span class="citation" data-cites="abrahmsetal_19c">(<a href="#ref-abrahmsetal_19c" role="doc-biblioref"><strong>abrahmsetal_19c?</strong></a>)</span>). We first collapsed our detection data across all technical replicates at each sampling station and depth and defined a positive detection at that location and depth as detection in at least one technical replicate. We fit all GAMs using 0/1 detections as the response variable with a binomial distribution and logit link function, and estimated model parameters using REML. Models examining depth effect alone were built iteratively, starting with (1) assessing probability of detection (POD) across all species at sampling depths between 1 and 500m, then (2) allowing y-intercept to vary by species, and finally (3) allowing model smooth to vary by species.</p>
 <p>In addition to examining depth variability across species-level strata, we examined several other ecological stratification schemes in order to determine whether depth variability in detection probability is driven by (1) evolutionary inertia (i.e.&nbsp;taxonomic family) or (2) preferred prey type.</p>
 <p>Finally, we examined the relationship between probability of detection and time-at-depth on a species specific basis. For this model, all estimates of time-at-depth were acquired from XXX (REF).</p>
+<p>We assessed model fit using AIC, and model performance using standard metrics including the percent of deviance explained, the area under the receiver operating characteristic curve (AUC; Fawcett 2006 REF), the true skill statistic (TSS, Allouche et al.&nbsp;2006 REF), and a visual comparison of predicted vs.&nbsp;observed detection rates across sampling depths.</p>
 </section>
 <section id="question-2-does-depth-variability-in-pod-covary-with-observation-bias" class="level4">
 <h4 class="anchored" data-anchor-id="question-2-does-depth-variability-in-pod-covary-with-observation-bias">Question 2: Does depth variability in POD covary with observation bias?</h4>
@@ -130,7 +151,7 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="question-3-does-depth-variability-in-pod-covary-with-xy-variability" class="level4">
 <h4 class="anchored" data-anchor-id="question-3-does-depth-variability-in-pod-covary-with-xy-variability">Question 3: Does depth variability in POD covary with xy variability?</h4>
-<p>We returned to the use of GAMs to address this question, and again built iterative models in order to examine covariability between depth, latitude, and longitude. We began by examining whether xy variability explained a significant amount of remaining variability left in the model after depth variability was account for (i.e.&nbsp;POD ~ z + xy), then tested whether x,y, and z covary (i.e.&nbsp;POD ~ xyz). Finally, we allowed the model of xyz covariability to vary idependently by species.</p>
+<p>We returned to the use of GAMs to address this question, and again built iterative models in order to examine covariability between depth, latitude, and longitude. We began by examining whether xy variability explained a significant amount of remaining variability left in the model after depth variability was account for (i.e.&nbsp;POD ~ z + xy), then tested whether x,y, and z covary (i.e.&nbsp;POD ~ xyz). Finally, we allowed the model of xyz covariability to vary independently by species.</p>
 </section>
 </section>
 </section>
@@ -212,10 +233,27 @@ Figure&nbsp;3: Latitude-driven variability in POD across three species included 
 <li><p>Over the large geographic range covered by this study and the large range of mobile rare species, we expect that this at least partially reflects true distribution of the animals.</p></li>
 <li><p>It could also reflect, e.g.&nbsp;shorter residence time of eDNA in warmer water to the south, or higher probability of eDNA sinking below 500 meters in deeper offshore water. <em>What else could be causing this?</em></p></li>
 </ol>
+
 </section>
 </section>
 
-</main>
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-becker2020" class="csl-entry" role="listitem">
+Becker, Elizabeth A., James V. Carretta, Karin A. Forney, Jay Barlow, Stephanie Brodie, Ryan Hoopes, Michael G. Jacox, et al. 2020. <span>“Performance Evaluation of Cetacean Species Distribution Models Developed Using Generalized Additive Models and Boosted Regression Trees.”</span> <em>Ecology and Evolution</em> 10 (12): 5759–84. <a href="https://doi.org/10.1002/ece3.6316">https://doi.org/10.1002/ece3.6316</a>.
+</div>
+<div id="ref-becker2022" class="csl-entry" role="listitem">
+Becker, Elizabeth A., Karin A. Forney, David L. Miller, Jay Barlow, Lorenzo Rojas-Bracho, Jorge Urbán R, and Jeff E. Moore. 2022. <span>“Dynamic Habitat Models Reflect Interannual Movement of Cetaceans Within the California Current Ecosystem.”</span> <em>Frontiers in Marine Science</em> 9 (May). <a href="https://doi.org/10.3389/fmars.2022.829523">https://doi.org/10.3389/fmars.2022.829523</a>.
+</div>
+<div id="ref-Becker2016" class="csl-entry" role="listitem">
+Becker, Elizabeth A., Karin A. Forney, Bruce J. Thayre, Amanda Debich, Gregory S. Campbell, Katherine Whitaker, Annie B. Douglas, Anita Gilles, Ryan Hoopes, and John A. Hildebrand. 2016. <span>“Habitat-Based Density Models for Three Cetacean Species Off Southern California Illustrate Pronounced Seasonal Differences”</span> 4 (May): 1–14. <a href="https://doi.org/10.3389/fmars.2017.00121">https://doi.org/10.3389/fmars.2017.00121</a>.
+</div>
+<div id="ref-Becker2019" class="csl-entry" role="listitem">
+Becker, Elizabeth A, Karin A Forney, Jessica V Redfern, Jay Barlow, Michael G Jacox, Jason J Roberts, and Daniel M Palacios. 2019. <span>“Predicting Cetacean Abundance and Distribution in a Changing Climate.”</span> <em>Diversity and Distributions</em> 25 (4): 626–43. <a href="https://doi.org/10.1111/ddi.12867">https://doi.org/10.1111/ddi.12867</a>.
+</div>
+<div id="ref-RCoreTeam2016" class="csl-entry" role="listitem">
+R Core Team. 2016. <span>“R: A Language and Environment for Statistical Computing.”</span> <a href="https://www.r-project.org/">https://www.r-project.org/</a>.
+</div>
+</div></section></div></main>
 <!-- /main column -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
