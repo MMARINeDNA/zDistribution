@@ -130,21 +130,31 @@ plot_grid(plotlist = aligned, ncol = 2, rel_widths = c(3, 1))
 
 ### Question 1: Does POD vary with depth?
 
-GAM-based model selection of detection probability across sampling depths negated the null hypothesis of no variation across depth. The best alternative model allows probability of detection to vary by time spent at depth with a species-specific smooth (AIC = XXX). *Model diagnostics here, include table of AIC values?*
+GAM-based model selection of detection probability across sampling depths negated the null hypothesis of no variation across depth. The best alternative model allows probability of detection to vary by time spent at depth with a species-specific smooth (AIC = 4061). *Model diagnostics here, include table of AIC values?*
 
-Species-specific detections were broadly highest at depths where they are predicted to spend the most time, especially within the Dephinidae, with notable exceptions among the beaked whales and baleen whales (@fig-H1POD). We present predictions of POD by depth in @fig-H1POD alongside trends in relative time spent at each depth to illustrate the depth at which each species in the study is most likely to be detected, as well as which species can be detected where they spend time and which are more likely to be detected elsewhere. As noted above, all three beaked whale observed in the study are more likely to be detected at depths greater than 300m, despite being predicted to spend the majority of their time above 100m. Similarly, baleen whales rarely travel below 100m (*check this number*) but in this study two patterns emerged: two species had highest POD at the surface and 500m (fin and humpback whales), and three species had increasing POD with increasing depth (minke, blue, and bowhead whales).
+Species-specific detections were broadly highest at depths where they are predicted to spend the most time, especially within the Dephinidae, with notable exceptions among the beaked whales and baleen whales (@fig-H1POD-species). We present predictions of POD by depth in @fig-H1POD-species alongside trends in relative time spent at each depth to illustrate the depth at which each species in the study is most likely to be detected, as well as which species can be detected where they spend time and which are more likely to be detected elsewhere. As noted above, all three beaked whale observed in the study are more likely to be detected at depths greater than 300m, despite being predicted to spend the majority of their time above 100m. Similarly, baleen whales rarely travel below 100m (*check this number*) but in this study two patterns emerged: two species had highest POD at the surface and 500m (fin and humpback whales), and three species had increasing POD with increasing depth (minke, blue, and bowhead whales).
 
-When detections were stratified according to broad prey category (fish, small invertebrates, or squid), we found that POD by depth was significant within each of these three strata (@fig-H1POD). This model had an AIC lower than all of the models stratified by species (AIC = `r round(filter(modelAIC, model == "m1.2b")$AIC, digits = 0)`, indicating species-specific variability that is not accounted for when aggregating by preferred diet.
+```{r}
+#| label: fig-H1POD-species
+#| fig-cap: "Species-specific probability of detection across all depths sampled in this study. Solid line shows POD; shaded region shows 95% confidence interval. Dashed line shows proportional time at depth. Species abbreviation codes can be found in Table 1; plots are colored by taxonomic category as outlined in Table 1. "
+#| fig-width: 10
+#| fig-height: 6
+
+m1.2POD
+
+```
+
+Our models stratifying detections by taxonomic Family and preferred prey type both had lower AIC values than the model stratified by species (AIC = `r round(filter(modelAIC, model == "m1.2a")$AIC, digits = 0)` and `r round(filter(modelAIC, model == "m1.2b")$AIC, digits = 0)`, respectively); however, these models still had significant terms for Family and depthxFamily interactions (taxonomic model) and for depth, prey type, and depthxprey type interactions (prey type model). *Model diagnostics here.* Predicted POD curves for each model illustrate varying trends in POD with depth across strata (@fig-H1POD-family-prey).
 
 *In the discussion, talk about how ecological strata may be used to guide sampling for lesser known-species - e.g. if we don't have any information about a particular baleen whale species, we might let the prey distribution model guide our sampling strategy and choose to sample at 50-100m and \~500m (where poop is).*
 
 ```{r}
-#| label: fig-H1POD
-#| fig-cap: "Left: Species-specific probability of detection across all depths sampled in this study. Solid line shows POD; shaded region shows 95% confidence interval. Dashed line shows proportional time at depth. Species abbreviation codes can be found in Table 1; plots are colored by taxonomic category as outlined in Table 1. Right: Probability of detection across depths sampled in this study for species stratified based on broad prey categories."
+#| label: fig-H1POD-family-prey
+#| fig-cap: "Left: POD by depth for species stratified by taxonomic Family. Right: POD by depth for species stratified based on broad prey categories."
 #| fig-width: 10
 #| fig-height: 6
 
-m1.2POD + m1.2bPOD + plot_layout(widths = c(4,1), guides = "collect", axis_titles = "collect") & theme(legend.position = "bottom")
+m1.2aPOD + m1.2bPOD + plot_layout(widths = c(3,1), axis_titles = "collect") & theme(legend.position = "bottom")
 
 ```
 

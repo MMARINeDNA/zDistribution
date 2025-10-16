@@ -9,6 +9,7 @@ library(PNWColors)
 
 load("./ProcessedData/detect_data.RData")
 mmEcoEvo <- read.csv("./Data/MM_metadata.csv")
+detect_data$BestTaxon <- as.factor(detect_data$BestTaxon)
 
 # Q1: Does the probability of detecting cetaceans in eDNA samples vary with sample depth?
 # H0: Probability of detection does not vary with depth.
@@ -21,18 +22,7 @@ m1.0 <- gam(Detected ~ s(depth), family = "binomial", data = detect_data, method
 summary(m1.0)
 # depth p-value = 2.6e-06
 AIC(m1.0)
-# AIC 4935
-m1.0_predictions <- data.frame(depth = 0:500)
-m1.0_predictions$pred <- predict.gam(m1.0, m1.0_predictions, type = "response")
-plot(m1.0_predictions$depth, m1.0_predictions$pred, 
-     type = "l", xlab = "Depth", ylab = "P(Detection)")
-
-m1.0preds <- predict(m1.0, m1.0_predictions, se.fit = TRUE, type = "response")
-
-m1.0_sePreds <- data.frame(m1.0_predictions,
-                           mu   = m1.0preds$fit,
-                           low  = m1.0preds$fit - 1.96 * m1.0preds$se.fit,
-                           high = m1.0preds$fit + 1.96 * m1.0preds$se.fit)
+# AIC 4586
 
 # compare gam to jags version of the same model
 # m1.0_sePreds$mu_jags <- exp(predict(jam,newdata=pd, scale = "response"))
@@ -43,101 +33,25 @@ m1.0_sePreds <- data.frame(m1.0_predictions,
 #   xlab("Depth")+
 #   theme_bw()
 
-ggplot(m1.0_sePreds, aes(x = depth, y = mu)) +
-  geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity", 
-              alpha = 0.2, color = "#74677e", fill = "#74677e") +
-  ylab("POD") +
-  theme_minimal()
-
 ### H2: POD by depth across species --------------------------------------------
 # this model will have a different intercept for each species, but spline will be same shape
 m1.1 <- gam(Detected ~ s(depth) + BestTaxon, family = "binomial", data = detect_data, method="REML")
 summary(m1.1)
 
 AIC(m1.1)
-# AIC = 4542
+# AIC = 4190
 
-m1.1_predictions <- expand_grid(depth = 0:500, BestTaxon = as.factor(unique(detect_data$BestTaxon)))
-m1.1_predictions$pred <- predict.gam(m1.1, m1.1_predictions, type = "response")
-
-
-ggplot(m1.1_predictions) +
-  geom_line(aes(x=depth, y = pred, group = BestTaxon)) +
-  xlab("Depth")+
-  ylab("P(Detection)")+
-  theme_bw()
-
-m1.1preds <- predict(m1.1, m1.1_predictions, se.fit = TRUE)
-m1.1_sePreds <- data.frame(m1.1_predictions,
-                           mu   = exp(m1.1preds$fit),
-                           low  = exp(m1.1preds$fit - 1.96 * m1.1preds$se.fit),
-                           high = exp(m1.1preds$fit + 1.96 * m1.1preds$se.fit)) %>% 
-  left_join(mmEcoEvo, by = c("BestTaxon" = "Species"))
-
-ggplot(m1.1_sePreds, aes(x = depth, y = mu, color = BestTaxon, fill = BestTaxon)) +
-  geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity", 
-              alpha = 0.2) +
-  ylab("POD") +
-  scale_fill_manual(values = c(pnw_palette("Cascades",12, type = "continuous"),
-                               pnw_palette("Sunset",12, type = "continuous")[1:12])) +
-  scale_color_manual(values = c(pnw_palette("Cascades",12, type = "continuous"),
-                                pnw_palette("Sunset",12, type = "continuous")[1:12])) +
-  facet_wrap(~Family, scales = "free_y") +
-  coord_cartesian(ylim = c(0,0.1)) +
-  theme_minimal()
-
-# separate the depth effect from the taxon effect
-# from the depth-taxon effect. 
-
-# for random effect taxon needs to be a factor
-detect_data$BestTaxon <- as.factor(detect_data$BestTaxon)
-
+# separate the depth effect from the taxon effect from the depth-taxon effect. 
 m1.2 <- gam(Detected ~ 
               ti(depth, k=5, bs="ts")+
               ti(BestTaxon, k=16, bs="re")+
               ti(depth, BestTaxon, k=c(5, 16), bs=c("ts","re")),
             family = "binomial", data = detect_data)
-# AIC = 5410
-
-save(m1.2, file = "./ProcessedData/m1.2.RData")
-
-load("./ProcessedData/m1.2.RData")
 
 summary(m1.2)
 
 AIC(m1.2)
-# AIC 5410
-
-m1.2_predictions <- expand_grid(depth = 0:500, BestTaxon = as.factor(unique(detect_data$BestTaxon)))
-m1.2_predictions$pred <- predict.gam(m1.2, m1.2_predictions, type = "response")
-
-ggplot(m1.2_predictions) +
-  geom_line(aes(x=depth, y = pred, group = BestTaxon, color = BestTaxon)) +
-  xlab("Depth")+
-  ylab("P(Detection)")+
-  theme_bw()
-
-m1.2preds <- predict(m1.2, m1.2_predictions, se.fit = TRUE)
-m1.2_sePreds <- data.frame(m1.2_predictions,
-                      mu   = exp(m1.2preds$fit),
-                      low  = exp(m1.2preds$fit - 1.96 * m1.2preds$se.fit),
-                      high = exp(m1.2preds$fit + 1.96 * m1.2preds$se.fit)) %>% 
-  left_join(mmEcoEvo, by = c("BestTaxon" = "Species"))
-
-ggplot(m1.2_sePreds, aes(x = depth, color = Broad_taxa, fill = Broad_taxa)) +
-  geom_line(aes(y = mu)) +
-  geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity") +
-  scale_fill_manual(values = c(pnw_palette("Cascades",2, type = "continuous"),
-                               pnw_palette("Sunset",2, type = "continuous"))) +
-  scale_color_manual(values = c(pnw_palette("Cascades",2, type = "continuous"),
-                                pnw_palette("Sunset",2, type = "continuous"))) +
-  facet_wrap(~abbrev, scales = "free_y") +
-  geom_rug(data = detect_data, aes(x=depth), color = "grey")+
-  geom_rug(data = filter(detect_data, Detected == 1), aes(x=depth))+
-  
-  #coord_cartesian(ylim = c(0,0.25)) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
+# AIC 4061
 
 ### H2a: POD by depth across taxonomic family ----------------------------------
 detect_data$Family <- as.factor(detect_data$Family)
@@ -151,32 +65,9 @@ summary(m1.2a)
 # no families with < 30 detections are significant
 # All are significant > 30 detections except Phocoenidae
 AIC(m1.2a)
-#AIC 4645
+#AIC 4341
 #by species is lower
 
-m1.2a_predictions <- expand_grid(depth = 0:500, Family = as.factor(unique(detect_data$Family)))
-m1.2a_predictions$pred <- predict.gam(m1.2a, m1.2a_predictions, type = "response")
-
-ggplot(m1.2a_predictions) +
-  geom_line(aes(x=depth, y = pred, group = Family, color = Family)) +
-  xlab("Depth")+
-  ylab("POD")+
-  theme_bw()
-
-m1.2apreds <- predict(m1.2a, m1.2a_predictions, se.fit = TRUE)
-m1.2a_sePreds <- data.frame(m1.2a_predictions,
-                           mu   = exp(m1.2apreds$fit),
-                           low  = exp(m1.2apreds$fit - 1.96 * m1.2apreds$se.fit),
-                           high = exp(m1.2apreds$fit + 1.96 * m1.2apreds$se.fit))
-
-ggplot(m1.2a_sePreds, aes(x = depth, y = mu, color = Family, fill = Family)) +
-  geom_point() +
-  geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity") +
-  scale_fill_manual(values = c(pnw_palette("Bay",8, type = "continuous"))) +
-  scale_color_manual(values = c(pnw_palette("Bay",8, type = "continuous"))) +
-  facet_wrap(~Family, scales = "free_y") +
-  #coord_cartesian(ylim = c(0,0.25)) +
-  theme_minimal()
 
 ### H2b:POD by depth across prey category --------------------------------------
 detect_data$Prey.family <- as.factor(detect_data$Prey.family)
@@ -188,33 +79,7 @@ m1.2b <-  gam(Detected ~
 summary(m1.2b)
 #significant for all three types
 AIC(m1.2b)
-#AIC 4706
-
-
-m1.2b_predictions <- expand_grid(depth = 0:500, Prey.family = as.factor(unique(detect_data$Prey.family)))
-m1.2b_predictions$pred <- predict.gam(m1.2b, m1.2b_predictions, type = "response")
-
-ggplot(m1.2b_predictions) +
-  geom_line(aes(x=depth, y = pred, group = Prey.family, color = Prey.family)) +
-  xlab("Depth")+
-  ylab("POD")+
-  theme_bw()
-
-m1.2bpreds <- predict(m1.2b, m1.2b_predictions, se.fit = TRUE)
-m1.2b_sePreds <- data.frame(m1.2b_predictions,
-                            mu   = exp(m1.2bpreds$fit),
-                            low  = exp(m1.2bpreds$fit - 1.96 * m1.2bpreds$se.fit),
-                            high = exp(m1.2bpreds$fit + 1.96 * m1.2bpreds$se.fit))
-
-ggplot(m1.2b_sePreds, aes(x = depth, y = mu, color = Prey.family, fill = Prey.family)) +
-  geom_line() +
-  geom_smooth(aes(ymin = low, ymax = high, y = mu), stat = "identity") +
-  scale_fill_manual(values = c(pnw_palette("Moth",5, type = "continuous"))) +
-  scale_color_manual(values = c(pnw_palette("Moth",5, type = "continuous"))) +
-  facet_wrap(~Prey.family, scales = "free_y") +
-  theme_minimal() +
-  xlab("Depth")+
-  ylab("POD")
+#AIC 4426
 
 ### H2c: POD by time-at-depth --------------------------------------------------
 # 
@@ -408,7 +273,7 @@ ggplot(m1.2b_sePreds, aes(x = depth, y = mu, color = Prey.family, fill = Prey.fa
 
 ### Aggregate model AIC --------------------------------------------------------
 
-modelAIC <- AIC(m1.0, m1.1, m1.2, m1.2a, m1.2b, m1.2c, m1.2d, m1.2e) %>% 
+modelAIC <- AIC(m1.0, m1.1, m1.2, m1.2a, m1.2b) %>% 
   rownames_to_column(var = "model")
 
 ######## save all models -------------------------------------------------------
