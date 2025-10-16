@@ -1,5 +1,5 @@
 # Z-variabilty in POD of rare taxa
-This repo contains all code and analyses used to examine depth variability in the probability of detecting cetaceans in eDNA samples. A living version of the manuscript in progress can be found [here](https://mmarinedna.github.io/3DDistribution/). Herein, we analyse marine mammal detections from water samples collected throughout the California Current and at depths of 0-500m with the goal of answering the following three questions:
+This repo contains all code and analyses used to examine depth variability in the probability of detecting cetaceans in eDNA samples. A living version of the manuscript in progress can be found [here](https://mmarinedna.github.io/zDistribution/). Herein, we analyse marine mammal detections from water samples collected throughout the California Current and at depths of 0-500m with the goal of answering the following three questions:
 
 1. Does the probability of a detecting cetaceans in eDNA samples vary with sample depth?
    - H0: Probability of detection does not vary with depth.
