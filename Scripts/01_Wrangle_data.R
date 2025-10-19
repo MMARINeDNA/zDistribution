@@ -11,6 +11,7 @@ metadata <- read.csv("./Data/Hake_2019_metadata.csv")
 timeAtDepth <- read.csv("./Data/MM_dive_time_expand.csv")
 mmEcoEvo <- read.csv("./Data/MM_metadata.csv")
 freezethaw <- read.csv("./Data/HAKE2019_miseq_runs_thaw.csv")
+sampleinfo <- read.csv("./Data/MURIsampleInfo_2025-03-05_MRS_v2.csv")
 
 detect_data_raw <- read.csv("./Data/M3_compiled_taxon_table_wide.csv") %>% 
   pivot_longer(-c(BestTaxon, Class), names_to = "SampleUID", values_to = "nReads") %>% 
@@ -25,20 +26,29 @@ detect_data_raw <- read.csv("./Data/M3_compiled_taxon_table_wide.csv") %>%
   filter(Class == "Mammalia") %>% 
   filter(!BestTaxon %in% c("Moschus", "Equus caballus"))
 
-## Add freeze/thaw info INCOMPLETE
+## Add freeze/thaw info
+
+sampleinfo_mod <- sampleinfo %>%
+  mutate(plate = paste0("MURI", Plate)) %>%
+  select("NWFSCsampleID", "plate", "primer", "dilution", "techRep", "PlateNo") %>%
+  distinct() 
+
+detect_data_plate <- detect_data_raw %>%
+  left_join(sampleinfo_mod, by = c("NWFSCsampleID", "plate", "primer", "dilution", "techRep")) %>%
+  mutate("PlateNo" = as.character(PlateNo))
 
 freezethaw_mod <- freezethaw %>%
-  select(-Plate) %>% # take this out to avoid confusion
   mutate("plate" = paste0("MURI", RunNo)) %>%
+  mutate("PlateNo" = as.character(Plate)) %>%
   rename("primer" = Markers) %>%
   mutate(plate = as.character(plate))
 
-detect_data_thaw <- detect_data_raw %>%
-  left_join(freezethaw_mod, by = c("plate", "primer"))
+detect_data_thaw <- detect_data_plate %>%
+  left_join(freezethaw_mod, by = c("plate", "PlateNo", "primer"))
 
 ## Filter out DLL1, C16 primer, plate 309, and DL/DLL1 from plate 314 ----------
 
-detect_data_filt <- detect_data_raw %>% 
+detect_data_filt <- detect_data_thaw %>% 
   filter(plate != "MURI309") %>% 
   filter(!(primer %in% c("DLL1N", "C16"))) %>% 
   filter(!(primer == "DL" & plate == "MURI314"))
@@ -86,15 +96,15 @@ detect_data_1dil <- detect_data_1seq %>%
   
 ## Count number of samples -----------------------------------------------------
 
-nSamps_primer <- detect_data_1rep %>% 
-  group_by(primer, NWFSCsampleID) %>% 
-  n_groups()
-
-length(unique(detect_data_1rep$NWFSCsampleID))
+# nSamps_primer <- detect_data_1rep %>% 
+#   group_by(primer, NWFSCsampleID) %>% 
+#   n_groups()
+# 
+# length(unique(detect_data_1rep$NWFSCsampleID))
 
 ## Add metadata ----------------------------------------------------------------
 
-detect_data_meta <- detect_data_1rep %>% 
+detect_data_meta <- detect_data_1dil %>% 
   left_join(metadata, by = c("NWFSCsampleID" = "sampleID")) %>%
   left_join(mmEcoEvo, by = c("BestTaxon" = "Species"))
 
@@ -116,7 +126,7 @@ unique(detect_data$common_name)
 ## Remove delphinid and baleen detections <100m from bottom (likely whalefall) -
 
 detect_data_nowf <- detect_data %>%
-  mutate(dist_to_bottom = bottom.depth.consensus - depth) %>%
+  mutate(dist_to_bottom = bottom.depth.consensus - depth) #%>%
   mutate(Detected = case_when(dist_to_bottom < 100 &
                   Detected == 1 &
                   bottom.depth.consensus > 200 &
