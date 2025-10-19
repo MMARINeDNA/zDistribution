@@ -82,16 +82,16 @@ m3.0b_sePreds <- data.frame(m3.0b_pred_grid,
 # also assumes that all taxa are different, which they might be, but we might
 # want some to be allowed to be similar/share parameters
 # Also te might not be efficient with bam? But DLM can't remember for sure.
-Sys.time()
-m3.0c <- bam(Detected ~ te(depth, lat, lon, 
-                           k=c(10,5,5),
-                           by = as.factor(BestTaxon)),
-             family = "binomial",
-             method = "fREML",
-             data = detect_data,
-             discrete = TRUE,
-             nthreads = 40)
-Sys.time()
+# Sys.time()
+# m3.0c <- bam(Detected ~ te(depth, lat, lon, 
+#                            k=c(10,5,5),
+#                            by = as.factor(BestTaxon)),
+#              family = "binomial",
+#              method = "fREML",
+#              data = detect_data,
+#              discrete = TRUE,
+#              nthreads = 40)
+# Sys.time()
 
 detect_data$BestTaxon <- as.factor(detect_data$BestTaxon)
 
