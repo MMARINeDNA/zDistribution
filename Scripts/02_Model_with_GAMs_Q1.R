@@ -18,11 +18,11 @@ detect_data$BestTaxon <- as.factor(detect_data$BestTaxon)
 
 ### H1: POD by depth alone -----------------------------------------------------
 # basic model with no species-specific terms
-m1.0 <- gam(Detected ~ s(depth), family = "binomial", data = detect_data, method="REML") 
+m1.0 <- gam(Detected ~ s(depth, k = 5), family = "binomial", data = detect_data, method="REML") 
 summary(m1.0)
 # depth p-value = 2.6e-06
 AIC(m1.0)
-# AIC 4586
+# AIC 6124
 
 # compare gam to jags version of the same model
 # m1.0_sePreds$mu_jags <- exp(predict(jam,newdata=pd, scale = "response"))
@@ -39,7 +39,7 @@ m1.1 <- gam(Detected ~ s(depth) + BestTaxon, family = "binomial", data = detect_
 summary(m1.1)
 
 AIC(m1.1)
-# AIC = 4190
+# AIC = 5604
 
 # separate the depth effect from the taxon effect from the depth-taxon effect. 
 m1.2 <- gam(Detected ~ 
@@ -51,7 +51,7 @@ m1.2 <- gam(Detected ~
 summary(m1.2)
 
 AIC(m1.2)
-# AIC 4061
+# AIC 5410
 
 ### H2a: POD by depth across taxonomic family ----------------------------------
 detect_data$Family <- as.factor(detect_data$Family)
@@ -65,7 +65,7 @@ summary(m1.2a)
 # no families with < 30 detections are significant
 # All are significant > 30 detections except Phocoenidae
 AIC(m1.2a)
-#AIC 4341
+#AIC 5809
 #by species is lower
 
 
@@ -79,7 +79,7 @@ m1.2b <-  gam(Detected ~
 summary(m1.2b)
 #significant for all three types
 AIC(m1.2b)
-#AIC 4426
+#AIC 5949
 
 ### H2c: POD by time-at-depth --------------------------------------------------
 # 
