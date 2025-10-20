@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Amy M. Van Cise1*, Eiren K. Jacobson2, Megan Shaffer3, Pedro Brandao3, Ryan Kelly3, Brice Semmens4, Kim M. Parsons5">
+<meta name="author" content="Amy M. Van Cise1*, Eiren K. Jacobson2, Megan Shaffer3, Pedro Brandao3, David Miller4, Ryan Kelly3, Brice Semmens5, Kim M. Parsons6">
 
 <title>Species-specific behavior and ecology drive depth distribution of rare species eDNA in pelagic marine environments</title>
 <style>
@@ -76,7 +76,7 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Author</div>
     <div class="quarto-title-meta-contents">
-             <p>Amy M. Van Cise<sup>1*</sup>, Eiren K. Jacobson<sup>2</sup>, Megan Shaffer<sup>3</sup>, Pedro Brandao<sup>3</sup>, Ryan Kelly<sup>3</sup>, Brice Semmens<sup>4</sup>, Kim M. Parsons<sup>5</sup> </p>
+             <p>Amy M. Van Cise<sup>1*</sup>, Eiren K. Jacobson<sup>2</sup>, Megan Shaffer<sup>3</sup>, Pedro Brandao<sup>3</sup>, David Miller<sup>4</sup>, Ryan Kelly<sup>3</sup>, Brice Semmens<sup>5</sup>, Kim M. Parsons<sup>6</sup> </p>
           </div>
   </div>
     
@@ -93,6 +93,7 @@ div.csl-indent {
 <li>School of Aquatic and Fishery Sciences, University of Washington, Seattle, WA, USA</li>
 <li>Centre for Research into Ecological and Environmental Modelling, University of St Andrews, St Andrews, Scotland</li>
 <li>School of Environmental and Marine Affairs, University of Washington, Seattle, WA, USA</li>
+<li>Dave’s affiliation</li>
 <li>Scripps Institution of Oceanography, University of California San Diego, San Diego, CA, USA</li>
 <li>Northwest Fisheries Science Center, National Marine Fisheries Service, National Oceanic and Atmospheric Administration, Seattle, WA, USA</li>
 </ol>
@@ -119,7 +120,8 @@ div.csl-indent {
 <h2 class="anchored" data-anchor-id="methods">Methods</h2>
 <section id="sample-collection" class="level3">
 <h3 class="anchored" data-anchor-id="sample-collection">Sample Collection</h3>
-<p>For this study, we use previously collected water samples acquired during biennial NOAA surveys quantifying hake abundance and distribution [@shelton_etal22]. Samples were collected in tandem with nightly CTD casts, as described in Shelton et al.&nbsp;[-@shelton_etal22]. We targeted 0, 50, 150, 300, and 500 m depth strata along east-west transects with a western terminus at XXX and an eastern terminus at the continental shelf break, generally ~XX km from shore (Figure 1). <em>Describe oceanography of this area, e.g.&nbsp;California Current is an eastern boundary current, source of significant upwelling along shelf break, sampling transects capture that shelf break (right?). Is there an inshore counter current? Where is the OMZ?</em></p>
+<p>For this study, we use previously collected water samples acquired during biennial NOAA surveys quantifying hake abundance and distribution [@shelton_etal22]. Samples were collected in tandem with nightly CTD casts, as described in Shelton et al.&nbsp;[-@shelton_etal22]. We targeted 0, 50, 150, 300, and 500 m depth strata along east-west transects with a western terminus at XXX and an eastern terminus at the continental shelf break, generally ~XX km from shore (Figure 1).</p>
+<p>The study area is encompassed by the California Current System, which is 500-800km wide, extends from 43°N to 23°N, and comprises an equatorward surface current and a subsurface poleward current that is concentrated mainly on the continental shelf <span class="citation" data-cites="hickey79">(<a href="#ref-hickey79" role="doc-biblioref"><strong>hickey79?</strong></a>)</span>. The system is characterized by strong alongshore advection, inshore upwelling concentrated primarily along the continental shelf break, and multiple terrestrial and oceanic water sources <span class="citation" data-cites="mcclatchie14">(<a href="#ref-auad_etal11" role="doc-biblioref"><strong>auad_etal11?</strong></a>)</span>. These complex oceanogrpahic processes support a highly productive and diverse assemblage of plankton and fishes, form a rich prey base for at least 25 cetacean species that inhabit the study area <span class="citation" data-cites="carretta_etal23">(<a href="#ref-carretta_etal23" role="doc-biblioref"><strong>carretta_etal23?</strong></a>)</span>.</p>
 </section>
 <section id="sample-processing" class="level3">
 <h3 class="anchored" data-anchor-id="sample-processing">Sample Processing</h3>
@@ -142,8 +144,7 @@ div.csl-indent {
 <h4 class="anchored" data-anchor-id="question-1-does-pod-vary-with-depth">Question 1: Does POD vary with depth?</h4>
 <p>We addressed this question using generalized additive models (GAMs; <span class="citation" data-cites="Wood2017">(<a href="#ref-Wood2017" role="doc-biblioref"><strong>Wood2017?</strong></a>)</span>) implemented using the mgcv package in R <span class="citation" data-cites="RCoreTeam2016">(<a href="#ref-RCoreTeam2016" role="doc-biblioref">R Core Team 2016</a>)</span>. GAMs have previously been demonstrated to be an appropriate tool for modeling spatial use in cetaceans (e.g. <span class="citation" data-cites="Becker2016">Elizabeth A. Becker et al. (<a href="#ref-Becker2016" role="doc-biblioref">2016</a>)</span>; <span class="citation" data-cites="becker2020">Elizabeth A. Becker et al. (<a href="#ref-becker2020" role="doc-biblioref">2020</a>)</span>; <span class="citation" data-cites="becker2022">Elizabeth A. Becker et al. (<a href="#ref-becker2022" role="doc-biblioref">2022</a>)</span>; <span class="citation" data-cites="Becker2019">Elizabeth A. Becker et al. (<a href="#ref-Becker2019" role="doc-biblioref">2019</a>)</span>; <span class="citation" data-cites="abrahmsetal_19c">(<a href="#ref-abrahmsetal_19c" role="doc-biblioref"><strong>abrahmsetal_19c?</strong></a>)</span>). We first collapsed our detection data across all technical replicates at each sampling station and depth and defined a positive detection at that location and depth as detection in at least one technical replicate. We fit all GAMs using 0/1 detections as the response variable with a binomial distribution and logit link function, and estimated model parameters using REML. Models examining depth effect alone were built iteratively, starting with (1) assessing probability of detection (POD) across all species at sampling depths between 1 and 500m, then (2) allowing y-intercept to vary by species, and finally (3) allowing model smooth to vary by species.</p>
 <p>In addition to examining depth variability across species-level strata, we examined several other ecological stratification schemes in order to determine whether depth variability in detection probability is driven by (1) evolutionary inertia (i.e.&nbsp;taxonomic family) or (2) preferred prey type.</p>
-<p>Finally, we examined the relationship between probability of detection and time-at-depth on a species specific basis. For this model, all estimates of time-at-depth were acquired from XXX (REF).</p>
-<p>We assessed model fit using AIC, and model performance using standard metrics including the percent of deviance explained, the area under the receiver operating characteristic curve (AUC; Fawcett 2006 REF), the true skill statistic (TSS, Allouche et al.&nbsp;2006 REF), and a visual comparison of predicted vs.&nbsp;observed detection rates across sampling depths.</p>
+<p>We assessed model fit using AIC, and model performance using standard metrics including the percent of deviance explained, the area under the receiver operating characteristic curve (AUC; Fawcett 2006 REF), the true skill statistic (TSS, Allouche et al.&nbsp;2006 REF), and a visual comparison of predicted vs.&nbsp;observed detection rates across sampling depths. We also visually compared our model-based predictions of probability of detection across depth with estimates of species-specific time-at-depth as reported in <span class="citation" data-cites="watwood_buonantony12">(<a href="#ref-watwood_buonantony12" role="doc-biblioref"><strong>watwood_buonantony12?</strong></a>)</span> and <span class="citation" data-cites="u_s_departmentofthenavy17">(<a href="#ref-u_s_departmentofthenavy17" role="doc-biblioref"><strong>u_s_departmentofthenavy17?</strong></a>)</span>.</p>
 </section>
 <section id="question-2-does-depth-variability-in-pod-covary-with-observation-bias" class="level4">
 <h4 class="anchored" data-anchor-id="question-2-does-depth-variability-in-pod-covary-with-observation-bias">Question 2: Does depth variability in POD covary with observation bias?</h4>
@@ -151,7 +152,8 @@ div.csl-indent {
 </section>
 <section id="question-3-does-depth-variability-in-pod-covary-with-xy-variability" class="level4">
 <h4 class="anchored" data-anchor-id="question-3-does-depth-variability-in-pod-covary-with-xy-variability">Question 3: Does depth variability in POD covary with xy variability?</h4>
-<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD We returned to the use of GAMs to address this question, and again built iterative models in order to examine covariability between depth, latitude, and longitude. We began by examining whether xy variability explained a significant amount of remaining variability left in the model after depth variability was account for (i.e.&nbsp;POD ~ z + xy), then tested whether x,y, and z covary (i.e.&nbsp;POD ~ xyz). Finally, we allowed the model of xyz covariability to vary independently by species. ======= We returned to the use of GAMs to address this question, and again built iterative models in order to examine covariability between depth, latitude, and longitude. We began by examining whether xy variability explained a significant amount of remaining variability left in the model after depth variability was account for (i.e.&nbsp;POD ~ z + xy), then tested whether x, y, and z covary (i.e.&nbsp;POD ~ xyz). Finally, we allowed the model of xyz covariability to vary idependently by species. &gt;&gt;&gt;&gt;&gt;&gt;&gt; ed26439c1617a8dd1d08e8159d341c29b640a33e</p>
+<p>We returned to the use of GAMs to address Question 3, and again built iterative models in order to examine covariability between depth, latitude, and longitude on a per-species basis. We began by examining whether xy variability explained a significant amount of remaining variability left in the model after depth variability was account for (i.e.&nbsp;POD ~ z + xy), then tested whether x, y, and z covary (i.e.&nbsp;POD ~ xyz). Finally, we allowed the model of xyz covariability to vary idependently by species.</p>
+<p>We assessed model fit using AIC, and model performance using percent deviance explained, AUC, and TSS, as in Question 1. We then conducted a visual comparison of the predicted depth of maximum POD across and our observed detection depth within the study area for the most frequently observed baleen whale, dolphin, and beaked whale.</p>
 </section>
 </section>
 </section>
@@ -222,7 +224,7 @@ Figure&nbsp;3: Left: POD by depth for species stratified by taxonomic Family. Ri
 <img src="index_files/figure-html/fig-H3PODlat-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-H3PODlat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: Latitude-driven variability in POD across three species included in this study; species chosen were those with the largest number of detections in each of the three broad taxonomic categories included in the study. POD was estimated at three latitudes, representing the high, low, and middle latitudes of the study survey area. Longitude is constant.
+Figure&nbsp;4: Depth of maximum probability of detection (POD; top) and width of 95% confidence itervals at max POD depth (bottom) for three species: Bbai = Baird’s beaked whale (<em>B. bairdii</em>), Lobl = Pacific white-sided dolphin (<em>L. obliquidens</em>), Mnov = humpback whale (<em>M. novaegliae</em>).
 </figcaption>
 </figure>
 </div>
