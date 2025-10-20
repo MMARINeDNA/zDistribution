@@ -17,6 +17,10 @@ library(mgcv)
 # Import the jagam object we created previously
 load("ProcessedData/jagam_m1.0.RData")
 
+m1.0 <- gam(Detected ~ s(depth, k = 5, bs = "bs"),  
+            family = "binomial", data = detect_data, method="REML") 
+
+
 # Import the data
 load("./ProcessedData/detect_data.RData")
 mm.data <- detect_data
@@ -93,8 +97,8 @@ m1.0_nimble <- nimbleCode({
   ## Parametric effect priors CHECK tau=1/11^2 is appropriate!
   for (i in 1:1) { b_depth[i] ~ dnorm(0,0.0087) }
   ## prior for s(depth)... 
-  K1[1:9,1:9] <- S1[1:9,1:9] * lambda[1]  + S1[1:9,10:18] * lambda[2]
-  b_depth[2:10] ~ dmnorm(zero[2:10], K1[1:9,1:9]) 
+  K1[1:4,1:4] <- S1[1:4,1:4] * lambda[1]  + S1[1:4,5:8] * lambda[2]
+  b_depth[2:5] ~ dmnorm(zero[2:5], K1[1:4,1:4]) 
   ## smoothing parameter priors CHECK...
   for (i in 1:2) {
     lambda[i] ~ dgamma(.05,.005)
@@ -114,7 +118,7 @@ m1.0_nimble <- nimbleCode({
   
   
   # Linear predictor, effect of depth
-  eta[1:N] <- X[1:N, 1:10] %*% b_depth[1:10] 
+  eta[1:N] <- X[1:N, 1:5] %*% b_depth[1:5] 
     
   # Depth-level occurrence
   for (i in 1:n_site_depth_states) { 
@@ -159,8 +163,6 @@ constants <- list(  n_sites = n_sites,
                     Y_primer_index = Y_primer_index,
                     zero = rep(0, 10))
 
-# run GAM in mgcv so we can use the initial values for the betas
-m1.0 <- gam(Detected ~ s(depth), family = "binomial", data = detect_data) 
 
 # UPDATED: Using a function for initial values for the second model as well.
 inits_fn_sitedepth <- function(){
@@ -190,32 +192,32 @@ inits_fn_sitedepth <- function(){
     prob_detection = rep(0.5, n_primers),
     lambda = q1Model_m1.0$jags.ini$lambda, # 2 vec
     rho = log(q1Model_m1.0$jags.ini$lambda),
-    b_depth = m1.0$coefficients, # 10 vec
-    eta = rep(0, 27540),
-    K1 = matrix(rep(0, 9*9), nrow = 9)
+    b_depth = m1.0$coefficients, # 5 vec
+    eta = rep(0, 25088),
+  K1 = matrix(rep(0, 4*4), nrow = 4)
   )
 }
 
 # Run NIMBLE model
-nimbleOut_m1.0 <- nimbleMCMC(code = m1.0_nimble, 
+nimbleOut_m1.0_Occ <- nimbleMCMC(code = m1.0_nimble, 
                              data = data, 
                              inits = inits_fn_sitedepth(),
                              constants = constants,
-                             niter = 100000, 
-                             nburnin = 75000, 
+                             niter = 250000, 
+                             nburnin = 225000, 
                              thin = 10, 
                              nchains = 4,
                              summary=TRUE,
                              samplesAsCodaMCMC = TRUE,
                              WAIC = TRUE)
 
-save(nimbleOut_m1.0, file = "./Results/nimbleOut_m1.0.RData")
+save(nimbleOut_m1.0_Occ, file = "./Results/nimbleOut_m1.0_Occ.RData")
 
 # Gelman-Rubin diagnostic
-MCMCsummary(nimbleOut_m1.0$samples)
+MCMCsummary(nimbleOut_m1.0_Occ$samples)
 
 # Visualize MCMC chains
-mcmcplot(nimbleOut_m1.0$samples)
+mcmcplot(nimbleOut_m1.0_Occ$samples)
 
 n.post <- 10000
 post.samples <- rbind.data.frame(nimbleOut_m1.0$samples$chain1,
@@ -235,7 +237,7 @@ mu.post <- matrix(rep(0, nrow(X)*nrow(post.samples)), nrow = nrow(X))
 
 
 for (i in 1:nrow(post.samples)){
-  eta.post <- X[1:nrow(X), 1:10] %*% as.numeric(post.samples[i,1:10])
+  eta.post <- X[1:nrow(X), 1:5] %*% as.numeric(post.samples[i,1:5])
   mu.post[1:nrow(X), i] <- as.numeric(ilogit(eta.post))}
 
 # note mu.post is [1:27540, 1:4000] 
