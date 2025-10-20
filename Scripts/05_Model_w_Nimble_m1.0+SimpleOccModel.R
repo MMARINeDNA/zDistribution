@@ -18,7 +18,8 @@ library(mgcv)
 load("ProcessedData/jagam_m1.0.RData")
 
 m1.0 <- gam(Detected ~ s(depth, k = 5, bs = "bs"),  
-            family = "binomial", data = detect_data, method="REML") 
+            family = "binomial", data = detect_data, method="REML", 
+            select = TRUE) # to create two lambdas
 
 
 # Import the data
@@ -98,6 +99,10 @@ m1.0_nimble <- nimbleCode({
   for (i in 1:1) { b_depth[i] ~ dnorm(0,0.0087) }
   ## prior for s(depth)... 
   K1[1:4,1:4] <- S1[1:4,1:4] * lambda[1]  + S1[1:4,5:8] * lambda[2]
+  # S1 is a penalty matrix (the second bit 5:8 is S2)
+  # K1 is the sum of the penalties each scaled by the smoothing parameters
+  # effectively the same as select = TRUE, i.e., two penalties
+  # bc if you didn't, it would be an improper prior
   b_depth[2:5] ~ dmnorm(zero[2:5], K1[1:4,1:4]) 
   ## smoothing parameter priors CHECK...
   for (i in 1:2) {
