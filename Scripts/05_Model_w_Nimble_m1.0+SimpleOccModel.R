@@ -1,8 +1,5 @@
-# simple nimble model with just a spline on depth
+# simple nimble model with just a spline on depth (for all cetaceans)
 # using the jagam object 
-
-# works with just bernoulli on pcap
-# stops working once i add the volume coefficient
 
 library(MCMCvis)
 library(boot)
@@ -15,13 +12,14 @@ library(tidyr)
 library(viridis)
 library(patchwork)
 library(nimble)
+library(mgcv)
 
 # Import the jagam object we created previously
 load("ProcessedData/jagam_m1.0.RData")
 
 # Import the data
-load("./ProcessedData/detect_species_meta.RData")
-mm.data <- detect_species_meta
+load("./ProcessedData/detect_data.RData")
+mm.data <- detect_data
 
 
 # because I've removed some of the unique biosample reference numbers with the above 
@@ -112,7 +110,9 @@ m1.0_nimble <- nimbleCode({
   prob_detection[1] ~ dbeta(1, 1)
   prob_detection[2] ~ dbeta(1, 1)
   prob_detection[3] ~ dbeta(1, 1)
-
+  prob_detection[4] ~ dbeta(1, 1)
+  
+  
   # Linear predictor, effect of depth
   eta[1:N] <- X[1:N, 1:10] %*% b_depth[1:10] 
     
@@ -159,6 +159,8 @@ constants <- list(  n_sites = n_sites,
                     Y_primer_index = Y_primer_index,
                     zero = rep(0, 10))
 
+# run GAM in mgcv so we can use the initial values for the betas
+m1.0 <- gam(Detected ~ s(depth), family = "binomial", data = detect_data) 
 
 # UPDATED: Using a function for initial values for the second model as well.
 inits_fn_sitedepth <- function(){
@@ -188,7 +190,7 @@ inits_fn_sitedepth <- function(){
     prob_detection = rep(0.5, n_primers),
     lambda = q1Model_m1.0$jags.ini$lambda, # 2 vec
     rho = log(q1Model_m1.0$jags.ini$lambda),
-    b_depth = q1Model_m1.0$jags.ini$b, # 10 vec
+    b_depth = m1.0$coefficients, # 10 vec
     eta = rep(0, 27540),
     K1 = matrix(rep(0, 9*9), nrow = 9)
   )
@@ -197,15 +199,17 @@ inits_fn_sitedepth <- function(){
 # Run NIMBLE model
 nimbleOut_m1.0 <- nimbleMCMC(code = m1.0_nimble, 
                              data = data, 
-                             inits = inits,
+                             inits = inits_fn_sitedepth(),
                              constants = constants,
-                             niter = 50000, 
-                             nburnin = 10000, 
-                             thin = 100, 
+                             niter = 100000, 
+                             nburnin = 75000, 
+                             thin = 10, 
                              nchains = 4,
                              summary=TRUE,
                              samplesAsCodaMCMC = TRUE,
                              WAIC = TRUE)
+
+save(nimbleOut_m1.0, file = "./Results/nimbleOut_m1.0.RData")
 
 # Gelman-Rubin diagnostic
 MCMCsummary(nimbleOut_m1.0$samples)
@@ -213,7 +217,7 @@ MCMCsummary(nimbleOut_m1.0$samples)
 # Visualize MCMC chains
 mcmcplot(nimbleOut_m1.0$samples)
 
-n.post <- 1600
+n.post <- 10000
 post.samples <- rbind.data.frame(nimbleOut_m1.0$samples$chain1,
                                  nimbleOut_m1.0$samples$chain2,
                                  nimbleOut_m1.0$samples$chain3,
@@ -221,19 +225,22 @@ post.samples <- rbind.data.frame(nimbleOut_m1.0$samples$chain1,
 
 # reconstruct the model expectation
 
-mu.post <- matrix(rep(0, 27540*nrow(post.samples)), nrow = 27540)
+X = q1Model_m1.0$jags.data$X
+
+mu.post <- matrix(rep(0, nrow(X)*nrow(post.samples)), nrow = nrow(X))
 
 # create a new lp matrix
 
-predict.gam(model = m1.0, type = "lpmatrix")
+#predict.gam(object = m1.0, type = "lpmatrix")
 
-X = q1Model_m1.0$jags.data$X
 
 for (i in 1:nrow(post.samples)){
-  eta.post <- X[1:27540, 1:10] %*% as.numeric(post.samples[i,1:10])
-  mu.post[1:27540, i] <- as.numeric(ilogit(eta.post))}
+  eta.post <- X[1:nrow(X), 1:10] %*% as.numeric(post.samples[i,1:10])
+  mu.post[1:nrow(X), i] <- as.numeric(ilogit(eta.post))}
 
-mu.post.long <- as.data.frame(cbind(Depth = detect_species_meta$depth, mu.post)) %>%
+# note mu.post is [1:27540, 1:4000] 
+
+mu.post.long <- as.data.frame(cbind(Depth = detect_data$depth, mu.post)) %>%
   pivot_longer(cols = 2:(nrow(post.samples)+1), names_to = "Chain", values_to = "PDetect")
 
 mu.post.med <- mu.post.long %>%
@@ -248,7 +255,7 @@ p <- ggplot() +
   geom_line(data = mu.post.med, aes(x=Depth, y = Med))+
   theme_bw()
 
-ggsave(plot = p, file = "./Figures/m1.0_nimble.png", width = 4, height = 4, units = "in")
+ggsave(plot = p, file = "./Figures/m1.0_nimbleOccModel.png", width = 4, height = 4, units = "in")
 
 names(m1.0_sePreds)[1] <- "Depth"
 m1.0_compare <- left_join(m1.0_sePreds, mu.post.med, by = "Depth")
