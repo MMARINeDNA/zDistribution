@@ -28,18 +28,21 @@ detect_data_raw <- read.csv("./Data/M3_compiled_taxon_table_wide.csv") %>%
 
 ## Add freeze/thaw info
 
+# take sample info and change names to match other data streams
 sampleinfo_mod <- sampleinfo %>%
   mutate(plate = paste0("MURI", Plate)) %>%
   select("NWFSCsampleID", "plate", "primer", "dilution", "techRep", "PlateNo") %>%
   distinct() 
 
+# join raw detection data with sample info
 detect_data_plate <- detect_data_raw %>%
-  left_join(sampleinfo_mod, by = c("NWFSCsampleID", "plate", "primer", "dilution", "techRep")) %>%
-  mutate("PlateNo" = as.character(PlateNo))
+  left_join(sampleinfo_mod, by = c("NWFSCsampleID", "plate", "primer", "dilution", "techRep"))
+# problem is here -- for some reason lots of samples are not matching
+# for testing
 
 freezethaw_mod <- freezethaw %>%
   mutate("plate" = paste0("MURI", RunNo)) %>%
-  mutate("PlateNo" = as.character(Plate)) %>%
+  mutate("PlateNo" = as.numeric(Plate)) %>%
   rename("primer" = Markers) %>%
   mutate(plate = as.character(plate))
 
@@ -50,7 +53,7 @@ detect_data_thaw <- detect_data_plate %>%
 
 detect_data_filt <- detect_data_thaw %>% 
   filter(plate != "MURI309") %>% 
-  filter(!(primer %in% c("DLL1N", "C16"))) %>% 
+  filter(!(primer %in% c("DLL1N", "C16", "DLL1"))) %>% 
   filter(!(primer == "DL" & plate == "MURI314"))
 
 
