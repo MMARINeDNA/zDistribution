@@ -16,16 +16,21 @@ library(nimble)
 load("./ProcessedData/detect_data.RData")
 load("ProcessedData/jagam_m1.0.RData")
 
+# check dimensions
+X = q1Model_m1.0$jags.data$X
+nrow(X)
+ncol(X)
+
 # define the model
 m1.0_nimble <- nimbleCode({
-    eta[1:27540] <- X[1:27540, 1:10] %*% b[1:10] ## linear predictor (b is beta)
+    eta[1:25088] <- X[1:25088, 1:5] %*% b[1:5] ## linear predictor (b is beta)
     for (i in 1:n) { mu[i] <-  ilogit(eta[i]) } ## expected response (not needed for full model)
     for (i in 1:n) { y[i] ~ dbin(mu[i],w[i]) } ## response (not needed for full model)
     ## Parametric effect priors CHECK tau=1/11^2 is appropriate!
     for (i in 1:1) { b[i] ~ dnorm(0,0.0087) }
     ## prior for s(depth)... 
-    K1[1:9,1:9] <- S1[1:9,1:9] * lambda[1]  + S1[1:9,10:18] * lambda[2]
-    b[2:10] ~ dmnorm(zero[2:10],K1[1:9,1:9]) 
+    K1[1:4,1:4] <- S1[1:4,1:4] * lambda[1]  + S1[1:4,5:8] * lambda[2]
+    b[2:5] ~ dmnorm(zero[2:5],K1[1:4,1:4]) 
     ## smoothing parameter priors CHECK...
     for (i in 1:2) {
       lambda[i] ~ dgamma(.05,.005)
@@ -43,13 +48,19 @@ constants <- list(n = q1Model_m1.0$jags.data$n, # number of data points
                   w = q1Model_m1.0$jags.data$w, # not sure what this is
                   zero = q1Model_m1.0$jags.data$zero)
 
+# use fitted values from mgcv as starting values for the betas
+
+#m1.0 <- gam(Detected ~ s(depth), family = "binomial", data = detect_data, method="REML") 
+#summary(m1.0)
+
 # Initial values
 inits <- list(lambda = q1Model_m1.0$jags.ini$lambda, # 2 vec
               rho = log(q1Model_m1.0$jags.ini$lambda),
               b = q1Model_m1.0$jags.ini$b, # 10 vec
-              eta = rep(0, 27540),
-              mu = rep(0, 27540),
-              K1 = matrix(rep(0, 9*9), nrow = 9))
+              #b =  m1.0$coefficients, 
+              eta = rep(0, 25088),
+              mu = rep(0, 25088),
+              K1 = matrix(rep(0, 4*4), nrow = 4))
 
 # Run NIMBLE model
 nimbleOut_m1.0 <- nimbleMCMC(code = m1.0_nimble, 
@@ -78,19 +89,18 @@ post.samples <- rbind.data.frame(nimbleOut_m1.0$samples$chain1,
 
 # reconstruct the model expectation
 
-mu.post <- matrix(rep(0, 27540*nrow(post.samples)), nrow = 27540)
+mu.post <- matrix(rep(0, 25088*nrow(post.samples)), nrow = 25088)
 
 # create a new lp matrix
 
 predict.gam(object = m1.0, type = "lpmatrix")
 
-X = q1Model_m1.0$jags.data$X
 
 for (i in 1:nrow(post.samples)){
-  eta.post <- X[1:27540, 1:10] %*% as.numeric(post.samples[i,1:10])
-  mu.post[1:27540, i] <- as.numeric(ilogit(eta.post))}
+  eta.post <- X[1:25088, 1:5] %*% as.numeric(post.samples[i,1:5])
+  mu.post[1:25088, i] <- as.numeric(ilogit(eta.post))}
 
-mu.post.long <- as.data.frame(cbind(Depth = detect_species_meta$depth, mu.post)) %>%
+mu.post.long <- as.data.frame(cbind(Depth = detect_data$depth, mu.post)) %>%
   pivot_longer(cols = 2:(nrow(post.samples)+1), names_to = "Chain", values_to = "PDetect")
 
 mu.post.med <- mu.post.long %>%
@@ -107,7 +117,7 @@ p <- ggplot() +
 
 ggsave(plot = p, file = "./Figures/m1.0_nimble.png", width = 4, height = 4, units = "in")
 
-# this doesn't work -- not sure what m1.0_sePreds is/was?
+# this next bit doesn't work -- not sure what m1.0_sePreds is/was?
 
 names(m1.0_sePreds)[1] <- "Depth"
 m1.0_compare <- left_join(m1.0_sePreds, mu.post.med, by = "Depth")
