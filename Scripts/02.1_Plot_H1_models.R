@@ -57,10 +57,13 @@ m1.2_sePreds <- data.frame(m1.2_predictions,
   left_join(timeAtDepth, by = c("common_name" = "Species", "depth" = "depth")) %>% 
   left_join(maxDepth_species, by = c("common_name" = "Species")) %>% 
   mutate(time_10m = case_when(depth > maxDepth~0,
-                              TRUE~time_10m))
+                              TRUE~time_10m)) %>% 
+  filter(BestTaxon %in% (detect_per_species %>% 
+                           filter(nDetect >= 10) %>% 
+                           pull(BestTaxon)))
 
 # transform time_10m to plot with POD by depth
-m1.2_scaled <- m1.2_sePreds %>%
+m1.2_scaled <- m1.2_sePreds %>% 
   group_by(abbrev) %>%
   mutate(time_scaled = time_10m/545) %>% 
   mutate(
@@ -78,8 +81,16 @@ m1.2POD <- ggplot(m1.2_scaled, aes(x = depth, color = Broad_taxa, fill = Broad_t
   scale_color_manual(values = c(pnw_palette("Cascades",2, type = "continuous"),
                                 pnw_palette("Sunset",2, type = "continuous"))) +
   facet_wrap(~abbrev, scales = "free_y") +
-  geom_rug(data = detect_data, aes(x=depth), color = "grey")+
-  geom_rug(data = filter(detect_data, Detected == 1), aes(x=depth))+
+  geom_rug(data = filter(detect_data, BestTaxon %in% (detect_per_species %>% 
+                                                        filter(nDetect >= 10) %>% 
+                                                        pull(BestTaxon))),
+                         aes(x=depth), color = "grey")+
+  geom_rug(data = (detect_data %>% 
+                     filter(Detected == 1) %>% 
+                     filter(BestTaxon %in% (detect_per_species %>% 
+                                              filter(nDetect >= 10) %>% 
+                                              pull(BestTaxon)))), 
+           aes(x=depth))+
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank()) +
   ylab("POD") +
@@ -97,7 +108,10 @@ m1.2apreds <- predict(m1.2a, m1.2a_predictions, type = "response", se.fit = TRUE
 m1.2a_sePreds <- data.frame(m1.2a_predictions,
                             mu   = exp(m1.2apreds$fit),
                             low  = exp(m1.2apreds$fit - 1.96 * m1.2apreds$se.fit),
-                            high = exp(m1.2apreds$fit + 1.96 * m1.2apreds$se.fit))
+                            high = exp(m1.2apreds$fit + 1.96 * m1.2apreds$se.fit)) %>% 
+  filter(Family %in% (detect_per_family %>% 
+                           filter(nDetect >= 10) %>% 
+                           pull(Family)))
 
 m1.2aPOD <- ggplot(m1.2a_sePreds, aes(x = depth, y = mu, color = Family, fill = Family)) +
   geom_point() +

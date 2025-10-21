@@ -56,8 +56,6 @@ detect_data_filt <- detect_data_thaw %>%
   filter(!(primer %in% c("DLL1N", "C16", "DLL1"))) %>% 
   filter(!(primer == "DL" & plate == "MURI314"))
 
-
-
 ## Reduce sequencing reps ------------------------------------------------------
 
 detect_data_1seq <- detect_data_filt %>% 
@@ -86,7 +84,6 @@ detect_data_1dil <- detect_data_1seq %>%
   slice_head(n = 22) %>% 
   select(-totReads) 
           
-
 ## Reduce tech reps ------------------------------------------------------------
 ## EKJ Note I think we don't want to do this anymore, since
 ## each tech rep will have a different number of freeze-thaw cycles
@@ -125,7 +122,6 @@ detect_data <- detect_data_meta %>%
 unique(detect_data$BestTaxon)
 unique(detect_data$common_name)
 
-
 ## Remove delphinid and baleen detections <100m from bottom (likely whalefall) -
 
 detect_data_nowf <- detect_data %>%
@@ -142,13 +138,14 @@ detect_per_species <- detect_data %>%
   group_by(BestTaxon) %>% 
   summarize(nDetect = sum(Detected))
 
-detect_per_species_nowf <- detect_data_nowf %>% 
-  group_by(BestTaxon) %>% 
-  summarize(nDetect = sum(Detected))
-
 detect_per_family <- detect_data %>% 
   group_by(Family) %>% 
   summarize(nDetect = sum(Detected))
+
+detect_per_primer_species <- detect_data %>% 
+  group_by(BestTaxon, primer) %>% 
+  summarize(nDetect = sum(Detected)) %>% 
+  pivot_wider(names_from = "primer", values_from = "nDetect")
 
 ## add time at depth per species -----------------------------------------------
 
@@ -173,4 +170,5 @@ detect_species_divetime <- detect_data %>%
 
 save(detect_data, detect_species_divetime,
      detect_per_species, detect_per_family, 
+     detect_per_primer_species,
      maxDepth_species, file = "./ProcessedData/detect_data.Rdata")
