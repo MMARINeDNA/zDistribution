@@ -10,7 +10,9 @@ library(tidyverse)
 metadata <- read.csv("./Data/Hake_2019_metadata.csv")
 timeAtDepth <- read.csv("./Data/MM_dive_time_expand.csv")
 mmEcoEvo <- read.csv("./Data/MM_metadata.csv")
+
 freezethaw <- read.csv("./Data/HAKE2019_miseq_runs_thaw.csv")
+#sample_locs <- read.csv("./Data/HAKE2019_sample_locations.csv")
 sampleinfo <- read.csv("./Data/MURIsampleInfo_2025-03-05_MRS_v2.csv")
 
 detect_data_raw <- read.csv("./Data/M3_compiled_taxon_table_wide.csv") %>% 
@@ -18,43 +20,58 @@ detect_data_raw <- read.csv("./Data/M3_compiled_taxon_table_wide.csv") %>%
   group_by(SampleUID) %>% 
   mutate(totalReads = sum(nReads)) %>% 
   separate(SampleUID, into = c("Sample_name", NA), remove = FALSE, sep = "_") %>% 
-  separate(Sample_name, into = c("plate", "primer", "pop", "sample", "dilution", "techRep", "seqRep"), remove = FALSE, sep = "\\.") %>% 
+  separate(Sample_name, into = c("run", "primer", "pop", "sample", "dilution", "techRep", "seqRep"), remove = FALSE, sep = "\\.") %>% 
   unite(pop:sample, col = "NWFSCsampleID", sep = "-") %>% 
   mutate(techRep = as.numeric(techRep)) %>% 
+  mutate(run = gsub("a","",run)) %>% 
+  mutate(run = gsub("b","",run)) %>% 
+  mutate(run = gsub("c","",run)) %>% 
   mutate(Detected = ifelse(nReads>0, 1, 0)) %>% 
   filter(!(primer %in% c("MFU", "MV1") & totalReads == 0)) %>% 
   filter(Class == "Mammalia") %>% 
   filter(!BestTaxon %in% c("Moschus", "Equus caballus"))
 
-## Add freeze/thaw info
+## Filter out DLL1, C16 primer, plate 309, and DL/DLL1 from plate 314 ----------
+
+detect_data_filt <- detect_data_raw %>% 
+  filter(run != "MURI309") %>% 
+  filter(!(primer %in% c("DLL1N", "C16", "DLL1"))) %>% 
+  filter(!(primer == "DL" & run == "MURI314")) %>% 
+  ungroup()
+
+## Add freeze/thaw info --------------------------------------------------------
 
 # take sample info and change names to match other data streams
 sampleinfo_mod <- sampleinfo %>%
   mutate(plate = paste0("MURI", Plate)) %>%
-  select("NWFSCsampleID", "plate", "primer", "dilution", "techRep", "PlateNo") %>%
-  distinct() 
+  rename("run" = plate) %>% 
+  select("NWFSCsampleID", "run", "primer", "dilution", "techRep", "PlateNo") %>% 
+  filter(!(run %in% c("MURI342", "MURI344"))) %>% # remove for now because these have weird plate numbers, we need to add them back in later
+  distinct()
 
 # join raw detection data with sample info
-detect_data_plate <- detect_data_raw %>%
-  left_join(sampleinfo_mod, by = c("NWFSCsampleID", "plate", "primer", "dilution", "techRep"))
-# problem is here -- for some reason lots of samples are not matching
-# for testing
+detect_data_plate <- detect_data_filt %>%
+  left_join(sampleinfo_mod, by = c("NWFSCsampleID", "primer", "run", "dilution", "techRep"))
 
 freezethaw_mod <- freezethaw %>%
-  mutate("plate" = paste0("MURI", RunNo)) %>%
-  mutate("PlateNo" = as.numeric(Plate)) %>%
+  mutate("run" = paste0("MURI", RunNo)) %>%
+  mutate("PlateNo" = as.numeric(Plate)) %>% #Plate 2.0A is a special case and is becoming an NA
   rename("primer" = Markers) %>%
-  mutate(plate = as.character(plate))
+  mutate(run = as.character(run)) %>% 
+  select(-Plate)
 
 detect_data_thaw <- detect_data_plate %>%
-  left_join(freezethaw_mod, by = c("plate", "PlateNo", "primer"))
+  left_join(freezethaw_mod, by = c("run", "PlateNo", "primer")) %>% 
+  mutate(Thaw = case_when(run == "MURI310" & primer == "DL"~1,
+                          TRUE~Thaw))
 
-## Filter out DLL1, C16 primer, plate 309, and DL/DLL1 from plate 314 ----------
+forMegan <- detect_data_thaw %>% 
+  filter(is.na(Thaw)) %>% 
+  distinct(NWFSCsampleID, primer, dilution, run, .keep_all = TRUE) %>% 
+  mutate(run = as.numeric(gsub("MURI","", run))) %>% 
+  filter(run < 332)
 
-detect_data_filt <- detect_data_thaw %>% 
-  filter(plate != "MURI309") %>% 
-  filter(!(primer %in% c("DLL1N", "C16", "DLL1"))) %>% 
-  filter(!(primer == "DL" & plate == "MURI314"))
+write.csv(forMegan, file = "noThawSamps.csv", row.names = FALSE)
 
 ## Reduce sequencing reps ------------------------------------------------------
 
@@ -125,7 +142,7 @@ unique(detect_data$common_name)
 ## Remove delphinid and baleen detections <100m from bottom (likely whalefall) -
 
 detect_data_nowf <- detect_data %>%
-  mutate(dist_to_bottom = bottom.depth.consensus - depth) #%>%
+  mutate(dist_to_bottom = bottom.depth.consensus - depth) %>%
   mutate(Detected = case_when(dist_to_bottom < 100 &
                   Detected == 1 &
                   bottom.depth.consensus > 200 &
@@ -170,5 +187,5 @@ detect_species_divetime <- detect_data %>%
 
 save(detect_data, detect_species_divetime,
      detect_per_species, detect_per_family, 
-     detect_per_primer_species,
+     detect_per_primer_species, mmEcoEvo,
      maxDepth_species, file = "./ProcessedData/detect_data.Rdata")
