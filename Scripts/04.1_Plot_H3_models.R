@@ -14,24 +14,11 @@ library(cowplot)
 library(ggspatial)
 library(marmap)
 
-load("./ProcessedData/m3.0models_preds.Rdata")
+load("./ProcessedData/m3.0models_preds_0.05degree.Rdata")
 load("./ProcessedData/detect_data.RData")
 mmEcoEvo <- read.csv("./Data/MM_metadata.csv")
 metadata <- read.csv("./Data/Hake_2019_metadata.csv")
 
-### Get bathymetry data --------------------------------------------------------
-
-# lon‐range and lat‐range:
-lon1 <- min(maxPOD_depth_clipped$lon_plain); lon2 <- max(maxPOD_depth_clipped$lon_plain) 
-lat1 <- min(maxPOD_depth_clipped$lat_plain); lat2 <- max(maxPOD_depth_clipped$lat_plain)
-
-# Download bathymetry
-bath <- getNOAA.bathy(lon1 = lon1, lon2 = lon2,
-                      lat1 = lat1, lat2 = lat2,
-                      resolution = 1)  # “1” ~ 1-minute (~1.8 km) resolution
-
-# Convert bathy to a data.frame for ggplot
-bath_df <- fortify.bathy(bath) 
 
 ### m3.0c max POD depth map for three species ----------------------------------
 
@@ -41,9 +28,9 @@ maxPOD_depth <- m3.0c_sePreds %>%
   arrange(desc(mu), .by_group = TRUE) %>% 
   slice_head() %>% 
   ungroup() %>% 
-  mutate(ci95 = high-low) %>% 
-  filter(!(BestTaxon == "Megaptera novaeangliae" & depth == 0)) %>% 
-  filter(!(BestTaxon == "Megaptera novaeangliae" & depth == 50))
+  mutate(ci95 = high-low)  
+  #filter(!(BestTaxon == "Megaptera novaeangliae" & depth == 0)) %>% 
+  #filter(!(BestTaxon == "Megaptera novaeangliae" & depth == 50))
 
 # create convex hull study area
 study_area <- st_as_sf(metadata, coords = c("lon", "lat"), crs = 4326) %>%
@@ -67,7 +54,7 @@ pos_detect <- detect_data %>%
                            depth %in% c(467,485,495,500)~500,
                            TRUE~depth))
 
-# create coastline shapefile
+### Create coastline shapefile -------------------------------------------------
 world <- st_read("Data/ne_10m_land/ne_10m_land.shp")
 
 data_bbox <- st_as_sf(maxPOD_depth, coords = c("lon", "lat"), crs = 4326) %>%
@@ -77,8 +64,22 @@ data_bbox <- st_as_sf(maxPOD_depth, coords = c("lon", "lat"), crs = 4326) %>%
 
 westcoast_land <- st_crop(world, data_bbox)
 
+### Get bathymetry data --------------------------------------------------------
 
-# depth of max POD map
+# lon‐range and lat‐range:
+lon1 <- min(maxPOD_depth_clipped$lon_plain); lon2 <- max(maxPOD_depth_clipped$lon_plain) 
+lat1 <- min(maxPOD_depth_clipped$lat_plain); lat2 <- max(maxPOD_depth_clipped$lat_plain)
+
+# Download bathymetry
+bath <- getNOAA.bathy(lon1 = lon1, lon2 = lon2,
+                      lat1 = lat1, lat2 = lat2,
+                      resolution = 1)  # “1” ~ 1-minute (~1.8 km) resolution
+
+# Convert bathy to a data.frame for ggplot
+bath_df <- fortify.bathy(bath) 
+
+
+### depth of max POD map -------------------------------------------------------
 depth_max_detect <- list()
 
 species <- c("Lagenorhynchus obliquidens",
@@ -97,6 +98,8 @@ depth_max_detect[[i]] <- ggplot(westcoast_land) +
                        option = "mako",
                        trans = "reverse",
                        begin = 0.4, end = 0.9) +
+  geom_contour(data = bath_df, aes(x = x, y = y, z = z),
+               breaks = c(-500, -1000, -2000), color = "grey70", linewidth = 0.3) +
   ggspatial::geom_spatial_point(data = pos_detect %>%
                                   filter(BestTaxon == species[i]),
                                 aes(x = lon, y = lat,
@@ -117,8 +120,8 @@ depth_max_detect[[i]] <- ggplot(westcoast_land) +
         legend.justification = c("left"),
         legend.background = element_blank(),
         legend.box.background = element_blank(),
-        legend.title = element_text(size = 8),
-        legend.text = element_text(size = 7)) 
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 9)) 
 }
   
 #depth_max_detect[[1]] + depth_max_detect[[2]] + depth_max_detect[[3]] 
@@ -157,7 +160,6 @@ combined_plot <- cowplot::plot_grid(
 
 combined_plot
 
-
 # 95% CI of max POD
 
 ci95_plot_list <- list()
@@ -171,8 +173,8 @@ ci95_plot_list[[i]] <- ggplot(westcoast_land) +
   theme_classic() +
   #ggtitle(names(species)[i]) +
   geom_sf(fill = "grey50", colour = NA) +
-  scale_fill_viridis_c(name = "CI",
-                       option = "rocket",
+  scale_fill_viridis_c(name = "POD CI",
+                       option = "magma",
                        trans = "reverse") +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank(),
@@ -182,8 +184,10 @@ ci95_plot_list[[i]] <- ggplot(westcoast_land) +
         legend.justification = c("left"),
         legend.background = element_blank(),
         legend.box.background = element_blank(),
-        legend.title = element_text(size = 8),
-        legend.text = element_text(size = 7))
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 9)) +
+  geom_contour(data = bath_df, aes(x = x, y = y, z = z),
+               breaks = c(-500, -1000, -2000), color = "grey70", linewidth = 0.3)
 
 if (i == 1){
   ci95_plot_list[[i]] <- ci95_plot_list[[i]] +

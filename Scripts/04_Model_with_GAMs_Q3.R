@@ -118,10 +118,10 @@ AIC(m3.0c)
 m3.0c_pred_grid <- expand_grid(depth = seq(from = 0, to = 500, by = 10),
                                lat = seq(min(detect_data$lat, na.rm = TRUE),
                                          max(detect_data$lat, na.rm = TRUE),
-                                         by = 0.2),
+                                         by = 0.05),
                                lon = seq(min(detect_data$lon, na.rm = TRUE),
                                          max(detect_data$lon, na.rm = TRUE),
-                                         by = 0.2),
+                                         by = 0.05),
                                BestTaxon = as.factor(c("Lagenorhynchus obliquidens",
                                                         "Megaptera novaeangliae",
                                                         "Berardius bairdii")))
@@ -138,7 +138,7 @@ m3.0c_sePreds <- data.frame(m3.0c_pred_grid,
 ### Save -----------------------------------------------------------------------
 
 save(m3.0a, m3.0b, m3.0c, m3.0b_sePreds, m3.0c_sePreds, 
-     file = "./ProcessedData/m3.0models_preds.Rdata")
+     file = "./ProcessedData/m3.0models_preds_0.05degree.Rdata")
 
 ### DLM explanation of ti vs. te -----------------------------------------------
 
