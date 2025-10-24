@@ -110,7 +110,8 @@ summary(m3.0c)
 # fREML =  25017  Scale est. = 1         n = 25088
 
 AIC(m3.0c)
-#3810
+#3810 with all terms
+#4947 without non-significant terms
 
 ### m3.0c predictions ----------------------------------------------------------
 

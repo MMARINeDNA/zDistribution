@@ -8,7 +8,7 @@ execute:
   message: false
   warning: false
 project:
-  output-dir: Docs
+  output-dir: docs
 bibliography: references.bib
 ---
 
@@ -31,10 +31,13 @@ Running page head: Depth distribution of rare target detections
 library(tidyverse)
 library(patchwork)
 library(cowplot)
+library(pander)
 
 # load data
 load("ProcessedData/detect_data.RData")
 load("ProcessedData/H1models.RData")
+load("ProcessedData/m3.0models_preds.Rdata")
+load("ProcessedData/H3.0c_pred_flt.Rdata")
 
 # load plots
 load("Figures/sampling_map.Rdata")
@@ -97,4 +100,25 @@ To answer these questions, we utilize eDNA samples collected in the California C
 
 8.  It could also reflect, e.g. shorter residence time of eDNA in warmer water to the south, or higher probability of eDNA sinking below 500 meters in deeper offshore water. *What else could be causing this?*
 
-ASSUMPTIONS AND CAVEATS
+#### Marine Mammal monitoring: lessons for eDNA experimental design
+
+1. Sample at depth where species spends most of its time. If this is unknown, can use broad prey category or taxonomic group as a guide. 
+
+2. In laboratory processing, sequence longer fragments first, using as few freeze/thaw cycles as possible.
+
+## Data availability
+
+All raw sequence data have been uploaded to GenBank (Accessions: XXXX). Detection data, sample metadata, and all code used to generate this manuscript are available at https://github.com/MMARINeDNA/zDistribution.
+
+## Acknowledgements
+
+## References
+
+
+## Supplemental Materials
+
+Table S1. Sample metadata.
+
+Table S2. Q1 model AIC and diagnostics
+
+Figure S1. Q1 and Q3 Null hypothesis plots?

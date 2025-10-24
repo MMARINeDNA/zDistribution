@@ -121,7 +121,7 @@ div.csl-indent {
 <section id="sample-collection" class="level3">
 <h3 class="anchored" data-anchor-id="sample-collection">Sample Collection</h3>
 <p>For this study, we use previously collected water samples acquired during biennial NOAA surveys quantifying hake abundance and distribution [@shelton_etal22]. Samples were collected in tandem with nightly CTD casts, as described in Shelton et al.&nbsp;[-@shelton_etal22]. We targeted 0, 50, 150, 300, and 500 m depth strata along east-west transects with a western terminus at XXX and an eastern terminus at the continental shelf break, generally ~XX km from shore (Figure 1).</p>
-<p>The study area is encompassed by the California Current System, which is 500-800km wide, extends from 43°N to 23°N, and comprises an equatorward surface current and a subsurface poleward current that is concentrated mainly on the continental shelf <span class="citation" data-cites="hickey79">(<a href="#ref-hickey79" role="doc-biblioref"><strong>hickey79?</strong></a>)</span>. The system is characterized by strong alongshore advection, inshore upwelling concentrated primarily along the continental shelf break, and multiple terrestrial and oceanic water sources <span class="citation" data-cites="mcclatchie14">(<a href="#ref-auad_etal11" role="doc-biblioref"><strong>auad_etal11?</strong></a>)</span>. These complex oceanogrpahic processes support a highly productive and diverse assemblage of plankton and fishes, form a rich prey base for at least 25 cetacean species that inhabit the study area <span class="citation" data-cites="carretta_etal23">(<a href="#ref-carretta_etal23" role="doc-biblioref"><strong>carretta_etal23?</strong></a>)</span>.</p>
+<p>The study area is encompassed by the California Current System, which is 500-800km wide, extends from 43°N to 23°N, and comprises an equatorward surface current and a subsurface poleward current that is concentrated mainly on the continental shelf <span class="citation" data-cites="hickey79">(<a href="#ref-hickey79" role="doc-biblioref">Hickey 1979</a>)</span>. The system is characterized by strong alongshore advection, inshore upwelling concentrated primarily along the continental shelf break, and multiple terrestrial and oceanic water sources <span class="citation" data-cites="mcclatchie14">Auad, Roemmich, and Gilson (<a href="#ref-auad_etal11" role="doc-biblioref">2011</a>)</span>. These complex oceanogrpahic processes support a highly productive and diverse assemblage of plankton and fishes, form a rich prey base for at least 25 cetacean species that inhabit the study area <span class="citation" data-cites="carretta_etal23">(<a href="#ref-carretta_etal23" role="doc-biblioref">Carretta et al. 2023</a>)</span>.</p>
 </section>
 <section id="sample-processing" class="level3">
 <h3 class="anchored" data-anchor-id="sample-processing">Sample Processing</h3>
@@ -142,9 +142,9 @@ div.csl-indent {
 <h3 class="anchored" data-anchor-id="data-analysis">Data Analysis</h3>
 <section id="question-1-does-pod-vary-with-depth" class="level4">
 <h4 class="anchored" data-anchor-id="question-1-does-pod-vary-with-depth">Question 1: Does POD vary with depth?</h4>
-<p>We addressed this question using generalized additive models (GAMs; <span class="citation" data-cites="Wood2017">(<a href="#ref-Wood2017" role="doc-biblioref"><strong>Wood2017?</strong></a>)</span>) implemented using the mgcv package in R <span class="citation" data-cites="RCoreTeam2016">(<a href="#ref-RCoreTeam2016" role="doc-biblioref">R Core Team 2016</a>)</span>. GAMs have previously been demonstrated to be an appropriate tool for modeling spatial use in cetaceans (e.g. <span class="citation" data-cites="Becker2016">Elizabeth A. Becker et al. (<a href="#ref-Becker2016" role="doc-biblioref">2016</a>)</span>; <span class="citation" data-cites="becker2020">Elizabeth A. Becker et al. (<a href="#ref-becker2020" role="doc-biblioref">2020</a>)</span>; <span class="citation" data-cites="becker2022">Elizabeth A. Becker et al. (<a href="#ref-becker2022" role="doc-biblioref">2022</a>)</span>; <span class="citation" data-cites="Becker2019">Elizabeth A. Becker et al. (<a href="#ref-Becker2019" role="doc-biblioref">2019</a>)</span>; <span class="citation" data-cites="abrahmsetal_19c">(<a href="#ref-abrahmsetal_19c" role="doc-biblioref"><strong>abrahmsetal_19c?</strong></a>)</span>). We first collapsed our detection data across all technical replicates at each sampling station and depth and defined a positive detection at that location and depth as detection in at least one technical replicate. We fit all GAMs using 0/1 detections as the response variable with a binomial distribution and logit link function, and estimated model parameters using REML. Models examining depth effect alone were built iteratively, starting with (1) assessing probability of detection (POD) across all species at sampling depths between 1 and 500m, then (2) allowing y-intercept to vary by species, and finally (3) allowing model smooth to vary by species.</p>
+<p>We addressed this question using generalized additive models (GAMs; <span class="citation" data-cites="Wood2017">Wood (<a href="#ref-Wood2017" role="doc-biblioref">2017</a>)</span>) implemented using the mgcv package in R <span class="citation" data-cites="RCoreTeam2016">(<a href="#ref-RCoreTeam2016" role="doc-biblioref">R Core Team 2016</a>)</span>. GAMs have previously been demonstrated to be an appropriate tool for modeling spatial use in cetaceans (e.g. <span class="citation" data-cites="Becker2016">Elizabeth A. Becker et al. (<a href="#ref-Becker2016" role="doc-biblioref">2016</a>)</span>; <span class="citation" data-cites="becker2020">(<a href="#ref-becker2020" role="doc-biblioref"><strong>becker2020?</strong></a>)</span>; <span class="citation" data-cites="becker2022">(<a href="#ref-becker2022" role="doc-biblioref"><strong>becker2022?</strong></a>)</span>; <span class="citation" data-cites="Becker2019">Elizabeth A. Becker et al. (<a href="#ref-Becker2019" role="doc-biblioref">2019</a>)</span>; <span class="citation" data-cites="abrahmsetal_19c">(<a href="#ref-abrahmsetal_19c" role="doc-biblioref"><strong>abrahmsetal_19c?</strong></a>)</span>). We first collapsed our detection data across all technical replicates at each sampling station and depth and defined a positive detection at that location and depth as detection in at least one technical replicate. We fit all GAMs using 0/1 detections as the response variable with a binomial distribution and logit link function, and estimated model parameters using REML. Models examining depth effect alone were built iteratively, starting with (1) assessing probability of detection (POD) across all species at sampling depths between 1 and 500m, then (2) allowing y-intercept to vary by species, and finally (3) allowing model smooth to vary by species.</p>
 <p>In addition to examining depth variability across species-level strata, we examined several other ecological stratification schemes in order to determine whether depth variability in detection probability is driven by (1) evolutionary inertia (i.e.&nbsp;taxonomic family) or (2) preferred prey type.</p>
-<p>We assessed model fit using AIC, and model performance using standard metrics including the percent of deviance explained, the area under the receiver operating characteristic curve (AUC; Fawcett 2006 REF), the true skill statistic (TSS, Allouche et al.&nbsp;2006 REF), and a visual comparison of predicted vs.&nbsp;observed detection rates across sampling depths. We also visually compared our model-based predictions of probability of detection across depth with estimates of species-specific time-at-depth as reported in <span class="citation" data-cites="watwood_buonantony12">(<a href="#ref-watwood_buonantony12" role="doc-biblioref"><strong>watwood_buonantony12?</strong></a>)</span> and <span class="citation" data-cites="u_s_departmentofthenavy17">(<a href="#ref-u_s_departmentofthenavy17" role="doc-biblioref"><strong>u_s_departmentofthenavy17?</strong></a>)</span>.</p>
+<p>We assessed model fit using AIC, and model performance using standard metrics including the percent of deviance explained, the area under the receiver operating characteristic curve (AUC; Fawcett 2006 REF), the true skill statistic (TSS, Allouche et al.&nbsp;2006 REF), and a visual comparison of predicted vs.&nbsp;observed detection rates across sampling depths. We also visually compared our model-based predictions of probability of detection across depth with estimates of species-specific time-at-depth as reported in <span class="citation" data-cites="watwood_buonantony12">(<a href="#ref-watwood_buonantony12" role="doc-biblioref">Watwood and Buonantony 2012</a>)</span> and <span class="citation" data-cites="u_s_departmentofthenavy17">(<a href="#ref-u_s_departmentofthenavy17" role="doc-biblioref">Navy 2017</a>)</span>.</p>
 </section>
 <section id="question-2-does-depth-variability-in-pod-covary-with-observation-bias" class="level4">
 <h4 class="anchored" data-anchor-id="question-2-does-depth-variability-in-pod-covary-with-observation-bias">Question 2: Does depth variability in POD covary with observation bias?</h4>
@@ -159,8 +159,286 @@ div.csl-indent {
 </section>
 <section id="results" class="level2">
 <h2 class="anchored" data-anchor-id="results">Results</h2>
-<p>We selected 573 water samples collected at 182 unique locations during the 2019 NOAA hake abundance survey (<a href="#fig-bubble" class="quarto-xref">Figure&nbsp;1</a>), targeting 0, 50, 150, 300, and 500 m sampling depths at each station. Where the bottom was less than 500 m deep, we did not collect a sample at 500 m. We amplified and sequenced these samples in 1 technical replicate using MFU, 3 technical replicates using MV1, and 3-5 technical replicates using DL, resulting in a final total of 1568 amplified and sequenced samples.</p>
-<p>Across all samples, we observed 462 positive detections of 16 cetacean species, including 6 baleen whale species, 5 dolphin species, 2 porpoise species, and 3 beaked whale species (Table 1 will include species-specific common names, abbreviations, n detections, etc). XX species were observed most frequently, and XXX least frequently. <em>More here about detection frequency in the overall study.</em> <a href="#fig-bubble" class="quarto-xref">Figure&nbsp;1</a> illustrates the distribution of detections across sampling depths, ignoring x-y distribution, for all cetacean species included in the study.</p>
+<p>We selected 573 water samples collected at 182 unique locations during the 2019 NOAA hake abundance survey (<a href="#fig-bubble" class="quarto-xref">Figure&nbsp;1</a>), targeting 0, 50, 150, 300, and 500 m sampling depths at each station. Where the bottom was less than 500 m deep, we did not collect a sample at 500 m. We amplified and sequenced these samples in 1 technical replicate using MFU, 3 technical replicates using MV1, and 3-5 technical replicates using DL, resulting in a final total of 1559 amplified and sequenced samples.</p>
+<div class="cell">
+<div id="tbl-sp-detects" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-sp-detects-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Scientific names, common names, abbrevation, taxonomic family, broad prey category, and total number of detections for each cetacean species detected in our study area.
+</figcaption>
+<div aria-describedby="tbl-sp-detects-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<caption>Table continues below</caption>
+<colgroup>
+<col style="width: 37%">
+<col style="width: 39%">
+<col style="width: 23%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Species</th>
+<th style="text-align: center;">Common name</th>
+<th style="text-align: center;">Sp. abbrevation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Lagenorhynchus obliquidens</td>
+<td style="text-align: center;">Pacific white-sided dolphin</td>
+<td style="text-align: center;">Lobl</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Megaptera novaeangliae</td>
+<td style="text-align: center;">humpback whale</td>
+<td style="text-align: center;">Mnov</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Phocoenoides dalli</td>
+<td style="text-align: center;">Dall’s porpoise</td>
+<td style="text-align: center;">Pdal</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Balaenoptera physalus</td>
+<td style="text-align: center;">fin whale</td>
+<td style="text-align: center;">Bphy</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Phocoena phocoena</td>
+<td style="text-align: center;">harbor porpoise</td>
+<td style="text-align: center;">Ppho</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Stenella coeruleoalba</td>
+<td style="text-align: center;">striped dolphin</td>
+<td style="text-align: center;">Scoe</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Grampus griseus</td>
+<td style="text-align: center;">Risso’s dolphin</td>
+<td style="text-align: center;">Ggris</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Orcinus orca</td>
+<td style="text-align: center;">killer whale</td>
+<td style="text-align: center;">Oorc</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Berardius bairdii</td>
+<td style="text-align: center;">northern giant bottlenose whale</td>
+<td style="text-align: center;">Bbai</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Ziphius cavirostris</td>
+<td style="text-align: center;">goose-beaked whale</td>
+<td style="text-align: center;">Zcav</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Eschrichtius robustus</td>
+<td style="text-align: center;">gray whale</td>
+<td style="text-align: center;">Erob</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Balaenoptera musculus</td>
+<td style="text-align: center;">blue whale</td>
+<td style="text-align: center;">Bmus</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Balaenoptera acutorostrata</td>
+<td style="text-align: center;">minke whale</td>
+<td style="text-align: center;">Bacu</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Lissodelphis borealis</td>
+<td style="text-align: center;">northern right whale dolphin</td>
+<td style="text-align: center;">Lbor</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Mesoplodon stejnegeri</td>
+<td style="text-align: center;">saber-toothed whale</td>
+<td style="text-align: center;">Mste</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Balaena mysticetus</td>
+<td style="text-align: center;">bowhead whale</td>
+<td style="text-align: center;">Bmys</td>
+</tr>
+</tbody>
+</table>
+<table class="do-not-create-environment cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 21%">
+<col style="width: 22%">
+<col style="width: 16%">
+<col style="width: 18%">
+<col style="width: 6%">
+<col style="width: 7%">
+<col style="width: 7%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Family</th>
+<th style="text-align: center;">Broad taxon</th>
+<th style="text-align: center;">Prey family</th>
+<th style="text-align: center;"># Detections</th>
+<th style="text-align: center;">DL</th>
+<th style="text-align: center;">MFU</th>
+<th style="text-align: center;">MV1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Delphinidae</td>
+<td style="text-align: center;">Dolphin/Porpoise</td>
+<td style="text-align: center;">fish</td>
+<td style="text-align: center;">120</td>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">79</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Balaenopteridae</td>
+<td style="text-align: center;">Baleen whale</td>
+<td style="text-align: center;">invert</td>
+<td style="text-align: center;">94</td>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">57</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Phocoenidae</td>
+<td style="text-align: center;">Dolphin/Porpoise</td>
+<td style="text-align: center;">fish</td>
+<td style="text-align: center;">88</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">71</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Balaenopteridae</td>
+<td style="text-align: center;">Baleen whale</td>
+<td style="text-align: center;">invert</td>
+<td style="text-align: center;">62</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">41</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Phocoenidae</td>
+<td style="text-align: center;">Dolphin/Porpoise</td>
+<td style="text-align: center;">fish</td>
+<td style="text-align: center;">46</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">33</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Delphinidae</td>
+<td style="text-align: center;">Dolphin/Porpoise</td>
+<td style="text-align: center;">fish</td>
+<td style="text-align: center;">36</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">34</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Delphinidae</td>
+<td style="text-align: center;">Dolphin/Porpoise</td>
+<td style="text-align: center;">fish</td>
+<td style="text-align: center;">33</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">18</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Delphinidae</td>
+<td style="text-align: center;">Dolphin/Porpoise</td>
+<td style="text-align: center;">fish</td>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">14</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Ziphiidae</td>
+<td style="text-align: center;">Beaked whale</td>
+<td style="text-align: center;">squid</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">12</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Ziphiidae</td>
+<td style="text-align: center;">Beaked whale</td>
+<td style="text-align: center;">squid</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">8</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Eschrichtiidae</td>
+<td style="text-align: center;">Baleen whale</td>
+<td style="text-align: center;">invert</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">8</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Balaenopteridae</td>
+<td style="text-align: center;">Baleen whale</td>
+<td style="text-align: center;">invert</td>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">6</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Balaenopteridae</td>
+<td style="text-align: center;">Baleen whale</td>
+<td style="text-align: center;">invert</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">5</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Delphinidae</td>
+<td style="text-align: center;">Dolphin/Porpoise</td>
+<td style="text-align: center;">fish</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Ziphiidae</td>
+<td style="text-align: center;">Beaked whale</td>
+<td style="text-align: center;">squid</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">3</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Balaenidae</td>
+<td style="text-align: center;">Baleen whale</td>
+<td style="text-align: center;">invert</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>Across all samples, we observed 566 positive detections of 16 cetacean species, including 6 baleen whale species, 5 dolphin species, 2 porpoise species, and 3 beaked whale species (<a href="#tbl-sp-detects" class="quarto-xref">Table&nbsp;1</a>). 11 species were observed more than 10 times, and and additional 5 were observed fewer than 10 times. This includes one detection of a bowhead whale (<em>Balaena mysticetus</em>), as well as three detections of Stejneger’s beaked whales (<em>Mesoplodon stejnegeri</em>). <a href="#fig-bubble" class="quarto-xref">Figure&nbsp;1</a> illustrates the distribution of detections across sampling depths, ignoring x-y distribution, for all cetacean species included in the study.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-bubble" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -177,8 +455,9 @@ Figure&nbsp;1: Left: Distribution of detections across sampling depths for all s
 </div>
 <section id="question-1-does-pod-vary-with-depth-1" class="level3">
 <h3 class="anchored" data-anchor-id="question-1-does-pod-vary-with-depth-1">Question 1: Does POD vary with depth?</h3>
-<p>GAM-based model selection of detection probability across sampling depths negated the null hypothesis of no variation across depth. The best alternative model allows probability of detection to vary by time spent at depth with a species-specific smooth (AIC = 4061). <em>Model diagnostics here, include table of AIC values?</em></p>
-<p>Species-specific detections were broadly highest at depths where they are predicted to spend the most time, especially within the Dephinidae, with notable exceptions among the beaked whales and baleen whales (<a href="#fig-H1POD-species" class="quarto-xref">Figure&nbsp;2</a>). We present predictions of POD by depth in <a href="#fig-H1POD-species" class="quarto-xref">Figure&nbsp;2</a> alongside trends in relative time spent at each depth to illustrate the depth at which each species in the study is most likely to be detected, as well as which species can be detected where they spend time and which are more likely to be detected elsewhere. As noted above, all three beaked whale observed in the study are more likely to be detected at depths greater than 300m, despite being predicted to spend the majority of their time above 100m. Similarly, baleen whales rarely travel below 100m (<em>check this number</em>) but in this study two patterns emerged: two species had highest POD at the surface and 500m (fin and humpback whales), and three species had increasing POD with increasing depth (minke, blue, and bowhead whales).</p>
+<p>GAM-based model selection of detection probability across sampling depths negated the null hypothesis of no variation across depth. The best alternative model includes significant smooth terms for depth, species, and depth x species interaction (AIC = 5410). This model explained 14.3% of variance in eDNA detection probability, <em>with an AUC of XXX and TSS of XXXX.</em></p>
+<p>Broadly, delphinids were more likely to be detected at the surface, beaked whales at depths &gt; 200m, and baleen whales either at the surface or at depths &gt; 400m (<a href="#fig-H1POD-species" class="quarto-xref">Figure&nbsp;2</a>). While detection data from the five species detected fewer than 10 times were included in our model input, we did not make predictions for any of these species.</p>
+<p>Species-specific detections were qualitatively highest at depths where they are predicted to spend the most time among the delphinids. Conversely, most beaked whale and baleen whale species in the study were most likely to be detected deeper than where they spend most of their time (<a href="#fig-H1POD-species" class="quarto-xref">Figure&nbsp;2</a>). Most notably, predicted POD-at-depth plots for two of the three baleen whales indicated a high probability of detection at 500 m, while these two species spend most of their time above ~200 m.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-H1POD-species" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -193,8 +472,7 @@ Figure&nbsp;2: Species-specific probability of detection across all depths sampl
 </div>
 </div>
 </div>
-<p>Our models stratifying detections by taxonomic Family and preferred prey type both had lower AIC values than the model stratified by species (AIC = 4341 and 4427, respectively); however, these models still had significant terms for Family and depthxFamily interactions (taxonomic model) and for depth, prey type, and depthxprey type interactions (prey type model). <em>Model diagnostics here.</em> Predicted POD curves for each model illustrate varying trends in POD with depth across strata (<a href="#fig-H1POD-family-prey" class="quarto-xref">Figure&nbsp;3</a>).</p>
-<p><em>In the discussion, talk about how ecological strata may be used to guide sampling for lesser known-species - e.g.&nbsp;if we don’t have any information about a particular baleen whale species, we might let the prey distribution model guide our sampling strategy and choose to sample at 50-100m and ~500m (where poop is).</em></p>
+<p>Models stratifying detections by taxonomic Family and preferred prey type both had lower AIC values than the model stratified by species (AIC = 5810 and 5949, respectively); however, these models still had significant terms for Family and depth x Family interactions (taxonomic model) and for depth, prey type, and depth x prey type interactions (prey type model). <em>Model diagnostics here.</em> Predicted POD curves for each model illustrate varying trends in POD with depth across strata (<a href="#fig-H1POD-family-prey" class="quarto-xref">Figure&nbsp;3</a>). Similar to the model stratified by species, we did not make predictions for Families with fewer than 10 detections using the taxonomic model, which excluded the Balaenidae (bowhead whale family).</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-H1POD-family-prey" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -215,15 +493,17 @@ Figure&nbsp;3: Left: POD by depth for species stratified by taxonomic Family. Ri
 </section>
 <section id="question-3-does-depth-variability-in-pod-covary-with-xy-variability-1" class="level4">
 <h4 class="anchored" data-anchor-id="question-3-does-depth-variability-in-pod-covary-with-xy-variability-1">Question 3: Does depth variability in POD covary with xy variability?</h4>
-<p><em>Depth does covary with xy. Don’t go so far as to make 3D maps here (those will go in the Big Product, but maybe choose 1-2 species with the most samples/highest significant and 1) make figures showing depth variability at 3 latitudes holding longitude constant, and 2) figures showing depth variability at 3 longitudes holding latitude constant.</em></p>
+<p>Our best fit model included terms for species, lat/lon, and depth, as well as species x lat/lon, species x depth, and species x depth x lat/lon (AIC = 3810.4249203). Although terms for depth and lat/lon were not significant, removing these terms increased model AIC to 4947. <em>Model AUC and TSS here</em></p>
+<p>Predicted 3D probability of detection for the most frequently detected delphinid, baleen whale, and beaked whale varied with latitute and longitude, while adhering to the broad trends identified in Q1 (<a href="#fig-H3PODxy" class="quarto-xref">Figure&nbsp;4</a>). The Pacific white-side dolphin is most likely to be detected near the surface, with max POD varying between depths of 0 m and 140 m. Generally, detections of Pacific white-sided dolphins that were farther south and east were also more likely to be deeper.</p>
+<p>Depths of highest POD for humpback whales varied between 480 m and 500 m, and depths of highest POD for Baird’s beaked whales varied between 100 m and 460 m. Lat/lon variability in Baird’s beaked whale detections followed a similar pattern to Pacific white-sided dolphins, with greater likelihood of deeper detections in stations that are more to the south and east. Depth of greatest POD for humpback whales varied little across latitude and longitude.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-H3PODlat" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="fig-H3PODxy" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-H3PODlat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="index_files/figure-html/fig-H3PODlat-1.png" class="img-fluid figure-img" width="672">
+<div aria-describedby="fig-H3PODxy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-H3PODxy-1.png" class="img-fluid figure-img" width="672">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-H3PODlat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-H3PODxy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;4: Depth of maximum probability of detection (POD; top) and width of 95% confidence itervals at max POD depth (bottom) for three species: Bbai = Baird’s beaked whale (<em>B. bairdii</em>), Lobl = Pacific white-sided dolphin (<em>L. obliquidens</em>), Mnov = humpback whale (<em>M. novaegliae</em>).
 </figcaption>
 </figure>
@@ -257,26 +537,63 @@ Figure&nbsp;4: Depth of maximum probability of detection (POD; top) and width of
 <li><p>Over the large geographic range covered by this study and the large range of mobile rare species, we expect that this at least partially reflects true distribution of the animals.</p></li>
 <li><p>It could also reflect, e.g.&nbsp;shorter residence time of eDNA in warmer water to the south, or higher probability of eDNA sinking below 500 meters in deeper offshore water. <em>What else could be causing this?</em></p></li>
 </ol>
-<p>ASSUMPTIONS AND CAVEATS</p>
-
 </section>
+<section id="marine-mammal-monitoring-lessons-for-edna-experimental-design" class="level4">
+<h4 class="anchored" data-anchor-id="marine-mammal-monitoring-lessons-for-edna-experimental-design">Marine Mammal monitoring: lessons for eDNA experimental design</h4>
+<ol type="1">
+<li><p>Sample at depth where species spends most of its time. If this is unknown, can use broad prey category or taxonomic group as a guide.</p></li>
+<li><p>In laboratory processing, sequence longer fragments first, using as few freeze/thaw cycles as possible.</p></li>
+</ol>
+</section>
+</section>
+<section id="data-availability" class="level2">
+<h2 class="anchored" data-anchor-id="data-availability">Data availability</h2>
+<p>All raw sequence data have been uploaded to GenBank (Accessions: XXXX). Detection data, sample metadata, and all code used to generate this manuscript are available at https://github.com/MMARINeDNA/zDistribution.</p>
+</section>
+<section id="acknowledgements" class="level2">
+<h2 class="anchored" data-anchor-id="acknowledgements">Acknowledgements</h2>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+</section>
+<section id="supplemental-materials" class="level2">
+<h2 class="anchored" data-anchor-id="supplemental-materials">Supplemental Materials</h2>
+<p>Table S1. Sample metadata.</p>
+<p>Table S2. Q1 model AIC and diagnostics</p>
+<p>Figure S1. Q1 and Q3 Null hypothesis plots?</p>
+
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
-<div id="ref-becker2020" class="csl-entry" role="listitem">
-Becker, Elizabeth A., James V. Carretta, Karin A. Forney, Jay Barlow, Stephanie Brodie, Ryan Hoopes, Michael G. Jacox, et al. 2020. <span>“Performance Evaluation of Cetacean Species Distribution Models Developed Using Generalized Additive Models and Boosted Regression Trees.”</span> <em>Ecology and Evolution</em> 10 (12): 5759–84. <a href="https://doi.org/10.1002/ece3.6316">https://doi.org/10.1002/ece3.6316</a>.
-</div>
-<div id="ref-becker2022" class="csl-entry" role="listitem">
-Becker, Elizabeth A., Karin A. Forney, David L. Miller, Jay Barlow, Lorenzo Rojas-Bracho, Jorge Urbán R, and Jeff E. Moore. 2022. <span>“Dynamic Habitat Models Reflect Interannual Movement of Cetaceans Within the California Current Ecosystem.”</span> <em>Frontiers in Marine Science</em> 9 (May). <a href="https://doi.org/10.3389/fmars.2022.829523">https://doi.org/10.3389/fmars.2022.829523</a>.
+<div id="ref-auad_etal11" class="csl-entry" role="listitem">
+Auad, Guillermo, Dean Roemmich, and John Gilson. 2011. <span>“The <span>California</span> <span>Current</span> <span>System</span> in Relation to the <span>Northeast</span> <span>Pacific</span> <span>Ocean</span> Circulation.”</span> <em>Progress in Oceanography</em> 91 (4): 576–92. <a href="https://doi.org/10.1016/j.pocean.2011.09.004">https://doi.org/10.1016/j.pocean.2011.09.004</a>.
 </div>
 <div id="ref-Becker2016" class="csl-entry" role="listitem">
-Becker, Elizabeth A., Karin A. Forney, Bruce J. Thayre, Amanda Debich, Gregory S. Campbell, Katherine Whitaker, Annie B. Douglas, Anita Gilles, Ryan Hoopes, and John A. Hildebrand. 2016. <span>“Habitat-Based Density Models for Three Cetacean Species Off Southern California Illustrate Pronounced Seasonal Differences”</span> 4 (May): 1–14. <a href="https://doi.org/10.3389/fmars.2017.00121">https://doi.org/10.3389/fmars.2017.00121</a>.
+Becker, Elizabeth A., Karin A. Forney, Bruce J. Thayre, Amanda Debich, Gregory S. Campbell, Katherine Whitaker, Annie B. Douglas, Anita Gilles, Ryan Hoopes, and John A. Hildebrand. 2016. <span>“Habitat-<span>Based</span> <span>Density</span> <span>Models</span> for <span>Three</span> <span>Cetacean</span> <span>Species</span> Off <span>Southern</span> <span>California</span> <span>Illustrate</span> <span>Pronounced</span> <span>Seasonal</span> <span>Differences</span>”</span> 4 (May): 1–14. <a href="https://doi.org/10.3389/fmars.2017.00121">https://doi.org/10.3389/fmars.2017.00121</a>.
 </div>
 <div id="ref-Becker2019" class="csl-entry" role="listitem">
 Becker, Elizabeth A, Karin A Forney, Jessica V Redfern, Jay Barlow, Michael G Jacox, Jason J Roberts, and Daniel M Palacios. 2019. <span>“Predicting Cetacean Abundance and Distribution in a Changing Climate.”</span> <em>Diversity and Distributions</em> 25 (4): 626–43. <a href="https://doi.org/10.1111/ddi.12867">https://doi.org/10.1111/ddi.12867</a>.
 </div>
+<div id="ref-carretta_etal23" class="csl-entry" role="listitem">
+Carretta, James V., Erin M. Oleson, Karin A. Forney, David W. Weller, Aimee R. Lang, Jason Baker, Anthony J Orr, et al. 2023. <span>“U.<span>S</span>. <span>Pacific</span> Marine Mammal Stock Assessments: 2022.”</span> U.S. Department of Commerce, NOAA Technical Memorandum NMFS-SWFSC-684. <a href="https://repository.library.noaa.gov/view/noaa/51022">https://repository.library.noaa.gov/view/noaa/51022</a>.
+</div>
+<div id="ref-hickey79" class="csl-entry" role="listitem">
+Hickey, Barbara M. 1979. <span>“The <span>California</span> Current System—Hypotheses and Facts.”</span> <em>Progress in Oceanography</em> 8 (4): 191–279. <a href="https://doi.org/10.1016/0079-6611(79)90002-8">https://doi.org/10.1016/0079-6611(79)90002-8</a>.
+</div>
+<div id="ref-mcclatchie14" class="csl-entry" role="listitem">
+McClatchie, Sam. 2014. <span>“Oceanography of the <span>Southern</span> <span>California</span> <span>Current</span> <span>System</span> <span>Relevant</span> to <span>Fisheries</span>.”</span> In <em>Regional <span>Fisheries</span> <span>Oceanography</span> of the <span>California</span> <span>Current</span> <span>System</span>: <span>The</span> <span>CalCOFI</span> Program</em>, edited by Sam McClatchie, 13–60. Dordrecht: Springer Netherlands. <a href="https://doi.org/10.1007/978-94-007-7223-6_2">https://doi.org/10.1007/978-94-007-7223-6_2</a>.
+</div>
+<div id="ref-u_s_departmentofthenavy17" class="csl-entry" role="listitem">
+Navy, U. S. Department of the. 2017. <span>“Dive&nbsp;Distribution&nbsp;and&nbsp;Group&nbsp;Size&nbsp;Parameters&nbsp;for&nbsp;Marine&nbsp;Species&nbsp;Occurring&nbsp;in&nbsp;the&nbsp;u.s.&nbsp;Navy’s&nbsp;Atlantic&nbsp;and&nbsp;Hawaiisouthern&nbsp;California&nbsp;Training&nbsp;and&nbsp;Testing&nbsp;Study&nbsp;Areas.”</span> Newport, Rhode Island: Naval Undersea Warfare Center Division.
+</div>
 <div id="ref-RCoreTeam2016" class="csl-entry" role="listitem">
-R Core Team. 2016. <span>“R: A Language and Environment for Statistical Computing.”</span> <a href="https://www.r-project.org/">https://www.r-project.org/</a>.
+R Core Team. 2016. <span>“R: A Language and Environment for Statistical Computing.”</span> R Foundation for Statistical Computing. <a href="https://www.r-project.org/">https://www.r-project.org/</a>.
+</div>
+<div id="ref-watwood_buonantony12" class="csl-entry" role="listitem">
+Watwood, Stephanie L, and Danielle M Buonantony. 2012. <span>“Dive <span>Distribution</span> and <span>Group</span> <span>Size</span> <span>Parameters</span> for <span>Marine</span> <span>Species</span> <span>Occurring</span> in <span>Navy</span> <span>Training</span> and <span>Testing</span> <span>Areas</span> in the <span>North</span> <span>Atlantic</span> and <span>North</span> <span>Pacific</span> <span>Oceans</span>. <span>NUWC</span>-<span>NPT</span> <span>Technical</span> <span>Document</span> 12,085.”</span> Newport, Rhode Island: Naval Undersea Warfare Center Division.
+</div>
+<div id="ref-Wood2017" class="csl-entry" role="listitem">
+Wood, S N. 2017. <em>Generalized <span>Additive</span> <span>Models</span>: <span>An</span> <span>Introduction</span> with <span>R</span></em>. Chapman; Hall/CRC.
 </div>
 </div></section></div></main>
 <!-- /main column -->

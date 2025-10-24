@@ -10,11 +10,28 @@ library(patchwork)
 library(terra)
 library(ggOceanMaps)
 library(sf)
+library(cowplot)
+library(ggspatial)
+library(marmap)
 
 load("./ProcessedData/m3.0models_preds.Rdata")
 load("./ProcessedData/detect_data.RData")
 mmEcoEvo <- read.csv("./Data/MM_metadata.csv")
 metadata <- read.csv("./Data/Hake_2019_metadata.csv")
+
+### Get bathymetry data --------------------------------------------------------
+
+# lon‐range and lat‐range:
+lon1 <- min(maxPOD_depth_clipped$lon_plain); lon2 <- max(maxPOD_depth_clipped$lon_plain) 
+lat1 <- min(maxPOD_depth_clipped$lat_plain); lat2 <- max(maxPOD_depth_clipped$lat_plain)
+
+# Download bathymetry
+bath <- getNOAA.bathy(lon1 = lon1, lon2 = lon2,
+                      lat1 = lat1, lat2 = lat2,
+                      resolution = 1)  # “1” ~ 1-minute (~1.8 km) resolution
+
+# Convert bathy to a data.frame for ggplot
+bath_df <- fortify.bathy(bath) 
 
 ### m3.0c max POD depth map for three species ----------------------------------
 
@@ -24,7 +41,21 @@ maxPOD_depth <- m3.0c_sePreds %>%
   arrange(desc(mu), .by_group = TRUE) %>% 
   slice_head() %>% 
   ungroup() %>% 
-  mutate(ci95 = high-low)
+  mutate(ci95 = high-low) %>% 
+  filter(!(BestTaxon == "Megaptera novaeangliae" & depth == 0)) %>% 
+  filter(!(BestTaxon == "Megaptera novaeangliae" & depth == 50))
+
+# create convex hull study area
+study_area <- st_as_sf(metadata, coords = c("lon", "lat"), crs = 4326) %>%
+  summarise(geometry = st_union(geometry)) %>%
+  st_convex_hull()
+
+# convert POD to sf
+maxPOD_depth_sf <- maxPOD_depth %>% 
+  mutate(lon_plain = lon, lat_plain = lat) %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) 
+
+maxPOD_depth_clipped <- st_join(study_area, maxPOD_depth_sf, left = TRUE)
 
 # pull depth of detections
 pos_detect <- detect_data %>% 
@@ -36,77 +67,150 @@ pos_detect <- detect_data %>%
                            depth %in% c(467,485,495,500)~500,
                            TRUE~depth))
 
-#create coastline shapefile
+# create coastline shapefile
 world <- st_read("Data/ne_10m_land/ne_10m_land.shp")
 
 data_bbox <- st_as_sf(maxPOD_depth, coords = c("lon", "lat"), crs = 4326) %>%
   st_bbox() %>%
   st_as_sfc()  %>%
-  st_buffer(dist = 2)
+  st_buffer(dist = 70000)
 
 westcoast_land <- st_crop(world, data_bbox)
 
+
 # depth of max POD map
-depth_max_detect <- ggplot(westcoast_land) +
-  geom_tile(data = maxPOD_depth, aes(x = lon, y = lat, 
-                                          fill = depth)) +
-  theme_minimal() +
+depth_max_detect <- list()
+
+species <- c("Lagenorhynchus obliquidens",
+             "Megaptera novaeangliae",
+             "Berardius bairdii")
+names(species) <- c("Lobl","Mnov","Bbai")
+
+for (i in 1:length(species)){
+depth_max_detect[[i]] <- ggplot(westcoast_land) +
+  geom_tile(data = maxPOD_depth_clipped %>% 
+              filter(BestTaxon == species[i]), 
+            aes(x = lon_plain, y = lat_plain, fill = depth)) +
+  theme_classic() +
   geom_sf(fill = "grey50", colour = NA) +
-  scale_fill_viridis_c(name = "Depth of max POD (m)",
+  scale_fill_viridis_c(name = "Depth(m)",
                        option = "mako",
                        trans = "reverse",
                        begin = 0.4, end = 0.9) +
-  theme(axis.text.x=element_blank(), 
-        axis.ticks.x=element_blank(), 
-        axis.text.y=element_blank(),  
-        axis.ticks.y=element_blank(),
-        legend.position = "right",
-        axis.title.x=element_blank(),
-        axis.title.y=element_blank(),
-        plot.margin = margin(0, 0, 0, 0)) +
-  ggspatial::geom_spatial_point(data = pos_detect, 
-                                aes(x = lon, y = lat, 
+  ggspatial::geom_spatial_point(data = pos_detect %>%
+                                  filter(BestTaxon == species[i]),
+                                aes(x = lon, y = lat,
                                     color = as.factor(depth)),
                                 size = 1,
                                 alpha = 0.8,
                                 stroke = 1,
-                                position = position_jitter(width = 0.05, 
+                                position = position_jitter(width = 0.05,
                                                            height = 0.05)) +
-  scale_color_viridis_d("Detection depth", option = "rocket",
-                        direction = -1, begin = 0.3, end = 0.8) +
-  facet_grid(~BestTaxon, labeller = labeller(BestTaxon = 
-                                                     c("Berardius bairdii" = "Bbai",
-                                                       "Lagenorhynchus obliquidens" = "Lobl",
-                                                       "Megaptera novaeangliae" = "Mnov")))
+  scale_color_viridis_d("Detection depth (m)", option = "rocket",
+                        direction = -1, begin = 0.3, end = 0.8, guide = "none") +
+  ggtitle(names(species)[i]) +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        plot.margin = margin(0, 0, 0, 0),
+        legend.position = c(0.6, 0.45),    # <<-- Adjust to place legend over land
+        legend.justification = c("left"),
+        legend.background = element_blank(),
+        legend.box.background = element_blank(),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 7)) 
+}
+  
+#depth_max_detect[[1]] + depth_max_detect[[2]] + depth_max_detect[[3]] 
 
-depth_max_detect
+# "legend-only" plot 
+dummy_df <- data.frame(
+  x = 5, y = 1,
+  depth = factor(unique(pos_detect$depth), 
+                 levels = sort(unique(pos_detect$depth))))
+
+dummy_plot <- ggplot(dummy_df, aes(x = x, y = y, color = depth)) +
+  geom_point() +
+  scale_color_viridis_d(
+    name = "Detection depth (m)",
+    option = "rocket",
+    direction = -1,
+    begin = 0.3, end = 0.8) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+    plot.margin = margin(0, 0, 0, 0),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 8))
+
+# Extract legend 
+g <- ggplotGrob(dummy_plot)
+leg_index <- which(sapply(g$grobs, function(x) x$name) == "guide-box")
+shared_legend <- g$grobs[[leg_index]]
+
+# Combine maps and legend
+
+combined_plot <- cowplot::plot_grid(
+  plot_grid(plotlist = depth_max_detect, nrow = 1),
+  shared_legend,
+  ncol = 1,
+  rel_heights = c(1, 0.08))
+
+combined_plot
+
 
 # 95% CI of max POD
 
-POD_depth_CI <- ggplot(westcoast_land) +
-  geom_tile(data = maxPOD_depth, aes(x = lon, y = lat, 
+ci95_plot_list <- list()
+
+for (i in 1:length(species)){
+ci95_plot_list[[i]] <- ggplot(westcoast_land) +
+  geom_tile(data = maxPOD_depth_clipped %>% 
+              filter(BestTaxon == species[i]), 
+            aes(x = lon_plain, y = lat_plain, 
                                           fill = ci95)) +
-  theme_minimal() +
+  theme_classic() +
+  #ggtitle(names(species)[i]) +
   geom_sf(fill = "grey50", colour = NA) +
-  scale_fill_viridis_c(name = "95% CI width",
+  scale_fill_viridis_c(name = "CI",
                        option = "rocket",
                        trans = "reverse") +
-  theme(axis.text.x=element_blank(), 
-        axis.ticks.x=element_blank(), 
-        axis.text.y=element_blank(),  
-        axis.ticks.y=element_blank(),
-        legend.position = "right",
-        axis.title.x=element_blank(),
-        axis.title.y=element_blank(),
-        plot.margin = margin(0, 0, 0, 0)) +
-  facet_wrap(~BestTaxon, labeller = labeller(BestTaxon = 
-                                               c("Berardius bairdii" = "Bbai",
-                                                 "Lagenorhynchus obliquidens" = "Lobl",
-                                                 "Megaptera novaeangliae" = "Mnov")))
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        plot.margin = margin(0, 0, 0, 0),
+        legend.position = c(0.6, 0.45),    # <<-- Adjust to place legend over land
+        legend.justification = c("left"),
+        legend.background = element_blank(),
+        legend.box.background = element_blank(),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 7))
 
-POD_depth_CI
+if (i == 1){
+  ci95_plot_list[[i]] <- ci95_plot_list[[i]] +
+    annotation_north_arrow(location = "bl",
+    which_north = "true",
+    style = north_arrow_fancy_orienteering(fill = c("grey30", "white"),
+                                           line_col = "grey30"),
+    height = unit(1, "cm"),
+    width = unit(1, "cm"))
+}
+}
 
-save(depth_max_detect, POD_depth_CI, file = "./Figures/H3.0c_map.Rdata")
+#ci95_plot_list[[1]] + ci95_plot_list[[2]] + ci95_plot_list[[3]]
+
+depthPODmax <- plot_grid(
+  plot_grid(plotlist = depth_max_detect, nrow = 1),
+  shared_legend,
+  plot_grid(plotlist = ci95_plot_list, nrow = 1),
+  ncol = 1,
+  rel_heights = c(1, 0.08, 1))
+
+pdf(height = 15, file = "./Figures/testplot.pdf")
+depthPODmax
+dev.off()
+
+save(depth_max_detect, ci95_plot_list, shared_legend, depthPODmax, file = "./Figures/H3.0c_map.Rdata")
+save(maxPOD_depth, pos_detect, maxPOD_depth_clipped, file = "./ProcessedData/H3.0c_pred_flt.Rdata")
 
 ### m3.0c dept-lat variability figure ------------------------------------------
 
