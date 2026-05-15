@@ -258,13 +258,46 @@ m3.0c_pred_grid <- m3.0c_pred_grid %>%
   left_join(coords,
             by = c("utm.lon", "utm.lat"))
 
+m3.0c_pred_grid <- st_as_sf(m3.0c_pred_grid,
+                           coords = c("utm.lon", "utm.lat"), crs = 32610)
+
+m3.0c_pred_grid <- m3.0c_pred_grid %>% 
+  mutate(utm.lon = st_coordinates(m3.0c_pred_grid)[,1],
+         utm.lat = st_coordinates(m3.0c_pred_grid)[,2])
+
+#TRY AGAIN HERE? 
+m3.0c_pred_grid <- expand_grid(detect_data_sub %>%
+                                 select(BestTaxon, lat, lon),
+                               depth = c(0,300,500)) %>%
+  mutate(lat1 = lat, lon1=lon)
+
+m3.0c_pred_grid <- st_as_sf(m3.0c_pred_grid,
+                           coords = c("lon1", "lat1"), crs = 4326) %>%
+  st_transform(32610)
+
+m3.0c_pred_grid <- m3.0c_pred_grid %>% 
+  mutate(utm.lon = st_coordinates(m3.0c_pred_grid)[,1],
+         utm.lat = st_coordinates(m3.0c_pred_grid)[,2])
+
+###crop to MURI data extent
+#convex hull from MURI detections
+dat_hull <- detections_sf %>%
+  st_union() %>%
+  st_convex_hull()
+
+#crop grid
+m3.0c_pred_grid_crop <- m3.0c_pred_grid[dat_hull, ]
+
+m3.0c_pred_grid <- m3.0c_pred_grid_crop %>%
+  mutate(utm.lon = st_coordinates(m3.0c_pred_grid_crop)[,1],
+         utm.lat = st_coordinates(m3.0c_pred_grid_crop)[,2])
+
 # mask depths that aren't real
 m3.0c_pred_grid$seafloor <- terra::extract(bathy_r,
                                                  m3.0c_pred_grid[, c("lon", "lat")])[,2]
 
 m3.0c_pred_grid_trimmed <- m3.0c_pred_grid[is.na(m3.0c_pred_grid$seafloor) | 
-                                          m3.0c_pred_grid$depth <= pmax(abs(m3.0c_pred_grid$seafloor), 0) |
-                                            m3.0c_pred_grid$depth >= 0,]
+                                          m3.0c_pred_grid$depth <= pmax(abs(m3.0c_pred_grid$seafloor), 0),]
 
 
 # response predictions
@@ -280,31 +313,31 @@ m3.0c_sePreds <- data.frame(m3.0c_pred_grid_trimmed,
 
 
 #Marginal effect of depth
-ref_lon <- mean(detect_data_dens$utm.lon, na.rm = TRUE)
-ref_lat <- mean(detect_data_dens$utm.lat, na.rm = TRUE)
-
-depth_grid <- expand.grid(
-  depth = seq(from = 0, to = 500, by = 10),
-  utm.lon = ref_lon,
-  utm.lat = ref_lat,
-  BestTaxon = as.factor(c("Lagenorhynchus obliquidens",
-                          "Megaptera novaeangliae",
-                          "Berardius bairdii")))
-
-pred <- predict.bam(m3.0c, newdata = depth_grid, se.fit = TRUE)
-
-depth_grid$fit <- binomial()$linkinv(pred$fit)
-
-depth_grid$low <- binomial()$linkinv(pred$fit - 1.96 * pred$se.fit)
-
-depth_grid$high <- binomial()$linkinv(pred$fit + 1.96 * pred$se.fit)
-
-ggplot(depth_grid, aes(depth, fit, color = BestTaxon, fill = BestTaxon)) +
-  geom_ribbon(aes(ymin = low, ymax = high), alpha = 0.2, color = NA) +
-  geom_line(linewidth = 1.2) +
-  labs(y = "Predicted detection probability",
-    x = "Depth") +
-  facet_wrap(~BestTaxon, scales = "free")
+# ref_lon <- mean(detect_data_dens$utm.lon, na.rm = TRUE)
+# ref_lat <- mean(detect_data_dens$utm.lat, na.rm = TRUE)
+# 
+# depth_grid <- expand.grid(
+#   depth = seq(from = 0, to = 500, by = 10),
+#   utm.lon = ref_lon,
+#   utm.lat = ref_lat,
+#   BestTaxon = as.factor(c("Lagenorhynchus obliquidens",
+#                           "Megaptera novaeangliae",
+#                           "Berardius bairdii")))
+# 
+# pred <- predict.bam(m3.0c, newdata = depth_grid, se.fit = TRUE)
+# 
+# depth_grid$fit <- binomial()$linkinv(pred$fit)
+# 
+# depth_grid$low <- binomial()$linkinv(pred$fit - 1.96 * pred$se.fit)
+# 
+# depth_grid$high <- binomial()$linkinv(pred$fit + 1.96 * pred$se.fit)
+# 
+# ggplot(depth_grid, aes(depth, fit, color = BestTaxon, fill = BestTaxon)) +
+#   geom_ribbon(aes(ymin = low, ymax = high), alpha = 0.2, color = NA) +
+#   geom_line(linewidth = 1.2) +
+#   labs(y = "Predicted detection probability",
+#     x = "Depth") +
+#   facet_wrap(~BestTaxon, scales = "free")
 
 ### Save -----------------------------------------------------------------------
 
@@ -363,9 +396,18 @@ m3.1_pred_grid <- st_as_sf(m3.1_pred_grid,
                            coords = c("mlon", "mlat"), crs = 4326) %>%
   st_transform(32610)
 
-m3.1_pred_grid <- m3.1_pred_grid %>%
-  mutate(utm.lon = st_coordinates(m3.1_pred_grid)[,1],
-         utm.lat = st_coordinates(m3.1_pred_grid)[,2])
+###crop to MURI data extent
+#convex hull from MURI detections
+dat_hull <- detections_sf %>%
+  st_union() %>%
+  st_convex_hull()
+
+#crop grid
+m3.1_pred_grid_crop <- m3.1_pred_grid[dat_hull, ]
+
+m3.1_pred_grid <- m3.1_pred_grid_crop %>%
+  mutate(utm.lon = st_coordinates(m3.1_pred_grid_crop)[,1],
+         utm.lat = st_coordinates(m3.1_pred_grid_crop)[,2])
 
 
 # mask depths that aren't real
@@ -400,24 +442,6 @@ plot_ly(
   mode = "markers"
 )
 
-#Detection rate by depth and density estimate (2D)
-# g <- m3.1_sePreds %>%
-#   arrange(BestTaxon, depth, D)
-# 
-# g_list <- split(g, g$BestTaxon)
-# 
-# plots <- lapply(names(g_list), function(sp) {
-#   
-#   df <- g_list[[sp]]
-#   
-#   ggplot(df, aes(depth, D, fill = mu)) +
-#     geom_raster() +
-#     scale_fill_viridis_c(limits = range(df$mu)) +
-#     labs(title = sp) +
-#     theme(legend.position = "bottom")
-# })
-# 
-# patchwork::wrap_plots(plots)
 
 #Marginal effect of density
 D_grid <- expand.grid(
@@ -463,277 +487,324 @@ ggplot(depth_grid, aes(depth, fit)) +
   facet_wrap(~BestTaxon) +
   labs(y = "Predicted detection probability")
 
-#Big ole' plot
+###Big ole' plot -----
+### Create coastline shapefile -------------------------------------------------
+world <- st_read("Data/ne_10m_land/ne_10m_land.shp")
+#world_utm <- st_transform(world, 32610)
+
+data_bbox <- st_as_sf(detect_data_dens, coords = c("lon", "lat"), 
+                      crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc() %>% 
+  st_buffer(dist = 70000)
+
+westcoast_land <- st_crop(world, data_bbox)
 
 g <- m3.1_sePreds %>%
 #  arrange(BestTaxon, utm.lon, utm.lat, desc(mu)) %>%
-  mutate(depth = as.factor(depth))
-
-
+  mutate(depth = as.factor(depth)) %>% 
+  group_by(BestTaxon) %>% 
+  filter(abs(scale(mu)) < 3) %>% 
+  mutate(mu = case_when(mu < 0.005~NA,
+                        TRUE~mu)) %>% 
+  ungroup()
 
 pp <- ggplot() +
+  geom_sf(data = westcoast_land, fill = "grey50", colour = NA) +
   geom_tile(aes(x=lon, y=lat, fill=mu), data=g) +
 #  geom_sf(aes(colour = mu), data=st_as_sf(g, coords=c("lon", "lat")), geom="tile") +
-  scale_fill_viridis_c() +
   facet_grid(BestTaxon~depth) +
-  theme_minimal()
+  theme_minimal() +
+  scale_fill_viridis_c(name = "Detection rate",
+                       option = "mako",
+                       #trans = "reverse",
+                       begin = 0.4, end = 0.9, na.value = "grey70")
 
-ggsave(pp, file="thing.pdf", width=10, height=10)
-
-
-species <- unique(g$BestTaxon)
-#depthLevel <- unique(g$depth)
-#
-#m3.1plots <- list(Bbar = list(), Lobl = list(), Mnov = list())
-#
-#for (s in 1:length(species)){
-#
-#  plotslot <- m3.1plots[[s]]
-#
-#  for (d in 1:length(depthLevel)){
-#
-#    df <- g %>% filter(BestTaxon == species[s] & depth == depthLevel[d]) %>%
-#      distinct(BestTaxon, utm.lon, utm.lat, .keep_all = TRUE)
-#
-#    plotslot[[d]] <- ggplot(df) +
-#      geom_tile(aes(utm.lon, utm.lat, fill = mu)) +
-#      scale_fill_viridis_c(limits = range(df$mu)) +
-#      coord_equal() +
-#      theme_minimal() +
-#      labs(title = unique(paste(df$BestTaxon, df$depth))) +
-#      theme(legend.position = "bottom")
-#  }
-#  
-# m3.1plots[[s]] <- plotslot
-#}
-#
-#m3.1plots <- unlist(m3.1plots, recursive = FALSE)
-#m3.1plotwrap <- patchwork::wrap_plots(m3.1plots)
-#m3.1plotwrap
-#
-#ggsave(m3.1plotwrap, filename = "m3.1_species_depth_heatmaps.pdf",
-#       width = 14, height = 20)
+ggsave(pp, file="thing1.pdf", width=10, height=16)
 
 ###m3.0c
 g2 <- m3.0c_sePreds %>%
   filter(depth %in% c(0, 300, 500)) %>% 
-  arrange(BestTaxon, utm.lon, utm.lat, desc(mu)) %>% 
-  mutate(depth = as.factor(depth))
+  mutate(depth = as.factor(depth)) %>% 
+  group_by(BestTaxon) %>% 
+  filter(abs(scale(mu)) < 5) %>% 
+  mutate(mu = case_when(mu < 0.001~NA,
+                        TRUE~mu)) %>% 
+  ungroup() #%>% 
 
-species <- unique(g2$BestTaxon)
-depthLevel <- unique(g2$depth)
+g2_sf <- g2 %>%
+  st_as_sf(coords = c("utm.lon", "utm.lat"), crs = 32610, remove = FALSE)
 
-m3.0cplots <- list(Bbar = list(), Lobl = list(), Mnov = list())
+westcoast_land_utm <- st_transform(westcoast_land, 32610)
 
-for (s in 1:length(species)){
-  
-  plotslot <- m3.0cplots[[s]]
-  
-  for (d in 1:length(depthLevel)){
-    
-    df <- g2 %>% filter(BestTaxon == species[s] & depth == depthLevel[d]) %>% 
-      distinct(BestTaxon, utm.lon, utm.lat, .keep_all = TRUE)
-    
-    plotslot[[d]] <- ggplot(df, aes(utm.lon, utm.lat, color = mu)) +
-      geom_point(size = 2, alpha = 0.7) +
-      scale_color_viridis_c(limits = range(df$mu)) +
-      coord_equal() +
-      theme_minimal() +
-      labs(title = unique(paste(df$BestTaxon, df$depth))) +
-      theme(legend.position = "bottom")
-  }
-  
-  m3.0cplots[[s]] <- plotslot
-}
+detect_pts <- detect_data_dens %>%
+  filter(Detected == 1) %>%
+  st_as_sf(coords = c("utm.lon", "utm.lat"), crs = 32610)
 
-m3.0cplots <- unlist(m3.0cplots, recursive = FALSE)
-m3.0cwrapped <- patchwork::wrap_plots(m3.0cplots)
+pp2 <- ggplot() +
+  #geom_sf(data = g2_sf, aes(color = mu)) +
+  geom_raster(aes(x=utm.lon, y=utm.lat, fill=mu), data=g2_sf, interpolate = FALSE) +
+   #geom_tile(aes(x=lon, y=lat, fill=mu), width = 0.4,
+   #          height = 0.35, data=g2) +
+  scale_fill_viridis_c(name = "Detection rate",
+                       option = "mako",
+                       #trans = "reverse",
+                       begin = 0.4, end = 0.9, na.value = "grey70") +
+  geom_sf(data = westcoast_land_utm, fill = "grey50", colour = NA, inherit.aes = FALSE) +
+  # geom_sf(data = detect_pts,
+  #         size = 1, alpha = 0.8, stroke = 1, inherit.aes = FALSE) +
+  facet_grid(BestTaxon~depth) +
+  theme_minimal() 
 
-ggsave(m3.0cwrapped, filename = "m3.0c_allspecies_depth_heatmaps.pdf",
-       width = 14, height = 20)
+ggsave(pp2, file="thing2.pdf", width=10, height=16)
+
 
 ###################### YE OLDE CODE ############################################
 
-### H3.1: Detection smoothed over depth + density by species ------------------
-
-m3.1 <-
-  bam(Detected ~ 
-        # main effects of density, depth, taxon
-        # ti(depth,
-        #    k=5,
-        #    bs="ts")+
-        ti(BestTaxon,
-           k=3,
-           bs="re")+
-        ti(D,
-           k=5,
-           bs="ts")+
-        # interaction between *everything*
-        # ti(D, depth, BestTaxon,
-        #    d=c(1,1,1),
-        #    k=c(5, 5, 3),
-        #    bs=c("ts","ts", "re")) +
-        # depth-taxon effect
-        ti(depth, BestTaxon,
-           k=c(5,3),
-           bs=c("ts","re")) +
-        # # density-taxon effect
-        ti(D, BestTaxon,
-           k=c(5,3),
-           bs=c("ts","re")) +
-        primer,
-      family = "binomial",
-      method = "fREML",
-      data = detect_data_dens,
-      discrete = TRUE)
-
-summary(m3.1)
-# Approximate significance of smooth terms:
-#   edf Ref.df  Chi.sq  p-value    
-# ti(depth)             3.706e-01      4   0.000 0.999861    
-# ti(BestTaxon)         1.669e+00      2 273.060 0.000111 ***
-#   ti(D)                 3.177e-05      4   2.093  < 2e-16 ***
-#   ti(D,BestTaxon,depth) 1.152e+01     46  69.786  < 2e-16 ***
-#   ti(BestTaxon,depth)   5.830e+00      8  29.189  < 2e-16 ***
-#   ti(BestTaxon,D)       3.061e+00      8  30.901  < 2e-16 ***
-
-# R-sq.(adj) =  -0.415   Deviance explained =  -29%
-# fREML = 8267.8  Scale est. = 1         n = 7740
-
-### WITHOUT DEPTH 
-
-# Approximate significance of smooth terms:
-#   edf Ref.df Chi.sq  p-value    
-# ti(BestTaxon)         1.4163      2 41.659 0.024028 *  
-#   ti(D)                 0.1461      4  0.314 0.081469 .  
-# ti(D,BestTaxon,depth) 4.5703     46 14.399 0.000269 ***
-#   ti(BestTaxon,depth)   7.5964     12 40.239  < 2e-16 ***
-#   ti(BestTaxon,D)       3.3138      8 52.233  < 2e-16 ***
-#   ---
-#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# ### H3.1: Detection smoothed over depth + density by species ------------------
 # 
-# R-sq.(adj) =  0.0523   Deviance explained = 15.2%
-# fREML = 7874.4  Scale est. = 1         n = 7740
-
-AIC(m3.1)
-# 1507 with all terms
-# 1507 with non-significant term (depth) removed
-# 1506 with *everything* term removed
-
-#mean squared Pearson residual dispersion parameter
-sum(residuals(m3.1, type = "pearson")^2) / df.residual(m3.1)
-
-detect_data_dens$resid_pearson <- residuals(m3.1, type = "pearson")
-
-ggplot(detect_data_dens,
-       aes(utm.lon, utm.lat,
-           color = resid_pearson), size = 2) +
-  geom_point(alpha = 0.7) +
-  facet_wrap(~BestTaxon) +
-  scale_color_gradient2(midpoint = 0) +
-  coord_equal()
-
-### m3.1 predictions ----------------------------------------------------------
-
-m3.1_pred_grid <- expand_grid(depth = seq(from = 0, to = 500, by = 10),
-                               D = seq(from = min(detect_data_dens$D),
-                                       to = max(detect_data_dens$D), 
-                                       by = 0.05),
-                               BestTaxon = as.factor(c("Lagenorhynchus obliquidens",
-                                                       "Megaptera novaeangliae",
-                                                       "Berardius bairdii")))
-
-m3.1a_pred_grid <- expand_grid(detect_data_sub %>% select(utm.lat,utm.lon,D),
-                               BestTaxon = as.factor(c("Lagenorhynchus obliquidens",
-                                                       "Megaptera novaeangliae",
-                                                       "Berardius bairdii")),
-                               depth = c(0,300,500))
-# response predictions
-m3.1preds <- predict.bam(m3.1, m3.1_pred_grid,
-                          se.fit = TRUE)
-
-m3.1_sePreds <- data.frame(m3.1_pred_grid,
-                            mu   = binomial()$linkinv(m3.1preds$fit),
-                            low  = binomial()$linkinv(m3.1preds$fit - 1.96 * m3.1preds$se.fit),
-                            high = binomial()$linkinv(m3.1preds$fit + 1.96 * m3.1preds$se.fit),
-                            low50  = binomial()$linkinv(m3.1preds$fit - 0.674 * m3.1preds$se.fit),
-                            high50 = binomial()$linkinv(m3.1preds$fit + 0.674 * m3.1preds$se.fit))
-
-###Some plots for m3.1 ---------------------------------------------------------
-#Detection rate by depth and density estimate (3D interactive)
-library(plotly)
-
-plot_ly(
-  m3.1_sePreds,
-  x = ~depth,
-  y = ~D,
-  z = ~mu,
-  color = ~BestTaxon,
-  type = "scatter3d",
-  mode = "markers"
-)
-
-#Detection rate by depth and density estimate (2D)
-g <- m3.1_sePreds %>%
-  arrange(BestTaxon, depth, D)
-
-g_list <- split(g, g$BestTaxon)
-
-plots <- lapply(names(g_list), function(sp) {
-  
-  df <- g_list[[sp]]
-  
-  ggplot(df, aes(depth, D, fill = mu)) +
-    geom_raster() +
-    scale_fill_viridis_c(limits = range(df$mu)) +
-    labs(title = sp) +
-    theme(legend.position = "bottom")
-})
-
-patchwork::wrap_plots(plots)
-
-#Marginal effect of density
-D_grid <- expand.grid(
-  depth = median(detect_data_dens$depth, na.rm = TRUE),
-  D = seq(min(detect_data_dens$D, na.rm = TRUE),
-          max(detect_data_dens$D, na.rm = TRUE),
-          length.out = 100),
-  BestTaxon = as.factor(c("Lagenorhynchus obliquidens",
-                                      "Megaptera novaeangliae",
-                                      "Berardius bairdii"))) %>% 
-  mutate(species = BestTaxon)
-
-pred_D <- predict.bam(m3.1, newdata = D_grid, se.fit = TRUE)
-
-D_grid$fit <- binomial()$linkinv(pred_D$fit)
-D_grid$low <- binomial()$linkinv(pred_D$fit - 1.96 * pred_D$se.fit)
-D_grid$high <- binomial()$linkinv(pred_D$fit + 1.96 * pred_D$se.fit)
-
-ggplot(D_grid) +
-  geom_ribbon(aes(D, ymin = low, ymax = high), alpha = 0.2) +
-  geom_line(aes(D, fit), linewidth = 1) +
-  geom_rug(data = detect_data_dens, aes(D, color = species)) +
-  facet_wrap(~species, scales = "free") +
-  labs(y = "Predicted detection probability") 
-
-#Marginal effect of depth
-depth_grid <- expand.grid(
-  depth = seq(0, 500, by = 5),
-  D = median(detect_data_dens$D, na.rm = TRUE),
-  BestTaxon = as.factor(c("Lagenorhynchus obliquidens",
-                          "Megaptera novaeangliae",
-                          "Berardius bairdii")))
-
-pred_depth <- predict.bam(m3.1, newdata = depth_grid, se.fit = TRUE)
-
-depth_grid$fit <- binomial()$linkinv(pred_depth$fit)
-depth_grid$low <- binomial()$linkinv(pred_depth$fit - 1.96 * pred_depth$se.fit)
-depth_grid$high <- binomial()$linkinv(pred_depth$fit + 1.96 * pred_depth$se.fit)
-
-ggplot(depth_grid, aes(depth, fit)) +
-  geom_ribbon(aes(ymin = low, ymax = high), alpha = 0.2) +
-  geom_line(linewidth = 1) +
-  facet_wrap(~BestTaxon) +
-  labs(y = "Predicted detection probability")
-
-
+# m3.1 <-
+#   bam(Detected ~ 
+#         # main effects of density, depth, taxon
+#         # ti(depth,
+#         #    k=5,
+#         #    bs="ts")+
+#         ti(BestTaxon,
+#            k=3,
+#            bs="re")+
+#         ti(D,
+#            k=5,
+#            bs="ts")+
+#         # interaction between *everything*
+#         # ti(D, depth, BestTaxon,
+#         #    d=c(1,1,1),
+#         #    k=c(5, 5, 3),
+#         #    bs=c("ts","ts", "re")) +
+#         # depth-taxon effect
+#         ti(depth, BestTaxon,
+#            k=c(5,3),
+#            bs=c("ts","re")) +
+#         # # density-taxon effect
+#         ti(D, BestTaxon,
+#            k=c(5,3),
+#            bs=c("ts","re")) +
+#         primer,
+#       family = "binomial",
+#       method = "fREML",
+#       data = detect_data_dens,
+#       discrete = TRUE)
+# 
+# summary(m3.1)
+# # Approximate significance of smooth terms:
+# #   edf Ref.df  Chi.sq  p-value    
+# # ti(depth)             3.706e-01      4   0.000 0.999861    
+# # ti(BestTaxon)         1.669e+00      2 273.060 0.000111 ***
+# #   ti(D)                 3.177e-05      4   2.093  < 2e-16 ***
+# #   ti(D,BestTaxon,depth) 1.152e+01     46  69.786  < 2e-16 ***
+# #   ti(BestTaxon,depth)   5.830e+00      8  29.189  < 2e-16 ***
+# #   ti(BestTaxon,D)       3.061e+00      8  30.901  < 2e-16 ***
+# 
+# # R-sq.(adj) =  -0.415   Deviance explained =  -29%
+# # fREML = 8267.8  Scale est. = 1         n = 7740
+# 
+# ### WITHOUT DEPTH 
+# 
+# # Approximate significance of smooth terms:
+# #   edf Ref.df Chi.sq  p-value    
+# # ti(BestTaxon)         1.4163      2 41.659 0.024028 *  
+# #   ti(D)                 0.1461      4  0.314 0.081469 .  
+# # ti(D,BestTaxon,depth) 4.5703     46 14.399 0.000269 ***
+# #   ti(BestTaxon,depth)   7.5964     12 40.239  < 2e-16 ***
+# #   ti(BestTaxon,D)       3.3138      8 52.233  < 2e-16 ***
+# #   ---
+# #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# # 
+# # R-sq.(adj) =  0.0523   Deviance explained = 15.2%
+# # fREML = 7874.4  Scale est. = 1         n = 7740
+# 
+# AIC(m3.1)
+# # 1507 with all terms
+# # 1507 with non-significant term (depth) removed
+# # 1506 with *everything* term removed
+# 
+# #mean squared Pearson residual dispersion parameter
+# sum(residuals(m3.1, type = "pearson")^2) / df.residual(m3.1)
+# 
+# detect_data_dens$resid_pearson <- residuals(m3.1, type = "pearson")
+# 
+# ggplot(detect_data_dens,
+#        aes(utm.lon, utm.lat,
+#            color = resid_pearson), size = 2) +
+#   geom_point(alpha = 0.7) +
+#   facet_wrap(~BestTaxon) +
+#   scale_color_gradient2(midpoint = 0) +
+#   coord_equal()
+# 
+# ### m3.1 predictions ----------------------------------------------------------
+# 
+# m3.1_pred_grid <- expand_grid(depth = seq(from = 0, to = 500, by = 10),
+#                                D = seq(from = min(detect_data_dens$D),
+#                                        to = max(detect_data_dens$D), 
+#                                        by = 0.05),
+#                                BestTaxon = as.factor(c("Lagenorhynchus obliquidens",
+#                                                        "Megaptera novaeangliae",
+#                                                        "Berardius bairdii")))
+# 
+# m3.1a_pred_grid <- expand_grid(detect_data_sub %>% select(utm.lat,utm.lon,D),
+#                                BestTaxon = as.factor(c("Lagenorhynchus obliquidens",
+#                                                        "Megaptera novaeangliae",
+#                                                        "Berardius bairdii")),
+#                                depth = c(0,300,500))
+# # response predictions
+# m3.1preds <- predict.bam(m3.1, m3.1_pred_grid,
+#                           se.fit = TRUE)
+# 
+# m3.1_sePreds <- data.frame(m3.1_pred_grid,
+#                             mu   = binomial()$linkinv(m3.1preds$fit),
+#                             low  = binomial()$linkinv(m3.1preds$fit - 1.96 * m3.1preds$se.fit),
+#                             high = binomial()$linkinv(m3.1preds$fit + 1.96 * m3.1preds$se.fit),
+#                             low50  = binomial()$linkinv(m3.1preds$fit - 0.674 * m3.1preds$se.fit),
+#                             high50 = binomial()$linkinv(m3.1preds$fit + 0.674 * m3.1preds$se.fit))
+# 
+# ###Some plots for m3.1 ---------------------------------------------------------
+# #Detection rate by depth and density estimate (3D interactive)
+# library(plotly)
+# 
+# plot_ly(
+#   m3.1_sePreds,
+#   x = ~depth,
+#   y = ~D,
+#   z = ~mu,
+#   color = ~BestTaxon,
+#   type = "scatter3d",
+#   mode = "markers"
+# )
+# 
+# #Detection rate by depth and density estimate (2D)
+# g <- m3.1_sePreds %>%
+#   arrange(BestTaxon, depth, D)
+# 
+# g_list <- split(g, g$BestTaxon)
+# 
+# plots <- lapply(names(g_list), function(sp) {
+#   
+#   df <- g_list[[sp]]
+#   
+#   ggplot(df, aes(depth, D, fill = mu)) +
+#     geom_raster() +
+#     scale_fill_viridis_c(limits = range(df$mu)) +
+#     labs(title = sp) +
+#     theme(legend.position = "bottom")
+# })
+# 
+# patchwork::wrap_plots(plots)
+# 
+# #Marginal effect of density
+# D_grid <- expand.grid(
+#   depth = median(detect_data_dens$depth, na.rm = TRUE),
+#   D = seq(min(detect_data_dens$D, na.rm = TRUE),
+#           max(detect_data_dens$D, na.rm = TRUE),
+#           length.out = 100),
+#   BestTaxon = as.factor(c("Lagenorhynchus obliquidens",
+#                                       "Megaptera novaeangliae",
+#                                       "Berardius bairdii"))) %>% 
+#   mutate(species = BestTaxon)
+# 
+# pred_D <- predict.bam(m3.1, newdata = D_grid, se.fit = TRUE)
+# 
+# D_grid$fit <- binomial()$linkinv(pred_D$fit)
+# D_grid$low <- binomial()$linkinv(pred_D$fit - 1.96 * pred_D$se.fit)
+# D_grid$high <- binomial()$linkinv(pred_D$fit + 1.96 * pred_D$se.fit)
+# 
+# ggplot(D_grid) +
+#   geom_ribbon(aes(D, ymin = low, ymax = high), alpha = 0.2) +
+#   geom_line(aes(D, fit), linewidth = 1) +
+#   geom_rug(data = detect_data_dens, aes(D, color = species)) +
+#   facet_wrap(~species, scales = "free") +
+#   labs(y = "Predicted detection probability") 
+# 
+# #Marginal effect of depth
+# depth_grid <- expand.grid(
+#   depth = seq(0, 500, by = 5),
+#   D = median(detect_data_dens$D, na.rm = TRUE),
+#   BestTaxon = as.factor(c("Lagenorhynchus obliquidens",
+#                           "Megaptera novaeangliae",
+#                           "Berardius bairdii")))
+# 
+# pred_depth <- predict.bam(m3.1, newdata = depth_grid, se.fit = TRUE)
+# 
+# depth_grid$fit <- binomial()$linkinv(pred_depth$fit)
+# depth_grid$low <- binomial()$linkinv(pred_depth$fit - 1.96 * pred_depth$se.fit)
+# depth_grid$high <- binomial()$linkinv(pred_depth$fit + 1.96 * pred_depth$se.fit)
+# 
+# ggplot(depth_grid, aes(depth, fit)) +
+#   geom_ribbon(aes(ymin = low, ymax = high), alpha = 0.2) +
+#   geom_line(linewidth = 1) +
+#   facet_wrap(~BestTaxon) +
+#   labs(y = "Predicted detection probability")
+# 
+# 
+# #species <- unique(g$BestTaxon)
+# #depthLevel <- unique(g$depth)
+# #
+# #m3.1plots <- list(Bbar = list(), Lobl = list(), Mnov = list())
+# #
+# #for (s in 1:length(species)){
+# #
+# #  plotslot <- m3.1plots[[s]]
+# #
+# #  for (d in 1:length(depthLevel)){
+# #
+# #    df <- g %>% filter(BestTaxon == species[s] & depth == depthLevel[d]) %>%
+# #      distinct(BestTaxon, utm.lon, utm.lat, .keep_all = TRUE)
+# #
+# #    plotslot[[d]] <- ggplot(df) +
+# #      geom_tile(aes(utm.lon, utm.lat, fill = mu)) +
+# #      scale_fill_viridis_c(limits = range(df$mu)) +
+# #      coord_equal() +
+# #      theme_minimal() +
+# #      labs(title = unique(paste(df$BestTaxon, df$depth))) +
+# #      theme(legend.position = "bottom")
+# #  }
+# #  
+# # m3.1plots[[s]] <- plotslot
+# #}
+# #
+# #m3.1plots <- unlist(m3.1plots, recursive = FALSE)
+# #m3.1plotwrap <- patchwork::wrap_plots(m3.1plots)
+# #m3.1plotwrap
+# #
+# #ggsave(m3.1plotwrap, filename = "m3.1_species_depth_heatmaps.pdf",
+# #       width = 14, height = 20)
+### old 3.0c ---
+# species <- unique(g2$BestTaxon)
+# depthLevel <- unique(g2$depth)
+# 
+# m3.0cplots <- list(Bbar = list(), Lobl = list(), Mnov = list())
+# 
+# for (s in 1:length(species)){
+#   
+#   plotslot <- m3.0cplots[[s]]
+#   
+#   for (d in 1:length(depthLevel)){
+#     
+#     df <- g2 %>% filter(BestTaxon == species[s] & depth == depthLevel[d]) %>% 
+#       distinct(BestTaxon, utm.lon, utm.lat, .keep_all = TRUE)
+#     
+#     plotslot[[d]] <- ggplot(df, aes(utm.lon, utm.lat, color = mu)) +
+#       geom_point(size = 2, alpha = 0.7) +
+#       scale_color_viridis_c(limits = range(df$mu)) +
+#       coord_equal() +
+#       theme_minimal() +
+#       labs(title = unique(paste(df$BestTaxon, df$depth))) +
+#       theme(legend.position = "bottom")
+#   }
+#   
+#   m3.0cplots[[s]] <- plotslot
+# }
+# 
+# m3.0cplots <- unlist(m3.0cplots, recursive = FALSE)
+# m3.0cwrapped <- patchwork::wrap_plots(m3.0cplots)
+# 
+# ggsave(m3.0cwrapped, filename = "m3.0c_allspecies_depth_heatmaps.pdf",
+#        width = 14, height = 20)
