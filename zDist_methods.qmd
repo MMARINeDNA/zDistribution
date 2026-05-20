@@ -104,16 +104,26 @@ In these equations, $\mu_z$ is the detection rate for any cetacean at depth $z$ 
 
 We assessed model fit using AIC, and model performance using standard metrics including the percent of deviance explained, the area under the receiver operating characteristic curve [AUC, @fawcett06], the true skill statistic [TSS, @allouche_etal06], and a visual comparison (i.e. via plotting) of predicted vs. observed detection rates across sampling depths. We also visually compared our model-based predictions of probability of detection across depth with estimates of species-specific time-at-depth as reported by Watwood and Buonantony [-@watwood_buonantony12] and the U.S. Department of the Navy [-@u_s_departmentofthenavy17].
 
-#### Question 3: Does depth variability in POD covary with geographic variability?
+#### Question 3: Does depth variability in detection rate vary spatially?
 
-We also used a GAM to examine covariability in the effects of depth ($z$), latitude ($y$), and longitude ($x$) on species-specific detection rate. Using the best-fit model from Question 2 as our starting point (Eq 6: species-specific variability in detection rate with $z$), we looked for covariation in $xyz$ on a species-specific basis with the following model formulation:
+We also used a GAM to examine spatial covariability in the detection rate across depths. We approach this question in two ways: first, we examing covariablity in the effects of depth ($z$), latitude ($y$), and longitude ($x$) on species-specific detection rate; next, we examine covariability in the effects of depth ($z$) and species-specific predictions of density ($D$) on species-specific detection rate. We used the best-fit model from Question 2 as our starting point (Eq 6: species-specific variability in detection rate with $z$), subset our input data to include the species from each broad taxon with the greatest number of detections, and pulled predicted density values for our survey area from Becker et al. [-@Becker2020], which are predicted based on >25 years of visual sighting data.
+
+For approach 1, we looked for covariation in $xyz$ on a species-specific basis with the following model formulation:
 
 $$
-\text{logit}(\mu_{s,i}) = \beta_{s} + f_s(x_i,y_i,z_i).
+\text{logit}(\mu_{s,i}) = \beta_{s} + f_s(x_i,y_i,z_i)
 $$ {#eq-9}
 
 $f_s(x_i,y_i,z_i)$ was constructed as tensor product of marginal smoothers of $x$, $y$, and $z$ and in the case of the species-specific factor-smooth interaction we used the tensor product of $x$, $y$, and $z$, and a random effect on species. We constructed intermediate tensor products on interactions among all three spatial variables and species (using the ti() constructor in mgcv; some citation\[DLM\]).
 
-As in Question 2, we assessed model fit using AIC, and model performance using percent deviance explained, AUC, and TSS. We then conducted a visual comparison of the predicted depth of maximum detection rate across and observed detection depths within the study area for the most frequently observed baleen whale, dolphin/porpoise, and beaked whale.
+For approach 2, we looked for variability in depth $z$ and predicted density $D$ on a species-specific basis with the following model formulation:
+
+$$
+\text{logit}(\mu_{s,i}) = \beta_{s} + f_s(z_i) + f_s(D_s,i) + s
+$$ {#eq-10}
+
+$f_s(z_i)$ and $f_s(D_s,i)$ were both constructed as simple smooths, as in Question 2 (Eqs 4-8), where $D_s,i$ is the species-specific predicted density $D$ for species $s$ at location $i$ [@Becker2020].
+
+As in Question 2, we assessed model fit using AIC, and model performance for the best model using percent deviance explained, AUC, and TSS. We then conducted a visual comparison of the predicted depth of maximum detection rate across and observed detection depths within the study area for the most frequently observed baleen whale, dolphin/porpoise, and beaked whale.
 
 A table of all variables used in both the occupancy model and the GAM framework is included in the Supplementary Materials (Supplemental Table S2).

@@ -116,14 +116,6 @@ m1.2_sePreds_link <- data.frame(m1.2_predictions,
                                  TRUE~common_name))
 
 # transform time_10m to plot with POD by depth
-# m1.2_scaled <- m1.2_sePreds_link %>% 
-#   group_by(abbrev) %>%
-#   mutate(time_scaled = time_10m/545) %>% 
-#   mutate(
-#     a = diff(range(mu, na.rm = TRUE)) / diff(range(time_10m, na.rm = TRUE)),
-#     b = min(mu, na.rm = TRUE) - a * min(time_10m, na.rm = TRUE),
-#     time_scaled = a * time_10m + b)
-
 m1.2_scaled <- m1.2_sePreds_link %>% 
   mutate(time_scaled = (time_10m - min(time_10m)) / (max(time_10m) - min(time_10m)) * (max(mu) - min(mu)) + min(mu))
 
