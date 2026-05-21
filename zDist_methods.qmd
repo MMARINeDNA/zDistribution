@@ -89,15 +89,15 @@ $$
 $$ {#eq-5}
 
 $$
-\text{logit}(\mu_{z,s}) = \beta_{s} + f_s(z_i)
+\text{logit}(\mu_{z,s}) = \beta_{s} + f_s(z)
 $$ {#eq-6}
 
 $$
-\text{logit}(\mu_{z,s}) = \beta_{s} + f_F(z_i)
+\text{logit}(\mu_{z,s}) = \beta_{s} + f_F(z)
 $$ {#eq-7}
 
 $$
-\text{logit}(\mu_{z,s}) = \beta_{s} + f_e(z_i)
+\text{logit}(\mu_{z,s}) = \beta_{s} + f_e(z)
 $$ {#eq-8}
 
 In these equations, $\mu_z$ is the detection rate for any cetacean at depth $z$ and $\mu_{z,s}$ is the detection rate for species $s$ at depth $z$. $\beta_0$ is a shared intercept parameter and $\beta_{s}$ is a species-specific intercept parameter. $f(z)$ denotes a smooth on depth across species and $f_s(z)$ denotes a species-specific factor-smooth on depth [@Pedersen2019a]. In Equations 6-8 we compare three factor-smooth stratification schemes: (1) species ($f_s(z)$), (2) taxonomic family ($f_F(z)$), and (3) preferred prey type ($f_e(z)$).
@@ -119,7 +119,7 @@ $f_s(x_i,y_i,z_i)$ was constructed as tensor product of marginal smoothers of $x
 For approach 2, we looked for variability in depth $z$ and predicted density $D$ on a species-specific basis with the following model formulation:
 
 $$
-\text{logit}(\mu_{s,i}) = \beta_{s} + f_s(z_i) + f_s(D_s,i) + s
+\text{logit}(\mu_{s,i}) = \beta_{s} + f_s(z_i) + f_s(D_{s,i}) + s
 $$ {#eq-10}
 
 $f_s(z_i)$ and $f_s(D_s,i)$ were both constructed as simple smooths, as in Question 2 (Eqs 4-8), where $D_s,i$ is the species-specific predicted density $D$ for species $s$ at location $i$ [@Becker2020].
