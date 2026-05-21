@@ -64,11 +64,11 @@ modelAICtable <- modelAIC %>%
   mutate(minAIC = min(AIC)) %>% 
   mutate("$\u394 AIC$" = AIC-minAIC) %>% 
   mutate("Stratification" = c("species", "species", "family", "prey", "none")) %>% 
-  mutate(Model = case_when(model == "m1.2"~"$\u03b2_s + f_s(z_i)$ (Eq. 6)",
-                           model == "m1.1"~"$\u03b2_s + f(z_i)$ (Eq. 5)",
-                           model == "m1.2a"~"$\u03b2_s + f_F(z_i)$ (Eq. 7)",
-                           model == "m1.2b"~"$\u03b2_s + f_e(z_i)$ (Eq. 8)",
-                           model == "m1.0"~"$\u03b2_0 + f(z_i)$ (Eq. 4)", 
+  mutate(Model = case_when(model == "m1.2"~"$\u03b2_s + f_s(z)$ (Eq. 6)",
+                           model == "m1.1"~"$\u03b2_s + f(z)$ (Eq. 5)",
+                           model == "m1.2a"~"$\u03b2_s + f_F(z)$ (Eq. 7)",
+                           model == "m1.2b"~"$\u03b2_s + f_e(z)$ (Eq. 8)",
+                           model == "m1.0"~"$\u03b2_0 + f(z)$ (Eq. 4)", 
                            TRUE~model)) %>% 
   mutate("$df$" = df) %>% 
   select(Model, Stratification, "$df$", "$\u394 AIC$")
@@ -141,4 +141,3 @@ While our model predicting detection rate across depth and predicted species' de
 Dmarg_plot
 
 ```
-
