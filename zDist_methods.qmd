@@ -122,7 +122,7 @@ $$
 \text{logit}(\mu_{s,i}) = \beta_{s} + f_s(z_i) + f_s(D_{s,i}) + s
 $$ {#eq-10}
 
-$f_s(z_i)$ and $f_s(D_s,i)$ were both constructed as simple smooths, as in Question 2 (Eqs 4-8), where $D_s,i$ is the species-specific predicted density $D$ for species $s$ at location $i$ [@Becker2020].
+$f_s(z_i)$ and $f_s(D_{s,i})$ were both constructed as simple smooths, as in Question 2 (Eqs 4-8), where $D_s,i$ is the species-specific predicted density $D$ for species $s$ at location $i$ [@Becker2020].
 
 As in Question 2, we assessed model fit using AIC, and model performance for the best model using percent deviance explained, AUC, and TSS. We then conducted a visual comparison of the predicted depth of maximum detection rate across and observed detection depths within the study area for the most frequently observed baleen whale, dolphin/porpoise, and beaked whale.
 
