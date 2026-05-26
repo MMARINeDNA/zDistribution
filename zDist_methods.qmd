@@ -78,51 +78,50 @@ We were not able to model species-specific $z$-distribution of eDNA detectabilit
 
 For all following analyses, we define detection rate as the probability of detecting cetacean eDNA in a sample without the assumption of its presence in the sample, so that species-specific detection rate comprises both the probability of that species' occurrence at a site as well as the probability of capturing and detecting the species' eDNA in a sample. Because cetacean DNA POD varies only minimally across cetacean species for the primer sets used in this study [@shaffer_etal25], we interpret variability in detection here to be driven primarily by variability in the distribution of species-specific eDNA. Similarly, we have excluded primer specificity, technical replication, and number of freeze/thaw cycle from downstream analyses to ensure model convergence; these were applied randomly across biological samples to minimize bias in observation error.
 
-To determine whether species-specific detection rate varies in the $z$ dimension, we used generalized additive models [GAMs; @Wood2017] implemented using the mgcv package in R [@RCoreTeam2016]. GAMs have previously been demonstrated to be an appropriate tool for modeling spatial distributions of cetaceans [e.g. @becker_etal22; @abrahms_etal19b]. We fit all GAMs using detection or non-detection for each site, depth, and technical replicate as the response variable. We used a binomial distribution with a logit link function, and estimated model parameters using REML. Models examining the effect of depth were built iteratively, starting by modelling the detection rate of any cetacean species as a smooth function of sampling depths (Eq. @eq-4), then allowing the intercept to vary by species (Eq. @eq-5), and finally allowing both intercept and model smooth to vary by species (Eq. @eq-6).
+To determine whether species-specific detection rate varies in the $z$ dimension, we applied generalized additive models [GAMs; @Wood2017] as implemented using the `mgcv` package in R [@RCoreTeam2016]. GAMs have previously been demonstrated to be an appropriate tool for modeling spatial distributions of cetaceans [e.g. @becker_etal22; @abrahms_etal19b]. Our binomial response was the detection or non-detection at each combination of site, depth, and technical replicate. Models were constructed with increasing complexity; in each a case a smooth effect of depth was used, but allowing for structure including taxonomy or preferred prey. Models were defined as follows:
 
-$$
-\text{logit}(\mu_z) = \beta_0 + f(z)
-$$ {#eq-4}
+\begin{align}
+\text{logit}(\mu(z)) = &\beta_0 + f(z) \quad \text{(depth smooth)}\\
+\text{logit}(\mu(z,s)) = &\beta_{s} + f(z) \quad \text{(depth smooth, species intercept)}\\
+\text{logit}(\mu(z,s)) = &\beta_{s} + f_s(z) \quad \text{(depth smooth varying by species)}\\
+\text{logit}(\mu(z,F)) = &\beta_{F} + f_F(z) \quad \text{(depth smooth varying by family)}\\
+\text{logit}(\mu(z,e)) = &\beta_{e} + f_e(z) \quad \text{(depth smooth varying by prey)}
+\end{align}
 
-$$
-\text{logit}(\mu_{z,s}) = \beta_{s} + f(z)
-$$ {#eq-5}
-
-$$
-\text{logit}(\mu_{z,s}) = \beta_{s} + f_s(z)
-$$ {#eq-6}
-
-$$
-\text{logit}(\mu_{z,s}) = \beta_{s} + f_F(z)
-$$ {#eq-7}
-
-$$
-\text{logit}(\mu_{z,s}) = \beta_{s} + f_e(z)
-$$ {#eq-8}
-
-In these equations, $\mu_z$ is the detection rate for any cetacean at depth $z$ and $\mu_{z,s}$ is the detection rate for species $s$ at depth $z$. $\beta_0$ is a shared intercept parameter and $\beta_{s}$ is a species-specific intercept parameter. $f(z)$ denotes a smooth on depth across species and $f_s(z)$ denotes a species-specific factor-smooth on depth [@Pedersen2019a]. In Equations 6-8 we compare three factor-smooth stratification schemes: (1) species ($f_s(z)$), (2) taxonomic family ($f_F(z)$), and (3) preferred prey type ($f_e(z)$).
+Here $\mu$ is the detection probability for a cetacean in a sample, its arguments indicate its functional dependence. In each case $f$ denotes a smooth function, modelling by a spline, $f_X$ indicates a factor-smooth [@Pedersen2019a] of depth and species ($s$), family ($F$) or preferred prey ($e$). $\beta_0$ is a shared intercept parameter and $\beta_X$ is an intercept parameter per level in $X$ where the convention for the factor-smooths is followed. In all cases $z$ is depth.
 
 We assessed model fit using AIC, and model performance using standard metrics including the percent of deviance explained, the area under the receiver operating characteristic curve [AUC, @fawcett06], the true skill statistic [TSS, @allouche_etal06], and a visual comparison (i.e. via plotting) of predicted vs. observed detection rates across sampling depths. We also visually compared our model-based predictions of probability of detection across depth with estimates of species-specific time-at-depth as reported by Watwood and Buonantony [-@watwood_buonantony12] and the U.S. Department of the Navy [-@u_s_departmentofthenavy17].
 
 #### Question 3: Does depth variability in detection rate vary spatially?
 
-We also used a GAM to examine spatial covariability in the detection rate across depths. We approach this question in two ways: first, we examing covariablity in the effects of depth ($z$), latitude ($y$), and longitude ($x$) on species-specific detection rate; next, we examine covariability in the effects of depth ($z$) and species-specific predictions of density ($D$) on species-specific detection rate. We used the best-fit model from Question 2 as our starting point (Eq 6: species-specific variability in detection rate with $z$), subset our input data to include the species from each broad taxon with the greatest number of detections, and pulled predicted density values for our survey area from Becker et al. [-@Becker2020], which are predicted based on >25 years of visual sighting data.
+We also used a GAM to examine spatial variability in the detection rate across depths. We approach this question in two ways: first, we examining variability in the effects of depth, latitude, and longitude on species-specific detection rate; next, we examine variability in the effects of depth and species-specific predictions of density on species-specific detection rate. We used the best fitting model from Question 2 as our starting point (species-specific variability in detection rate with depth), subset our input data to include the species from each broad taxon with the greatest number of detections, and pulled predicted density values for our survey area from Becker et al. [-@Becker2020], which are predicted based on >25 years of visual sighting data.
 
-For approach 1, we looked for covariation in $xyz$ on a species-specific basis with the following model formulation:
+For approach 1, we looked species-specific variation in spatial-depth smooths with the following model formulation:
 
 $$
-\text{logit}(\mu_{s,i}) = \beta_{s} + f_s(x_i,y_i,z_i)
+\text{logit}(\mu(x,y,z,s)) = \beta_{s} + f_s(x,y,z).
 $$ {#eq-9}
 
-$f_s(x_i,y_i,z_i)$ was constructed as tensor product of marginal smoothers of $x$, $y$, and $z$ and in the case of the species-specific factor-smooth interaction we used the tensor product of $x$, $y$, and $z$, and a random effect on species. We constructed intermediate tensor products on interactions among all three spatial variables and species (using the ti() constructor in mgcv; some citation\[DLM\]).
+Here $f_s(x,y,z)$ was constructed as tensor product of marginal smoothers of $x$, $y$, and $z$ and in the case of the species-specific factor-smooth interaction we used the tensor product of $x$, $y$, and $z$, and a random effect on species. We constructed intermediate tensor products on interactions among all three spatial variables and species (using the `ti()` constructor in `mgcv`; @Wood2017, Section 4.6.2). This allowed us to decompose the smooth of space and depth as:
 
-For approach 2, we looked for variability in depth $z$ and predicted density $D$ on a species-specific basis with the following model formulation:
+\begin{align}
+f_s(x,y,z) = &f(x,y) + \quad \text{(spatial only)}\\
+             &f(z) + \quad \text{(depth only)}\\
+             &f_s(x,y) + \quad \text{(per taxon spatial)}\\
+             &f_s(z) + \quad \text{(per taxon depth)}\\
+             &f_s(x,y,z) + \quad \text{(full interaction)}\\
+             &\beta_s \quad \text{(species random effect)},
+\end{align}
+
+where $\beta_s \sim N(0,\sigma_s)$ is a random intercept per species, $f$ indicates a smooth of the variables, and $f_s$ indicates a factor-smooth interaction between the variables in the function's argument and species. When $x$ and $y$ are included in a model, their effect was constructed as a bivariate thin place spline on these projected coordinates (since they would obey the isotropy property). Interactions between space and depth required a tensor product (as moving one unit in depth is not the same as one unit in space).
+
+For approach 2, we looked for variability in depth $z$ and predicted species density $D$ on a species-specific basis with the following model formulation:
 
 $$
-\text{logit}(\mu_{s,i}) = \beta_{s} + f_s(z_i) + f_s(D_{s,i}) + s
+\text{logit}(\mu(i,z,s) = \beta_{s} + f_s(z) + f_s(D_s(x_i,y_i)) + \beta_s,
 $$ {#eq-10}
 
-$f_s(z_i)$ and $f_s(D_{s,i})$ were both constructed as simple smooths, as in Question 2 (Eqs 4-8), where $D_{s,i}$ is the species-specific predicted density $D$ for species $s$ at location $i$ [@Becker2020].
+where $f(z)$ is a smooth of depth, common across all species and $f_s(D_s(x,y))$ is constructed as independent smoothers with one smooth for each species (level of $s$). $D_s(x_i,y_i)$ is the predicted density (animals per kilometre) for species $s$ at location $x_i,y_i$ of site $i$ as taken from @Becker2020. $\beta_s$ is a per-species intercept.
 
 As in Question 2, we assessed model fit using AIC, and model performance for the best model using percent deviance explained, AUC, and TSS. We then conducted a visual comparison of the predicted depth of maximum detection rate across and observed detection depths within the study area for the most frequently observed baleen whale, dolphin/porpoise, and beaked whale.
 
