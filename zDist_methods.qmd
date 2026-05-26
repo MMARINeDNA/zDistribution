@@ -80,6 +80,7 @@ For all following analyses, we define detection rate as the probability of detec
 
 To determine whether species-specific detection rate varies in the $z$ dimension, we applied generalized additive models [GAMs; @Wood2017] as implemented using the `mgcv` package in R [@RCoreTeam2016]. GAMs have previously been demonstrated to be an appropriate tool for modeling spatial distributions of cetaceans [e.g. @becker_etal22; @abrahms_etal19b]. Our binomial response was the detection or non-detection at each combination of site, depth, and technical replicate. Models were constructed with increasing complexity; in each a case a smooth effect of depth was used, but allowing for structure including taxonomy or preferred prey. Models were defined as follows:
 
+$$
 \begin{align}
 \text{logit}(\mu(z)) = &\beta_0 + f(z) \quad \text{(depth smooth)}\\
 \text{logit}(\mu(z,s)) = &\beta_{s} + f(z) \quad \text{(depth smooth, species intercept)}\\
@@ -87,6 +88,7 @@ To determine whether species-specific detection rate varies in the $z$ dimension
 \text{logit}(\mu(z,F)) = &\beta_{F} + f_F(z) \quad \text{(depth smooth varying by family)}\\
 \text{logit}(\mu(z,e)) = &\beta_{e} + f_e(z) \quad \text{(depth smooth varying by prey)}
 \end{align}
+$$ {#eq-4-8}
 
 Here $\mu$ is the detection probability for a cetacean in a sample, its arguments indicate its functional dependence. In each case $f$ denotes a smooth function, modelling by a spline, $f_X$ indicates a factor-smooth [@Pedersen2019a] of depth and species ($s$), family ($F$) or preferred prey ($e$). $\beta_0$ is a shared intercept parameter and $\beta_X$ is an intercept parameter per level in $X$ where the convention for the factor-smooths is followed. In all cases $z$ is depth.
 
