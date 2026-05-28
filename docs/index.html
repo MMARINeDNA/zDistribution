@@ -204,38 +204,41 @@ window.Quarto = {
 <section id="question-2-does-species-specific-pod-vary-with-depth" class="level4">
 <h4 class="anchored" data-anchor-id="question-2-does-species-specific-pod-vary-with-depth">Question 2: Does species-specific POD vary with depth?</h4>
 <p>For all following analyses, we define detection rate as the probability of detecting cetacean eDNA in a sample without the assumption of its presence in the sample, so that species-specific detection rate comprises both the probability of that species’ occurrence at a site as well as the probability of capturing and detecting the species’ eDNA in a sample. Because cetacean DNA POD varies only minimally across cetacean species for the primer sets used in this study <span class="citation" data-cites="shaffer_etal25">(<a href="#ref-shaffer_etal25" role="doc-biblioref">Shaffer et al., 2025</a>)</span>, we interpret variability in detection here to be driven primarily by variability in the distribution of species-specific eDNA. Similarly, we have excluded primer specificity, technical replication, and number of freeze/thaw cycle from downstream analyses to ensure model convergence; these were applied randomly across biological samples to minimize bias in observation error.</p>
-<p>To determine whether species-specific detection rate varies in the <span class="math inline">\(z\)</span> dimension, we used generalized additive models [GAMs; <span class="citation" data-cites="Wood2017">S. N. Wood (<a href="#ref-Wood2017" role="doc-biblioref">2017</a>)</span>] implemented using the mgcv package in R <span class="citation" data-cites="RCoreTeam2016">(<a href="#ref-RCoreTeam2016" role="doc-biblioref">R Core Team, 2016</a>)</span>. GAMs have previously been demonstrated to be an appropriate tool for modeling spatial distributions of cetaceans <span class="citation" data-cites="becker_etal22 abrahms_etal19b">(<a href="#ref-abrahms_etal19b" role="doc-biblioref">Abrahms et al., 2019</a>; e.g. <a href="#ref-becker_etal22" role="doc-biblioref">Becker et al., 2022</a>)</span>. We fit all GAMs using detection or non-detection for each site, depth, and technical replicate as the response variable. We used a binomial distribution with a logit link function, and estimated model parameters using REML. Models examining the effect of depth were built iteratively, starting by modelling the detection rate of any cetacean species as a smooth function of sampling depths (Eq. <a href="#eq-4" class="quarto-xref">Equation&nbsp;4</a>), then allowing the intercept to vary by species (Eq. <a href="#eq-5" class="quarto-xref">Equation&nbsp;5</a>), and finally allowing both intercept and model smooth to vary by species (Eq. <a href="#eq-6" class="quarto-xref">Equation&nbsp;6</a>).</p>
-<p><span id="eq-4"><span class="math display">\[
-\text{logit}(\mu_z) = \beta_0 + f(z)
+<p>To determine whether species-specific detection rate varies in the <span class="math inline">\(z\)</span> dimension, we applied generalized additive models [GAMs; <span class="citation" data-cites="Wood2017">S. N. Wood (<a href="#ref-Wood2017" role="doc-biblioref">2017</a>)</span>] as implemented using the <code>mgcv</code> package in R <span class="citation" data-cites="RCoreTeam2016">(<a href="#ref-RCoreTeam2016" role="doc-biblioref">R Core Team, 2016</a>)</span>. GAMs have previously been demonstrated to be an appropriate tool for modeling spatial distributions of cetaceans <span class="citation" data-cites="becker_etal22 abrahms_etal19b">(<a href="#ref-abrahms_etal19b" role="doc-biblioref">Abrahms et al., 2019</a>; e.g. <a href="#ref-becker_etal22" role="doc-biblioref">Becker et al., 2022</a>)</span>. Our binomial response was the detection or non-detection at each combination of site, depth, and technical replicate. Models were constructed with increasing complexity; in each a case a smooth effect of depth was used, but allowing for structure including taxonomy or preferred prey. Models were defined as follows:</p>
+<p><span id="eq-4-8"><span class="math display">\[
+\begin{align}
+\text{logit}(\mu(z)) = &amp;\beta_0 + f(z) \quad \text{(depth smooth)}\\
+\text{logit}(\mu(z,s)) = &amp;\beta_{s} + f(z) \quad \text{(depth smooth, species intercept)}\\
+\text{logit}(\mu(z,s)) = &amp;\beta_{s} + f_s(z) \quad \text{(depth smooth varying by species)}\\
+\text{logit}(\mu(z,F)) = &amp;\beta_{F} + f_F(z) \quad \text{(depth smooth varying by family)}\\
+\text{logit}(\mu(z,e)) = &amp;\beta_{e} + f_e(z) \quad \text{(depth smooth varying by prey)}
+\end{align}
 \tag{4}\]</span></span></p>
-<p><span id="eq-5"><span class="math display">\[
-\text{logit}(\mu_{z,s}) = \beta_{s} + f(z)
-\tag{5}\]</span></span></p>
-<p><span id="eq-6"><span class="math display">\[
-\text{logit}(\mu_{z,s}) = \beta_{s} + f_s(z_i)
-\tag{6}\]</span></span></p>
-<p><span id="eq-7"><span class="math display">\[
-\text{logit}(\mu_{z,s}) = \beta_{s} + f_F(z_i)
-\tag{7}\]</span></span></p>
-<p><span id="eq-8"><span class="math display">\[
-\text{logit}(\mu_{z,s}) = \beta_{s} + f_e(z_i)
-\tag{8}\]</span></span></p>
-<p>In these equations, <span class="math inline">\(\mu_z\)</span> is the detection rate for any cetacean at depth <span class="math inline">\(z\)</span> and <span class="math inline">\(\mu_{z,s}\)</span> is the detection rate for species <span class="math inline">\(s\)</span> at depth <span class="math inline">\(z\)</span>. <span class="math inline">\(\beta_0\)</span> is a shared intercept parameter and <span class="math inline">\(\beta_{s}\)</span> is a species-specific intercept parameter. <span class="math inline">\(f(z)\)</span> denotes a smooth on depth across species and <span class="math inline">\(f_s(z)\)</span> denotes a species-specific factor-smooth on depth <span class="citation" data-cites="Pedersen2019a">(<a href="#ref-Pedersen2019a" role="doc-biblioref">Pedersen et al., 2019</a>)</span>. In Equations 6-8 we compare three factor-smooth stratification schemes: (1) species (<span class="math inline">\(f_s(z)\)</span>), (2) taxonomic family (<span class="math inline">\(f_F(z)\)</span>), and (3) preferred prey type (<span class="math inline">\(f_e(z)\)</span>).</p>
+<p>Here <span class="math inline">\(\mu\)</span> is the detection probability for a cetacean in a sample, its arguments indicate its functional dependence. In each case <span class="math inline">\(f\)</span> denotes a smooth function, modelling by a spline, <span class="math inline">\(f_X\)</span> indicates a factor-smooth <span class="citation" data-cites="Pedersen2019a">(<a href="#ref-Pedersen2019a" role="doc-biblioref">Pedersen et al., 2019</a>)</span> of depth and species (<span class="math inline">\(s\)</span>), family (<span class="math inline">\(F\)</span>) or preferred prey (<span class="math inline">\(e\)</span>). <span class="math inline">\(\beta_0\)</span> is a shared intercept parameter and <span class="math inline">\(\beta_X\)</span> is an intercept parameter per level in <span class="math inline">\(X\)</span> where the convention for the factor-smooths is followed. In all cases <span class="math inline">\(z\)</span> is depth.</p>
 <p>We assessed model fit using AIC, and model performance using standard metrics including the percent of deviance explained, the area under the receiver operating characteristic curve <span class="citation" data-cites="fawcett06">(AUC, <a href="#ref-fawcett06" role="doc-biblioref">Fawcett, 2006</a>)</span>, the true skill statistic <span class="citation" data-cites="allouche_etal06">(TSS, <a href="#ref-allouche_etal06" role="doc-biblioref">Allouche et al., 2006</a>)</span>, and a visual comparison (i.e.&nbsp;via plotting) of predicted vs.&nbsp;observed detection rates across sampling depths. We also visually compared our model-based predictions of probability of detection across depth with estimates of species-specific time-at-depth as reported by Watwood and Buonantony <span class="citation" data-cites="watwood_buonantony12">(<a href="#ref-watwood_buonantony12" role="doc-biblioref">2012</a>)</span> and the U.S. Department of the Navy <span class="citation" data-cites="u_s_departmentofthenavy17">(<a href="#ref-u_s_departmentofthenavy17" role="doc-biblioref">2017</a>)</span>.</p>
 </section>
 <section id="question-3-does-depth-variability-in-detection-rate-vary-spatially" class="level4">
 <h4 class="anchored" data-anchor-id="question-3-does-depth-variability-in-detection-rate-vary-spatially">Question 3: Does depth variability in detection rate vary spatially?</h4>
-<p>We also used a GAM to examine spatial covariability in the detection rate across depths. We approach this question in two ways: first, we examing covariablity in the effects of depth (<span class="math inline">\(z\)</span>), latitude (<span class="math inline">\(y\)</span>), and longitude (<span class="math inline">\(x\)</span>) on species-specific detection rate; next, we examine covariability in the effects of depth (<span class="math inline">\(z\)</span>) and species-specific predictions of density (<span class="math inline">\(D\)</span>) on species-specific detection rate. We used the best-fit model from Question 2 as our starting point (Eq 6: species-specific variability in detection rate with <span class="math inline">\(z\)</span>), subset our input data to include the species from each broad taxon with the greatest number of detections, and pulled predicted density values for our survey area from Becker et al. <span class="citation" data-cites="Becker2020">(<a href="#ref-Becker2020" role="doc-biblioref">2020</a>)</span>, which are predicted based on &gt;25 years of visual sighting data.</p>
-<p>For approach 1, we looked for covariation in <span class="math inline">\(xyz\)</span> on a species-specific basis with the following model formulation:</p>
+<p>We also used a GAM to examine spatial variability in the detection rate across depths. We approach this question in two ways: first, we examining variability in the effects of depth, latitude, and longitude on species-specific detection rate; next, we examine variability in the effects of depth and species-specific predictions of density on species-specific detection rate. We used the best fitting model from Question 2 as our starting point (species-specific variability in detection rate with depth), subset our input data to include the species from each broad taxon with the greatest number of detections, and pulled predicted density values for our survey area from Becker et al. <span class="citation" data-cites="Becker2020">(<a href="#ref-Becker2020" role="doc-biblioref">2020</a>)</span>, which are predicted based on &gt;25 years of visual sighting data.</p>
+<p>For approach 1, we looked species-specific variation in spatial-depth smooths with the following model formulation:</p>
 <p><span id="eq-9"><span class="math display">\[
-\text{logit}(\mu_{s,i}) = \beta_{s} + f_s(x_i,y_i,z_i)
-\tag{9}\]</span></span></p>
-<p><span class="math inline">\(f_s(x_i,y_i,z_i)\)</span> was constructed as tensor product of marginal smoothers of <span class="math inline">\(x\)</span>, <span class="math inline">\(y\)</span>, and <span class="math inline">\(z\)</span> and in the case of the species-specific factor-smooth interaction we used the tensor product of <span class="math inline">\(x\)</span>, <span class="math inline">\(y\)</span>, and <span class="math inline">\(z\)</span>, and a random effect on species. We constructed intermediate tensor products on interactions among all three spatial variables and species (using the ti() constructor in mgcv; some citation[DLM]).</p>
-<p>For approach 2, we looked for variability in depth <span class="math inline">\(z\)</span> and predicted density <span class="math inline">\(D\)</span> on a species-specific basis with the following model formulation:</p>
+\text{logit}(\mu(x,y,z,s)) = \beta_{s} + f_s(x,y,z).
+\tag{5}\]</span></span></p>
+<p>Here <span class="math inline">\(f_s(x,y,z)\)</span> was constructed as tensor product of marginal smoothers of <span class="math inline">\(x\)</span>, <span class="math inline">\(y\)</span>, and <span class="math inline">\(z\)</span> and in the case of the species-specific factor-smooth interaction we used the tensor product of <span class="math inline">\(x\)</span>, <span class="math inline">\(y\)</span>, and <span class="math inline">\(z\)</span>, and a random effect on species. We constructed intermediate tensor products on interactions among all three spatial variables and species (using the <code>ti()</code> constructor in <code>mgcv</code>; <span class="citation" data-cites="Wood2017">S. N. Wood (<a href="#ref-Wood2017" role="doc-biblioref">2017</a>)</span>, Section 4.6.2). This allowed us to decompose the smooth of space and depth as:</p>
+<p><span class="math display">\[\begin{align}
+f_s(x,y,z) = &amp;f(x,y) + \quad \text{(spatial only)}\\
+             &amp;f(z) + \quad \text{(depth only)}\\
+             &amp;f_s(x,y) + \quad \text{(per taxon spatial)}\\
+             &amp;f_s(z) + \quad \text{(per taxon depth)}\\
+             &amp;f_s(x,y,z) + \quad \text{(full interaction)}\\
+             &amp;\beta_s \quad \text{(species random effect)},
+\end{align}\]</span></p>
+<p>where <span class="math inline">\(\beta_s \sim N(0,\sigma_s)\)</span> is a random intercept per species, <span class="math inline">\(f\)</span> indicates a smooth of the variables, and <span class="math inline">\(f_s\)</span> indicates a factor-smooth interaction between the variables in the function’s argument and species. When <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> are included in a model, their effect was constructed as a bivariate thin place spline on these projected coordinates (since they would obey the isotropy property). Interactions between space and depth required a tensor product (as moving one unit in depth is not the same as one unit in space).</p>
+<p>For approach 2, we looked for variability in depth <span class="math inline">\(z\)</span> and predicted species density <span class="math inline">\(D\)</span> on a species-specific basis with the following model formulation:</p>
 <p><span id="eq-10"><span class="math display">\[
-\text{logit}(\mu_{s,i}) = \beta_{s} + f_s(z_i) + f_s(D_s,i) + s
-\tag{10}\]</span></span></p>
-<p><span class="math inline">\(f_s(z_i)\)</span> and <span class="math inline">\(f_s(D_s,i)\)</span> were both constructed as simple smooths, as in Question 2 (Eqs 4-8), where <span class="math inline">\(D_s,i\)</span> is the species-specific predicted density <span class="math inline">\(D\)</span> for species <span class="math inline">\(s\)</span> at location <span class="math inline">\(i\)</span> <span class="citation" data-cites="Becker2020">(<a href="#ref-Becker2020" role="doc-biblioref">Becker et al., 2020</a>)</span>.</p>
+\text{logit}(\mu(i,z,s) = \beta_{s} + f_s(z) + f_s(D_s(x_i,y_i))
+\tag{6}\]</span></span></p>
+<p>where <span class="math inline">\(f(z)\)</span> is a smooth of depth, common across all species and <span class="math inline">\(f_s(D_s(x,y))\)</span> is constructed as independent smoothers with one smooth for each species (level of <span class="math inline">\(s\)</span>). <span class="math inline">\(D_s(x_i,y_i)\)</span> is the predicted density (animals per kilometre) for species <span class="math inline">\(s\)</span> at location <span class="math inline">\(x_i,y_i\)</span> of site <span class="math inline">\(i\)</span> as taken from <span class="citation" data-cites="Becker2020">Becker et al. (<a href="#ref-Becker2020" role="doc-biblioref">2020</a>)</span>. <span class="math inline">\(\beta_s\)</span> is a per-species intercept.</p>
 <p>As in Question 2, we assessed model fit using AIC, and model performance for the best model using percent deviance explained, AUC, and TSS. We then conducted a visual comparison of the predicted depth of maximum detection rate across and observed detection depths within the study area for the most frequently observed baleen whale, dolphin/porpoise, and beaked whale.</p>
 <p>A table of all variables used in both the occupancy model and the GAM framework is included in the Supplementary Materials (Supplemental Table S2).</p>
 </section>
@@ -522,7 +525,7 @@ Figure&nbsp;2: Left: Posterior distribution of primer-specific POD (vertical axi
 <div id="tbl-modelAIC" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-modelAIC-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2: Akaike Information Criterion values for all GAMs tested to characterize the relationship between depth and detection rate of eDNA. Models and stratification schemes from Eqns. 4-6.
+Table&nbsp;2: Akaike Information Criterion values for all GAMs tested to characterize the relationship between depth and detection rate of eDNA. Models and stratification schemes from Eq. 4.
 </figcaption>
 <div aria-describedby="tbl-modelAIC-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -537,31 +540,31 @@ Table&nbsp;2: Akaike Information Criterion values for all GAMs tested to charact
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><span class="math inline">\(β_s + f_s(z_i)\)</span> (Eq. 6)</td>
+<td style="text-align: left;"><span class="math inline">\(β_s + f_s(z)\)</span></td>
 <td style="text-align: left;">species</td>
 <td style="text-align: right;">48.0</td>
 <td style="text-align: right;">0.0</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><span class="math inline">\(β_s + f(z_i)\)</span> (Eq. 5)</td>
+<td style="text-align: left;"><span class="math inline">\(β_s + f(z)\)</span></td>
 <td style="text-align: left;">species</td>
 <td style="text-align: right;">19.3</td>
 <td style="text-align: right;">141.6</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><span class="math inline">\(β_s + f_F(z_i)\)</span> (Eq. 7)</td>
+<td style="text-align: left;"><span class="math inline">\(β_s + f_F(z)\)</span></td>
 <td style="text-align: left;">family</td>
 <td style="text-align: right;">19.7</td>
 <td style="text-align: right;">307.4</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><span class="math inline">\(β_s + f_e(z_i)\)</span> (Eq. 8)</td>
+<td style="text-align: left;"><span class="math inline">\(β_s + f_e(z)\)</span></td>
 <td style="text-align: left;">prey</td>
 <td style="text-align: right;">13.2</td>
 <td style="text-align: right;">412.5</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><span class="math inline">\(β_0 + f(z_i)\)</span> (Eq. 4)</td>
+<td style="text-align: left;"><span class="math inline">\(β_0 + f(z)\)</span></td>
 <td style="text-align: left;">none</td>
 <td style="text-align: right;">3.7</td>
 <td style="text-align: right;">549.4</td>

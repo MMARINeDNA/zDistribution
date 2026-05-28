@@ -57,18 +57,18 @@ In the next two sections we switch to considering detection rate of cetacean DNA
 
 ```{r}
 #| label: tbl-modelAIC
-#| tbl-cap: "Akaike Information Criterion values for all GAMs tested to characterize the relationship between depth and detection rate of eDNA. Models and stratification schemes from Eqns. 4-6."
+#| tbl-cap: "Akaike Information Criterion values for all GAMs tested to characterize the relationship between depth and detection rate of eDNA. Models and stratification schemes from Eq. 4."
 
 modelAICtable <- modelAIC %>% 
   arrange(AIC) %>% 
   mutate(minAIC = min(AIC)) %>% 
   mutate("$\u394 AIC$" = AIC-minAIC) %>% 
   mutate("Stratification" = c("species", "species", "family", "prey", "none")) %>% 
-  mutate(Model = case_when(model == "m1.2"~"$\u03b2_s + f_s(z)$ (Eq. 6)",
-                           model == "m1.1"~"$\u03b2_s + f(z)$ (Eq. 5)",
-                           model == "m1.2a"~"$\u03b2_s + f_F(z)$ (Eq. 7)",
-                           model == "m1.2b"~"$\u03b2_s + f_e(z)$ (Eq. 8)",
-                           model == "m1.0"~"$\u03b2_0 + f(z)$ (Eq. 4)", 
+  mutate(Model = case_when(model == "m1.2"~"$\u03b2_s + f_s(z)$",
+                           model == "m1.1"~"$\u03b2_s + f(z)$",
+                           model == "m1.2a"~"$\u03b2_s + f_F(z)$",
+                           model == "m1.2b"~"$\u03b2_s + f_e(z)$",
+                           model == "m1.0"~"$\u03b2_0 + f(z)$", 
                            TRUE~model)) %>% 
   mutate("$df$" = df) %>% 
   select(Model, Stratification, "$df$", "$\u394 AIC$")

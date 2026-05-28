@@ -1,7 +1,7 @@
 Variables,symbol
-depth,z
-latitude,y
-longitude,x
+depth (m),z
+latitude (utm),y
+longitude (utm),x
 xyz location,i
 cetacean presence,y
 occurrence probabiilty,psi
@@ -18,3 +18,4 @@ species,s
 detection rate,mu
 taxonomic family,F
 prey group,e
+species density (ind/km2),D

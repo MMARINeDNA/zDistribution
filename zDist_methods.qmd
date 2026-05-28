@@ -120,7 +120,7 @@ where $\beta_s \sim N(0,\sigma_s)$ is a random intercept per species, $f$ indica
 For approach 2, we looked for variability in depth $z$ and predicted species density $D$ on a species-specific basis with the following model formulation:
 
 $$
-\text{logit}(\mu(i,z,s) = \beta_{s} + f_s(z) + f_s(D_s(x_i,y_i)) + \beta_s,
+\text{logit}(\mu(i,z,s) = \beta_{s} + f_s(z) + f_s(D_s(x_i,y_i))
 $$ {#eq-10}
 
 where $f(z)$ is a smooth of depth, common across all species and $f_s(D_s(x,y))$ is constructed as independent smoothers with one smooth for each species (level of $s$). $D_s(x_i,y_i)$ is the predicted density (animals per kilometre) for species $s$ at location $x_i,y_i$ of site $i$ as taken from @Becker2020. $\beta_s$ is a per-species intercept.
