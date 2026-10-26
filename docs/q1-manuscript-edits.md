@@ -68,7 +68,10 @@ The last three columns estimate MFU's slope and differ only in the slope prior (
 - [ ] The argument that shorter fragments (MFU, MV1) are robust to freeze/thaw should rest on MV1, whose slope is near zero and well estimated. MFU's effect was assumed, not estimated.
 - [ ] The best-practice recommendation (thaw extracts as few times as possible) still follows from DL.
 
-## Downstream scripts to rerun
+## Downstream scripts (rerun)
 
-- [ ] `Scripts/05_Calc_POD_by_sample.R` (per-sample POD)
-- [ ] `Scripts/05_Plot_TechRepsXPrimer.R` (replicates figure)
+- [x] `Scripts/05_Calc_POD_by_sample.R` (per-sample POD). Now drops the same failed MFU/MV1 replicates as the model.
+  - Mean POD per replicate by primer: DL 0.13, MFU 0.29, MV1 0.41 (text currently says 0.14, 0.31, 0.39).
+  - Per-sample POD across all five replicates: mean 0.84, range 0.09–0.90 (text currently says 0.87, range 0.85–0.92).
+  - The low end of the range comes from the 2 samples whose MFU and MV1 replicates all failed, leaving only their DL replicate. 64 samples have 4 usable replicates, 18 have 3, 7 have 2, and 2 have 1. The text could give the range for samples with all five replicates, or say why the minimum is low.
+- [x] `Scripts/05_Plot_TechRepsXPrimer.R` (replicates figure). Fixed a missing `library(tidyr)`, which had stopped the script from running on its own. POD for k replicates at one thaw: MV1 0.90 at 4; MFU 0.91 at 7; DL 0.90 at 7 (just under the threshold) and 0.93 at 8.
