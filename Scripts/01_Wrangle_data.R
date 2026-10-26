@@ -245,7 +245,7 @@ save(detect_data, detect_species_divetime,
 ### Make a "clean" dataset -----------------------------------------------------
 length(unique(detect_data$NWFSCsampleID)) #574 samples, 48,656 rows, 3041 replicates
 
-bioReps <- read.csv("duplicated_station_depth.csv") %>% 
+bioReps <- read.csv("./Data/duplicated_station_depth.csv") %>%
   filter(to.remove == "x")
 
 detect_data_noBioRep <- detect_data %>% 
