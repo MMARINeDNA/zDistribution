@@ -8,8 +8,8 @@ I read the manuscript sources (`index.qmd`, `zDist_methods.qmd`, `zDist_results.
 
 Two caveats affect what could be checked:
 
-- Several inputs are not in the repository (see [§1.3](#13-the-pipeline-cannot-be-re-run-from-the-repository)). I could not re-run the pipeline end to end, so most checks are against the saved `.RData` outputs.
-- The manuscript appears to have been rendered from files that exist only in the main checkout and are not committed: a modified, 250 MB `ProcessedData/m3.0models_preds_0.05degree.Rdata` and an untracked `ProcessedData/H3.0c_pred_flt_clean.Rdata`. I opened these read-only and noted where they differ from the committed versions.
+- A few inputs aren't on this computer at all (see [§1.3](#13-files-the-pipeline-needs-that-arent-on-this-computer)). I could not re-run the pipeline end to end, so most checks are against the saved `.RData` outputs.
+- Data are deliberately kept out of git, so the local copies are the working versions. The manuscript appears to have been rendered from two local files: a 250 MB `ProcessedData/m3.0models_preds_0.05degree.Rdata` that differs from the committed copy, and `ProcessedData/H3.0c_pred_flt_clean.Rdata`. I opened these read-only and noted where they differ from the committed versions.
 
 Severity key: **High** = a reported result or conclusion is wrong, or can't be reproduced. **Medium** = the method departs from what the paper says, or a modelling choice materially affects inference. **Low** = wording, a stale comment, or fragile code.
 
@@ -21,7 +21,7 @@ Severity key: **High** = a reported result or conclusion is wrong, or can't be r
 |---|---|---|
 | 1.1 | The Q3 statistics, maps and cross-validation come from three different "m3.0c" models, none of which matches the methods | High |
 | 1.2 | Q3 depth-of-maximum maps include depths below the seafloor; the area percentages in the text match no saved output | High |
-| 1.3 | Pipeline can't be re-run from the repo (missing inputs, uncommitted outputs, scripts that error) | High |
+| 1.3 | Two inputs needed for the paper aren't on this computer; some scripts have broken paths or are missing | High |
 | 2.1 | Occupancy-model priors are informative (nimble `dnorm(0, 10)` is precision, so SD = 0.32), not "weakly informative" | High |
 | 2.2 | The depth spline's basis and priors don't match (`diagonalize` is ignored by `gam()`) | Medium |
 | 2.3 | DL was never observed at 1 freeze/thaw cycle, so the headline "POD at Thaw = 1" comparison for DL is an extrapolation | Medium |
@@ -78,26 +78,32 @@ In the committed `H3.0c_pred_flt.Rdata`, humpback `max_mu` reaches **2.00**, whi
 
 **Fix:** mask predictions by bathymetry before taking the maximum over depth. Compute the area shares in code, as inline R in the `.qmd`, and weight by cell area if the grid is in degrees.
 
-### 1.3 The pipeline cannot be re-run from the repository
+### 1.3 Files the pipeline needs that aren't on this computer
 
-**Missing inputs:**
-- `duplicated_station_depth.csv` ([01_Wrangle_data.R:248](../Scripts/01_Wrangle_data.R#L248)). This defines which biological replicates are dropped, so `detect_data_clean` can't be regenerated without it.
-- `Data/CCE_model_run/` (the Becker et al. density grids, [04_Model_with_GAMs_Q3.R:31](../Scripts/04_Model_with_GAMs_Q3.R#L31)).
-- `Data/MFU_database.csv` and `Data/MV1_database.csv` ([01.2_Examine_deep_detections.R:12-13](../Scripts/01.2_Examine_deep_detections.R#L12-L13)).
-- `Data/ddf/` and `Data/MASTER_CCE_1991_2018_GS.csv` (`extract_eiren.R`).
+Data and outputs are kept out of git on purpose, so files that exist only on the local machine are not flagged here. This section covers files that the scripts read but that I couldn't find anywhere on the computer: the repo, the main checkout, the home folder, Spotlight and OneDrive. iCloud Drive could not be searched.
 
-**Uncommitted outputs that the render depends on:**
-- `ProcessedData/H3.0c_pred_flt_clean.Rdata` is loaded at [index.qmd:47](../index.qmd#L47) but is untracked.
-- The local `m3.0models_preds_0.05degree.Rdata` is 250 MB, which exceeds GitHub's 100 MB file limit, so it can't be committed without LFS.
-- No committed script creates `m3.0c_clean`, `m3.0c_clean_sePreds`, `maxPOD_depth_clean` or `H3.0c_map_clean.Rdata`. Only a partial trial exists, in `dave_futz.R` on rows 1:100.
+**Needed to rerun analyses in the paper:**
+- `duplicated_station_depth.csv` ([01_Wrangle_data.R:248](../Scripts/01_Wrangle_data.R#L248)). This lists which biological replicates are dropped. Without it, `detect_data_clean` can't be regenerated from the raw table, so none of the wrangling fixes in §3 can be applied and propagated.
+- `Data/CCE_model_run/` (the Becker et al. density grids, [04_Model_with_GAMs_Q3.R:31](../Scripts/04_Model_with_GAMs_Q3.R#L31)). These feed the density model `m3.1` (Eq. 10, Fig. 6). The station-matched densities survive, though: the Fig. 6 plot object in `Figures/H3.0c_map_clean.Rdata` contains the full model input (`detect_data_dens`, 7,740 rows, no missing densities). So `m3.1` and Fig. 6 can be refit without the grids. Only map-style density predictions, which the paper doesn't show, need the original files.
 
-**Scripts that error or write to the wrong place:**
+**Used only by exploratory scripts:**
+- `Data/MFU_database.csv` and `Data/MV1_database.csv` ([01.2_Examine_deep_detections.R:12-13](../Scripts/01.2_Examine_deep_detections.R#L12-L13)), for the shark-detection check.
+- `ProcessedData/m3.0models_preds_0.05degree_depthmask.Rdata` ([dave_futz.R:21](../Scripts/dave_futz.R#L21)).
+- `Data/ddf/` and `Data/MASTER_CCE_1991_2018_GS.csv` ([extract_eiren.R:7](../Scripts/extract_eiren.R#L7), [L23](../Scripts/extract_eiren.R#L23)).
+
+**Objects with no committed script that creates them:**
+- `m3.0c_clean`, `m3.0c_clean_sePreds`, `maxPOD_depth_clean`, `H3.0c_pred_flt_clean.Rdata` and `Figures/H3.0c_map_clean.Rdata`. The only trace is a partial trial in `dave_futz.R`, on rows 1:100.
+- `m3.1`, `detect_data_dens` and `D_grid` aren't saved as standalone objects anywhere. `detect_data_dens` survives only inside the Fig. 6 plot.
+
+**Paths and saves that break even with the data present:**
+- Two scripts load `ProcessedData/nimbleOut_m1.2.RData`, but the file is in `Results/` ([05_Model_w_Nimble_m1.2-slurmin.R:100](../Scripts/05_Model_w_Nimble_m1.2-slurmin.R#L100)).
+- Several scripts load `ProcessedData/detect_data.RData` and `H1models.Rdata`, but the files are named `detect_data.Rdata` and `H1models.RData`. This works on macOS but fails on case-sensitive systems such as a Linux cluster.
 - [02_Model_with_GAMs_Q1.R:301](../Scripts/02_Model_with_GAMs_Q1.R#L301) saves `m1.2clean`, which the script never creates. (In the saved file, `m1.2clean` is identical to `m1.2`.)
 - [01.2_Examine_deep_detections.R:164-165](../Scripts/01.2_Examine_deep_detections.R#L164-L165) saves `potential_whalefall` and `whalefall_map` to `detect_species_meta.RData`, but the manuscript loads `potential_whalefall.RData`. The script also overwrites the object that `03_Model_with_GAMs_Q2.R` expects.
 - [04.1_Plot_H3_models.R:114](../Scripts/04.1_Plot_H3_models.R#L114) has its save commented out.
 - `index.qmd` loads `Figures/Q2_DetectabilityByPrimer.RData`, which is produced by now-commented code. It isn't used, but it's a stale dependency.
 
-**Fix:** add the missing inputs (or document where to get them), commit a single `run_all` script or `Makefile` in execution order, and have the `.qmd` load only objects that a committed script creates.
+**Fix:** recover `duplicated_station_depth.csv` (and the density grids, if map-style predictions are wanted). Fix the paths above. Commit a single `run_all` script or `Makefile` that creates, in order, every object the `.qmd` loads.
 
 ---
 
@@ -276,10 +282,10 @@ So the authors know what does *not* need attention, these checks passed against 
 
 ## 8. Suggested order of work
 
-1. **Data first (3.1, 3.2):** fix the replicate selection and the handling of failed replicates, then regenerate `detect_data_clean`. Commit `duplicated_station_depth.csv`.
+1. **Data first (3.1, 3.2):** recover `duplicated_station_depth.csv`, fix the replicate selection and the handling of failed replicates, then regenerate `detect_data_clean`.
 2. **Occupancy model (2.1–2.4):** fix the priors and the spline basis, update Eq. 3, and report POD within the observed thaw range.
 3. **GAMs (4.1):** add sample and station random effects, and re-check the model ranking.
 4. **Q3 (1.1, 1.2, 5):** settle on one model specification, fit on projected coordinates, apply the bathymetry mask, and compute the area statistics in code.
 5. **Cross-validation (4.3):** use station-blocked folds, `set.seed()`, the same model and data as reported, and the correct S2 figure.
 6. **Text (4.2, 6):** replace every hard-coded number in the `.qmd` files with inline R that reads saved objects, and fix the AIC sentence and the cross-references.
-7. **Reproducibility (1.3):** add a `run_all.R` (or `targets`) pipeline, and keep large outputs out of git (LFS, or regenerate them on demand).
+7. **Reproducibility (1.3):** fix the broken paths, and add a `run_all.R` (or `targets`) pipeline that creates every object the `.qmd` loads.
