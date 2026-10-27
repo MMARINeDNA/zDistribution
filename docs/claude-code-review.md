@@ -4,6 +4,8 @@
 
 *Status updated 26 October 2026: see the Status column in the summary and the **Status** notes in §1.3, §2, §3 and §6. Line links point to the code as it was reviewed, so some lines have since moved.*
 
+*Scope narrowed 27 October 2026. The paper received minor revisions, so the remaining work covers only two things: (1) the code does what the manuscript says, and (2) the reported results match the outputs. Code changes are kept to a minimum, and mismatches are resolved by clarifying the text where that is honest. Items that would change the methods rather than fix a mismatch (for example 4.1 and station-blocked cross-validation) are marked out of scope. Text edits are tracked in GitHub issues; the manuscript files are not edited here.*
+
 ## Scope and approach
 
 I read the manuscript sources (`index.qmd`, `zDist_methods.qmd`, `zDist_results.qmd`) and every script that produces an object the manuscript loads. I then loaded the saved data and model objects in R to check each number in the text, rather than relying on code comments.
@@ -19,27 +21,27 @@ Severity key: **High** = a reported result or conclusion is wrong, or can't be r
 
 ## Summary
 
-| # | Issue | Severity | Status (26 Oct 2026) |
+| # | Issue | Severity | Status (27 Oct 2026) |
 |---|---|---|---|
 | 1.1 | The Q3 statistics, maps and cross-validation come from three different "m3.0c" models, none of which matches the methods | High | Open |
 | 1.2 | Q3 depth-of-maximum maps include depths below the seafloor; the area percentages in the text match no saved output | High | Open |
-| 1.3 | Two inputs needed for the paper aren't on this computer; some scripts have broken paths or are missing | High | Partly addressed |
-| 2.1 | Occupancy-model priors are informative (nimble `dnorm(0, 10)` is precision, so SD = 0.32), not "weakly informative" | High | Fixed in code (#25); text in #26 |
-| 2.2 | The depth spline's basis and priors don't match (`diagonalize` is ignored by `gam()`) | Medium | Fixed (#25) |
-| 2.3 | DL was never observed at 1 freeze/thaw cycle, so the headline "POD at Thaw = 1" comparison for DL is an extrapolation | Medium | Figure fixed (#27); text in #26 |
-| 2.4 | Eq. 3 has one thaw slope; the code fits one per primer | Medium | Primer-specific slopes kept; text in #26 |
+| 1.3 | Two inputs needed for the paper aren't on this computer; some scripts have broken paths or are missing | High | Partly addressed; the `run_all` pipeline is out of scope |
+| 2.1 | Occupancy-model priors are informative (nimble `dnorm(0, 10)` is precision, so SD = 0.32), not "weakly informative" | High | Priors kept as in the paper; the text must call them informative (#26) |
+| 2.2 | The depth spline's basis and priors don't match (`diagonalize` is ignored by `gam()`) | Medium | Fixed (#25); no effect on the detection estimates |
+| 2.3 | DL was never observed at 1 freeze/thaw cycle, so the headline "POD at Thaw = 1" comparison for DL is an extrapolation | Medium | Fig. 2 marks extrapolation with dashed lines; text in #26 |
+| 2.4 | Eq. 3 has one thaw slope; the code fits one per primer | Medium | Primer-specific slopes, as the code fits; Eq. 3 in #26 |
 | 2.5 | All MCMC chains start from identical initial values | Low | Fixed (#25, #27); text in #26 |
-| 3.1 | Sequencing-rep and dilution selection maximises **mammal** reads, not total reads (selection on the outcome) | Medium–High | Left as-is pending confirmation (#24) |
-| 3.2 | 129 failed (zero-read) MFU/MV1 replicates are counted as non-detections, contrary to the methods | Medium | Fixed (#25; #23 closed); text in #26 |
-| 3.3 | Whale-fall filtering is computed but never used | Low–Medium | Partly addressed |
-| 4.1 | GAMs treat replicates, species rows and depths within a station as independent (pseudoreplication) | Medium–High | Open |
+| 3.1 | Sequencing-rep and dilution selection maximises **mammal** reads, not total reads (selection on the outcome) | Medium–High | Kept on mammal reads (#24 closed); text in #26 |
+| 3.2 | 129 failed (zero-read) MFU/MV1 replicates are counted as non-detections, contrary to the methods | Medium | Resolved: code now applies the station/depth rule in the methods (#23); text in #26 |
+| 3.3 | Whale-fall filtering is computed but never used | Low–Medium | Partly addressed; whale-fall filter not used, by decision |
+| 4.1 | GAMs treat replicates, species rows and depths within a station as independent (pseudoreplication) | Medium–High | Out of scope (the methods describe the replicate-level response accurately) |
 | 4.2 | The text says the family and prey models had *lower* AIC than the species model; they are higher | High (text) | Open |
-| 4.3 | Cross-validation: station leakage, no seed, the wrong data or model in places, and a figure built from the wrong object | Medium | Open |
+| 4.3 | Cross-validation: station leakage, no seed, the wrong data or model in places, and a figure built from the wrong object | Medium | Open: fix the wrong data, model and figure source and add a seed; station leakage out of scope |
 | 4.4 | The time-at-depth overlay in Fig. 3 is min–max rescaled, not "on the same scale" | Low–Medium | Open |
 | 5 | Methods text vs. code mismatches for Q3 (coordinates, Eq. 10, density units/year, species subset) | Medium | Open |
 | 6 | Other numeric and text inconsistencies | Low | Partly addressed |
 
-**Note:** the dataset changed in #25 (failed runs dropped, complete replicate sets required), going from 516 to 470 samples. The Q2 and Q3 models and their outputs haven't been rerun on it yet, so every Q2/Q3 number in the manuscript is now out of date as well as subject to the issues below.
+**Note on the dataset (27 Oct 2026):** #25 briefly changed the dataset to 470 samples by dropping every failed MFU/MV1 run and requiring complete sets of successful replicates. That was stricter than the rule in the methods, and it has been reverted (see 3.2). The data are now the paper's original 516 samples minus the 2 samples in which every MFU and MV1 run failed: **514 samples, 175 stations, 2,570 replicates, 468 detections**. Apart from those 2 samples, `detect_data_clean` is identical to the data behind the submitted paper. The 2 dropped samples had no detections, so the Q2 and Q3 results should change very little, but they still need rerunning for the issues below.
 
 ---
 
@@ -135,7 +137,21 @@ This contradicts [zDist_methods.qmd:71](../zDist_methods.qmd#L71). It likely shr
 
 **Fix:** use, for example, `dnorm(0, sd = 1.5)` (or `tau = 0.44`), refit, and report a prior-sensitivity check.
 
-**Status:** fixed in code (#25). The primer intercepts now have `dnorm(0, sd = 1.5)` and the DL and MV1 thaw slopes `dnorm(0, sd = 1)`. MFU's thaw slope is fixed at 0, because only 26 of 470 MFU replicates were run at more than one thaw, mostly re-runs on a single sequencing run. On the complete-sets data, estimating it instead gives −0.27 (−0.93 to 0.21) and leaves everything else unchanged. Under the old tight intercept prior, MFU's slope was most likely held near zero by the intercept prior rather than by the data. The prior description in the methods still needs updating (#26). Full results and a sensitivity table are in [q1-manuscript-edits.md](q1-manuscript-edits.md).
+**Status:** resolved by describing the priors as they are (27 Oct 2026). For the minor revision, the original priors (`dnorm(0, 10)`, i.e. SD 0.32 on the logit scale, on all intercepts and thaw slopes) and the original thaw coding (cycles counted from 0) are kept. #25 had replaced them with weakly informative priors, thaw centred on one cycle and MFU's slope fixed at 0; that has been reverted. On the 514-sample data, with the bug fixes in 2.2 and 2.5 kept, the Q1 estimates match the submitted paper to two decimal places (POD at one thaw: DL 0.35, MFU 0.31, MV1 0.44; slopes −0.35, +0.09, −0.06).
+
+The methods must call the priors informative and give the SD (#26). The prior matters for two results, and the text should say so:
+
+| | Informative priors (SD 0.32; paper) | Weakly informative priors (SD 1.5 intercepts, SD 1 slopes) |
+|---|---|---|
+| MFU thaw slope | +0.09 (−0.26 to 0.43) | **+1.21 (0.39 to 2.47)** |
+| DL thaw slope | −0.35 (−0.50 to −0.21) | −0.26 (−0.51 to −0.02) |
+| MV1 thaw slope | −0.06 (−0.14 to 0.02) | −0.05 (−0.14 to 0.04) |
+| POD at 1 thaw, DL / MFU / MV1 | 0.35 / 0.31 / 0.44 | 0.28 / 0.26 / 0.42 |
+
+- **MFU:** only 14 of 514 MFU replicates were run at more than one thaw, and 13 of those were dilution-10 re-runs on one sequencing run (MURI318). The data can't separate a thaw effect from run and dilution. Its near-zero slope reflects the prior, so the results shouldn't present it as evidence of "no relationship".
+- **DL:** the intercept's posterior SD (0.27) is close to the prior's (0.32), and DL's value at one thaw is an extrapolation (see 2.3).
+
+The weak-prior numbers are from scratch runs on the 514-sample data and aren't saved in the repo.
 
 ### 2.2 The depth smooth uses a basis that doesn't match its priors (Medium)
 
@@ -149,7 +165,7 @@ So the prior is not the smoothing penalty implied by Eq. 1. It acts as an arbitr
 
 **Fix:** use `q1Model_m1.0$jags.data$X`, and for prediction use `predict(q1Model_m1.0$pregam, newdata, type = "lpmatrix")` or the jagam basis. Alternatively, build the jagam object with the same `select`/`diagonalize` settings and take X from it.
 
-**Status:** fixed (#25). The model and the prediction curve now use `PredictMat()` on the jagam smooth, which reproduces `q1Model_m1.0$jags.data$X` exactly (maximum difference about 1e-16). The `gam()` fit is no longer used.
+**Status:** fixed (#25). The model and the prediction curve now use `PredictMat()` on the jagam smooth, which reproduces `q1Model_m1.0$jags.data$X` exactly (maximum difference about 1e-16). The `gam()` fit is no longer used. The fix changes the occupancy-by-depth curve but not the detection (POD) estimates reported in the paper.
 
 ### 2.3 The "POD at one freeze/thaw cycle" for DL is an extrapolation (Medium)
 
@@ -168,16 +184,16 @@ The observed thaw counts per technical replicate in `detect_data_clean`:
 **Fix:** report each primer's POD at its observed thaw range, or at a common observed level. Restrict the plotted thaw range to the observed range for each primer. Discuss the confounding.
 
 **Status:** partly addressed.
-- Thaw is now centred on one cycle, so each intercept is a primer's POD at one thaw. One thaw remains the reference level, so DL's one-thaw value (now 0.33) is still an extrapolation; #26 asks for the text to say so.
-- Fig. 2 (right) now plots each primer only over the thaw range it was run at (DL 2–6), and MFU's line is dashed because its slope is fixed at 0 (#27). The caption wording is in #26.
-- MFU's slope is fixed at 0 (see 2.1), so the extrapolated MFU rise no longer appears.
-- The thaw/run confounding still needs a sentence in the Discussion.
+- Thaw is counted from 0, as in the paper, and "POD at one thaw" is computed as intercept + slope. DL's one-thaw value (0.35) is still an extrapolation, and #26 asks the text to say so.
+- Fig. 2 now marks every extrapolation with a dashed line. In the right panel, each primer is solid over the thaw range it was run at (DL 2–6, MFU 1–6, MV1 1–7) and dashed, with a lighter ribbon, beyond it; there are no raw points (#27). In the left and middle panels, which are evaluated at one thaw, DL is dashed. The 90% reference line in the middle panel is now dotted so it isn't confused with DL.
+- MFU's slope is estimated, +0.09 (−0.26 to 0.43) under the informative prior; see 2.1 for how much this depends on the prior.
+- The thaw/run confounding still needs a sentence in the Discussion (#26).
 
 ### 2.4 Eq. 3 doesn't match the code (Medium)
 
 Eq. 3 ([zDist_methods.qmd:65-69](../zDist_methods.qmd#L65-L69)) has a single slope, γ_t. The code fits a slope for each primer, `thaw_par[Y_primer_index[i]]` ([L141](../Scripts/05_Model_w_Nimble_m1.0+2LevelOccModel_wThaw.R#L141)), and the results interpret primer-specific slopes. Eq. 3 should read `logit(Ω) = γ_m + γ_{t,m} T_r`.
 
-**Status:** decided in favour of primer-specific slopes, as the code fits, with MFU's fixed at 0 and thaw centred on one cycle. Eq. 3 and the sentence after it still need updating to logit(Ω_{m,t}) = γ_m + γ_{t,m} · (T_r − 1), with γ_{t,MFU} = 0. This is tracked in #26, with suggested wording.
+**Status:** decided in favour of primer-specific slopes, as the code fits; all three are estimated. Eq. 3 and the sentence after it need updating to logit(Ω_{m,t}) = γ_m + γ_{t,m} · T_r (#26).
 
 ### 2.5 Minor points on the occupancy model (Low)
 
@@ -187,7 +203,7 @@ Eq. 3 ([zDist_methods.qmd:65-69](../zDist_methods.qmd#L65-L69)) has a single slo
 - `N = q1Model_m1.0$jags.data$n` ([L155](../Scripts/05_Model_w_Nimble_m1.0+2LevelOccModel_wThaw.R#L155)) currently equals `nrow(mm.data)` (2,580). If `detect_data_allcet` is regenerated without re-running 02.5, the two will silently diverge. Use `nrow(mm.data)`.
 
 **Status:** all four points addressed.
-- Starting values: the initial-value function is now passed itself, so it's called once per chain, with jittered values and seeds for both the starting values and the MCMC (#25).
+- Starting values: the initial-value function is now passed itself, so it's called once per chain, with jittered values and seeds for both the starting values and the MCMC (#25). This doesn't change the estimates.
 - Thinning: still needs a mention in the methods (#26, "Priors and MCMC"), along with, optionally, the dispersed starting values.
 - Raw points: removed from Fig. 2 (right) (#27). They also weren't in the figure as published; the saved plot object predated that layer of the code.
 - `N`: now `nrow(mm.data)` (#25).
@@ -208,7 +224,7 @@ This count includes pinnipeds and Delphinidae, and my re-run approximates the tw
 
 **Fix:** use the existing `totalReads` column (computed over all taxa at L25, before the filter), or re-run selection before filtering to mammals.
 
-**Status:** left as-is for now, pending confirmation in #24. Dropping failed runs before selection (#25) partly overlaps: a failed run can no longer be chosen over a successful re-run. Among successful runs, though, selection still uses mammal reads.
+**Status:** kept on mammal reads, as Amy confirmed (#24, closed). The methods now say "the greatest total read count from cetaceans"; the code counts all mammal reads (including pinnipeds and unassigned Delphinidae) at this step, so #26 suggests "mammalian reads".
 
 ### 3.2 Failed replicates are counted as non-detections (Medium)
 
@@ -220,12 +236,15 @@ In `detect_data_clean`, **33 MFU and 96 MV1 replicates have zero reads of any ta
 
 **Fix:** implement the stated rule, or change the methods. Then re-fit.
 
-**Status:** fixed (#25; #23 closed after confirmation). `01_Wrangle_data.R` now:
-- drops MFU/MV1 runs with zero reads of any taxon before choosing among re-runs and dilutions, so a successful re-run is used where one exists (zero-read DL runs are kept as genuine non-detections);
-- keeps each sample's first successful 1 DL, 1 MFU and 3 MV1 replicates, with spare replicates filling in for failed ones (32 replicates);
-- keeps only samples with all five.
+**Status:** resolved by matching the code to the methods (27 Oct 2026). Amy clarified that the rule in the methods applies to the whole station/depth sample: if **every** MFU and MV1 run for a sample returned zero reads of any taxon, the sample is treated as failed (DL is assumed to have failed too, and in these samples it also has zero reads) and is dropped. If any run for the sample returned reads, a zero for a cetacean species is a non-detection, including in a failed MFU or MV1 run.
 
-The dataset is now 470 samples (was 516) at 167 stations, with 2,350 replicates and 447 detections, and all analyses use it. The Q1 model and its outputs are rerun; Q2 and Q3 are not yet. The methods description of the rule is in #26.
+The first fix (#25) dropped each failed run individually and then kept only samples with five successful replicates (470 samples). That was stricter than the stated rule, so it has been reverted. `01_Wrangle_data.R` now keeps the original replicate selection (DL #1, MFU #1, MV1 #1–3) and adds one filter, `allFailed`, which drops the 2 samples where every MFU and MV1 run failed (52193-1353 at 50 m and 52193-1682 at 500 m; neither had any detections). The result is 514 samples, 175 stations, 2,570 replicates and 468 detections, with 121 failed MFU/MV1 replicates kept as non-detections.
+
+Two related facts, left as they are:
+- In 35 of the paper's 129 failed replicates, a later technical replicate (MFU #2, MV1 #4–6) succeeded but was not used, because the selection keeps the lowest-numbered replicates. The methods say failed samples were rerun "to complete the dataset", so #26 suggests one sentence saying which replicates were analysed.
+- In 25 failed replicates, another dilution of the same replicate had reads, but none from mammals. The dilution step keeps the dilution with the most mammal reads, and when all are zero it keeps the first dilution in text order ("1" < "10" < "20" < "5"). Both choices are non-detections, so this changes only the freeze/thaw count attached to the replicate in Q1.
+
+The Q1 model and its outputs are rerun on the 514-sample data; Q2 and Q3 are not yet.
 
 ### 3.3 Other wrangling points
 
@@ -235,7 +254,7 @@ The dataset is now 470 samples (was 516) at 167 stations, with 2,350 replicates 
 - **Typo** (Low): `mutate(diluti0n = ...)` ([L117](../Scripts/01_Wrangle_data.R#L117)) creates a stray column, so `arrange(dilution)` sorts the character column.
 - **Stale comments** (Low): "515 samples, 41,200 rows, 2575 technical replicates" (L280). The current data have 516, 41,280 and 2,580.
 
-**Status:** partly addressed (#25). The completeness check that relied on `n()/16` (`tooFewMV1`, `tooFewPrimer`) has been replaced by the first-successful-replicate selection in 3.2, which counts replicates directly and no longer counts MV1 replicates beyond the third. The stale sample-count comment is updated. Still open: the read threshold, the unused whale-fall filter, `slice_head(n = 22)` and the `diluti0n` typo.
+**Status:** partly addressed. The original completeness check (`tooFewMV1`, `tooFewPrimer`) is back in place (see 3.2), with its stale count comment updated. The whale-fall filter stays unused by decision: deep detections are discussed, not filtered, and `01_Wrangle_data.R` now says so in a comment (#30). Left as they are, since none changes the analysed data: the read threshold (no 1-read cells survive), `slice_head(n = 22)`, `n()/16` and the `diluti0n` typo.
 
 ---
 
@@ -300,9 +319,9 @@ The Fig. 3 caption says "Y-axis scale is the same for detection rate … and pro
 | Sampling map ([01.2_Sampling_map.R:10](../Scripts/01.2_Sampling_map.R#L10)) | Fig. 1 map | Built from `detect_data` (non-clean), so it may show stations that were later dropped |
 
 **Status:** partly addressed.
-- **Sampling map:** now built from `detect_data_clean` and shows the 167 stations in the analysis (#27).
-- **Saber-toothed whale:** with the complete-sets data (#25), the analysed data has 3 detections again, matching the text.
-- **Counts:** the abstract and methods counts (samples, stations, replicates, detections) changed with the new dataset and are listed in #26.
+- **Sampling map:** now built from `detect_data_clean` and shows the 175 stations in the analysis (#27; regenerated on the 514-sample data).
+- **Saber-toothed whale:** the analysed data has 2 detections (1 at 300 m, 1 at 500 m), so the text's 3 is still off by one; the third was an MV1 replicate #4 that isn't used.
+- **Counts:** with 514 samples, the abstract and methods need "514 samples", "2,570 sequencing replicates" and 146 samples at 50 m and 73 at 500 m; the 175 stations and 468 detections are unchanged. Listed in #26.
 - **Still open:** the remaining rows, including the whale-fall counts, which need rechecking on the new data, and the `crs = 4236` typo.
 
 ---
@@ -327,10 +346,12 @@ So the authors know what does *not* need attention, these checks passed against 
 
 ## 8. Suggested order of work
 
-1. **Data first (3.1, 3.2):** recover `duplicated_station_depth.csv`, fix the replicate selection and the handling of failed replicates, then regenerate `detect_data_clean`.
-2. **Occupancy model (2.1–2.4):** fix the priors and the spline basis, update Eq. 3, and report POD within the observed thaw range.
-3. **GAMs (4.1):** add sample and station random effects, and re-check the model ranking.
-4. **Q3 (1.1, 1.2, 5):** settle on one model specification, fit on projected coordinates, apply the bathymetry mask, and compute the area statistics in code.
-5. **Cross-validation (4.3):** use station-blocked folds, `set.seed()`, the same model and data as reported, and the correct S2 figure.
-6. **Text (4.2, 6):** replace every hard-coded number in the `.qmd` files with inline R that reads saved objects, and fix the AIC sentence and the cross-references.
-7. **Reproducibility (1.3):** fix the broken paths, and add a `run_all.R` (or `targets`) pipeline that creates every object the `.qmd` loads.
+*Revised 27 October 2026 for the minor-revision scope.*
+
+1. **Data (3.1, 3.2):** done. The original replicate selection is kept, with the station/depth failure rule from the methods (514 samples).
+2. **Q1 (2.1–2.5):** done. The original priors and thaw coding are kept and the bug fixes stay, so the Q1 numbers match the paper; text edits (prior wording, Eq. 3, the MFU and DL caveats) are in #26.
+3. **Q2 (4.2, 4.3, 4.4):** rerun the existing Q2 scripts unchanged on the 514-sample data. Fix only the cross-validation bugs that affect reported numbers (wrong data or species subset, the S2 figure source) and add a seed. Then update the AIC sentence, deviance explained and the Fig. 3 caption (#29).
+4. **Q3 (1.1, 1.2, 5):** refit the model the methods describe once on the 514-sample data, and produce the statistics, maps, cross-validation and area percentages from that one object. Fix the Eq. 10, units and density-year text, and decide on the sub-seafloor mask.
+5. **Text (6):** fix the remaining numbers and cross-references; prefer inline R where a number is already computed.
+
+Out of scope for this revision: random effects for pseudoreplication (4.1), station-blocked folds, and a `run_all` pipeline (1.3).
