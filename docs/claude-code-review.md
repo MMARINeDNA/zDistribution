@@ -23,8 +23,8 @@ Severity key: **High** = a reported result or conclusion is wrong, or can't be r
 
 | # | Issue | Severity | Status (27 Oct 2026) |
 |---|---|---|---|
-| 1.1 | The Q3 statistics, maps and cross-validation come from three different "m3.0c" models, none of which matches the methods | High | Open |
-| 1.2 | Q3 depth-of-maximum maps include depths below the seafloor; the area percentages in the text match no saved output | High | Open |
+| 1.1 | The Q3 statistics, maps and cross-validation come from three different "m3.0c" models, none of which matches the methods | High | Resolved: one model (script 04) now feeds the statistics, maps and CV; text in #34 |
+| 1.2 | Q3 depth-of-maximum maps include depths below the seafloor; the area percentages in the text match no saved output | High | Mask fixed (land cells dropped); area percentages recomputed in #34 |
 | 1.3 | Two inputs needed for the paper aren't on this computer; some scripts have broken paths or are missing | High | Partly addressed; the `run_all` pipeline is out of scope |
 | 2.1 | Occupancy-model priors are informative (nimble `dnorm(0, 10)` is precision, so SD = 0.32), not "weakly informative" | High | Priors kept as in the paper; the text must call them informative (#26) |
 | 2.2 | The depth spline's basis and priors don't match (`diagonalize` is ignored by `gam()`) | Medium | Fixed (#25); no effect on the detection estimates |
@@ -35,10 +35,10 @@ Severity key: **High** = a reported result or conclusion is wrong, or can't be r
 | 3.2 | 129 failed (zero-read) MFU/MV1 replicates are counted as non-detections, contrary to the methods | Medium | Resolved: code now applies the station/depth rule in the methods (#23); text in #26 |
 | 3.3 | Whale-fall filtering is computed but never used | Low–Medium | Partly addressed; whale-fall filter not used, by decision |
 | 4.1 | GAMs treat replicates, species rows and depths within a station as independent (pseudoreplication) | Medium–High | Out of scope (the methods describe the replicate-level response accurately) |
-| 4.2 | The text says the family and prey models had *lower* AIC than the species model; they are higher | High (text) | Open |
-| 4.3 | Cross-validation: station leakage, no seed, the wrong data or model in places, and a figure built from the wrong object | Medium | Open: fix the wrong data, model and figure source and add a seed; station leakage out of scope |
-| 4.4 | The time-at-depth overlay in Fig. 3 is min–max rescaled, not "on the same scale" | Low–Medium | Open |
-| 5 | Methods text vs. code mismatches for Q3 (coordinates, Eq. 10, density units/year, species subset) | Medium | Open |
+| 4.2 | The text says the family and prey models had *lower* AIC than the species model; they are higher | High (text) | Q2 rerun; text in #29 |
+| 4.3 | Cross-validation: station leakage, no seed, the wrong data or model in places, and a figure built from the wrong object | Medium | Seeded, wrong data fixed, label bug fixed; S2 object and Table S3 reference in #29; station leakage out of scope |
+| 4.4 | The time-at-depth overlay in Fig. 3 is min–max rescaled, not "on the same scale" | Low–Medium | Caption fix in #29 |
+| 5 | Methods text vs. code mismatches for Q3 (coordinates, Eq. 10, density units/year, species subset) | Medium | Text items in #34 |
 | 6 | Other numeric and text inconsistencies | Low | Partly addressed |
 
 **Note on the dataset (27 Oct 2026):** #25 briefly changed the dataset to 470 samples by dropping every failed MFU/MV1 run and requiring complete sets of successful replicates. That was stricter than the rule in the methods, and it has been reverted (see 3.2). The data are now the paper's original 516 samples minus the 2 samples in which every MFU and MV1 run failed: **514 samples, 175 stations, 2,570 replicates, 468 detections**. Apart from those 2 samples, `detect_data_clean` is identical to the data behind the submitted paper. The 2 dropped samples had no detections, so the Q2 and Q3 results should change very little, but they still need rerunning for the issues below.
@@ -63,6 +63,13 @@ The CV metrics should also use the clean data (`AUC_df_m3.0c_clean` = 0.78, `TSS
 
 **Fix:** pick one Q3 model (the methods describe the 3-species, projected-coordinate version). Refit it, and generate the predictions, maps and CV from that same object and data. Save `m3.0c`, `m3.1`, `detect_data_dens` and `D_grid` together, from a committed script.
 
+**Status (27 Oct 2026):** resolved. Script 04 (3 species, UTM coordinates, as in the methods) was rerun on the 514-sample data, and everything is now produced from the objects it saves:
+- **Statistics:** m3.0c AIC 1408 and deviance explained 26.3%; m3.1 AIC 1569 and 10% (paper: 1410 / 26.2% and 1570 / 10%).
+- **Figures:** Fig. 5 and Fig. 6 (04.1). The published Fig. 5 turns out to have come from this model already: the saved plot uses UTM coordinates and three species, and the refit map looks the same. The 16-species lon/lat objects described above fed only the AIC values in the saved file and the area percentages.
+- **Cross-validation:** `04.2_m3.0c_performance.R` now cross-validates the same m3.0c formula on the same data, with seeded folds. Mean AUC 0.77, best mean TSS 0.45. The separate "clean" run is gone, because `detect_data_dens` is already the clean data.
+
+The Becker et al. grids aren't on this computer, so for this run the station densities (`detect_data_dens`, one value per station and species) were taken from the saved Fig. 6 object and filtered to the 514 samples. Script 04 itself is unchanged in that respect and still reads the grids, so it runs as written where they exist. Map-style density predictions (`m3.1_sePreds`, not in the paper) couldn't be made here and are saved as `NULL`. Text edits are in #34.
+
 ### 1.2 The depth-of-maximum maps include sub-seafloor depths; the area percentages don't match
 
 - `m3.0c_clean_sePreds` (the source of Fig. 5) has **all 51 depths (0–500 m) at every grid cell**. No bathymetry mask was applied. On the shelf, the "depth of maximum detection" can be a depth below the seabed.
@@ -83,6 +90,21 @@ The CV metrics should also use the clean data (`AUC_df_m3.0c_clean` = 0.78, `TSS
 In the committed `H3.0c_pred_flt.Rdata`, humpback `max_mu` reaches **2.00**, which is impossible for a probability. That file must have been built with a different link transform (for example `exp()`). It is stale, but it shouldn't remain in the repo looking like a valid output.
 
 **Fix:** mask predictions by bathymetry before taking the maximum over depth. Compute the area shares in code, as inline R in the `.qmd`, and weight by cell area if the grid is in degrees.
+
+**Status (27 Oct 2026):** the current script 04 already trims predictions to depths above the seafloor, so the sub-seafloor problem above applied only to the older objects. The `abs()` sign bug was still there: it kept 1,571 of the 6,781 grid cells inside the study-area hull that are on land, with predictions down to their land elevation. They were hidden under the land layer in Fig. 5 but counted in the area percentages and the maximum detection rates (the humpback maximum of 0.75 was on a land cell at 918 m elevation). Both masks in script 04 now keep ocean cells only (`seafloor < 0 & depth <= -seafloor`). The grid is 5 km UTM cells, so the shares are unweighted. Ocean-only shares on the 514-sample refit:
+
+| Statement in text | Text | Refit, ocean cells only |
+|---|---|---|
+| Pacific white-sided dolphin: max depth < 100 m | 68% | 83% |
+| Pacific white-sided dolphin: area masked (< 0.005) | 3% | 3.5% |
+| Northern giant bottlenose whale: max depth > 150 m | 52% | 46% |
+| Northern giant bottlenose whale: area masked | 31% | 33% |
+| Humpback whale: max depth < 150 m | 40% | 46% |
+| Humpback whale: max depth > 450 m | 33% | 43% |
+| Humpback whale: area masked | 1.5% | 2.1% |
+| Fig. 5 caption, max rate (bottlenose / dolphin / humpback) | 0.3 / 0.35 / 0.54 | 0.23 / 0.33 / 0.38 |
+
+The text's percentages match the refit only when the land cells are included (e.g. 67%, 52%, 31% and 33.5%). The percentages are still hard-coded in the text; #34 lists the new values.
 
 ### 1.3 Files the pipeline needs that aren't on this computer
 
@@ -276,6 +298,12 @@ This makes standard errors too small, the p-values and confidence bands in Figs.
 - The `Stratification` labels in Table 2 ([L66](../zDist_results.qmd#L66)) are hard-coded by AIC rank. They happen to be correct now, but they will silently mislabel the table if the ranking changes. Join them by model name instead.
 - m1.1 uses `s(depth)` (k = 10, thin-plate), while m1.0 uses `k = 5`. Minor, but the methods present these as a nested sequence.
 
+**Status (27 Oct 2026):** the Q2 scripts were rerun unchanged on the 514-sample data. The AIC ranking is the same (m1.2 4543, m1.1 4685, m1.2a 4848, m1.2b 4940, m1.0 5093), and m1.2's deviance explained is 13.2%. The AIC sentence, the 14.3% and the Table 2 labels are in #29; the table's hard-coded stratification labels are still in the right order.
+
+Refitting the same models on the paper's own 516-sample data with the current `mgcv` (1.9-3) gives nearly the same results as on the 514 samples. The saved models behind the submitted paper came from an older `mgcv` that built the `ti(depth, factor)` interactions with one fewer coefficient per level (60 vs. 64 for species). That accounts for the small AIC shifts, and it makes the prey model's depth main effect non-significant (p = 0.81; it was 0.0015). #29 suggests dropping the claim that this term is significant. m1.1 keeps the default k = 10, as in the paper.
+
+Two text errors not listed above, also in #29: the discussion says northern giant bottlenose whales were most likely detected at 400–500 m, but the model's peak is at about 330 m (322 m in the submitted model); and the Fig. 3 and Fig. 4 captions describe the grey rug as "predicted density values at each of our station locations", when it shows sampled depths.
+
 ### 4.3 Cross-validation (Medium)
 
 - **Station leakage:** folds are assigned by `NWFSCsampleID` ([02.2:12-16](../Scripts/02.2_m1.2_performance.R#L12-L16), [04.2:13-18](../Scripts/04.2_m3.0c_performance.R#L13-L18)), so the other depths from the same station stay in the training set. For the xyz model (Q3), a flexible spatial smooth can effectively memorise stations, which inflates AUC and TSS. Use station-blocked, or spatially blocked, folds.
@@ -286,9 +314,18 @@ This makes standard errors too small, the p-values and confidence bands in Figs.
 - **Table S3** is referenced twice in the results, but its chunk is `eval: FALSE` and fully commented out ([index.qmd:161-180](../index.qmd#L161-L180)), so it doesn't exist in the rendered paper.
 - **Per-species TSS bug:** `bin_label = breaks[names(breaks) == bins]` ([02.2:177](../Scripts/02.2_m1.2_performance.R#L177)) compares two vectors of different lengths, so R recycles them and assigns the wrong labels. Use `breaks[bins]`. Also, `ylab()` is called twice (L190-191), so the x-axis is never labelled. Neither is in the paper yet.
 
+**Status (27 Oct 2026):** minimal fixes only (`02.2_m1.2_performance.R`):
+- `set.seed()` before each fold assignment, so the folds are reproducible.
+- The clean-data run takes its species list from the clean data (#30).
+- The per-species `bin_label` bug is fixed (`breaks[bins]`). It now errors under current `dplyr` rather than mislabelling, and the script stops before the clean-data run without it.
+
+With seeded folds the clean-data results are mean AUC 0.73 (unchanged) and best mean TSS 0.41 (was 0.38); the difference reflects the random folds. `pROC`'s automatic direction picked "controls > cases" only in the per-species section, which isn't in the paper. Every fold of the reported clean-data run uses "controls < cases", so no fix was needed there. Fig. S2 still plots the non-clean `TSS_plot`, and Table S3 is referenced but not rendered; both are text fixes in #29. Station-blocked folds are out of scope.
+
 ### 4.4 Time-at-depth overlay in Fig. 3 (Low–Medium)
 
 The Fig. 3 caption says "Y-axis scale is the same for detection rate … and proportional time at depth." In the code, `time_scaled` ([02.1:119-120](../Scripts/02.1_Plot_H1_models.R#L119-L120)) min–max rescales time-at-depth to the range of `mu`, pooled across all species, while the panels use `scales = "free_y"`. The secondary-axis labels are also hidden. The dashed line therefore shows shape only, not magnitude, and its height is not comparable across panels. Fix the caption, or show the secondary axis for each panel.
+
+**Status:** caption fix suggested in #29 (the dashed line shows the shape of time at depth only); no code change.
 
 ---
 
@@ -300,6 +337,8 @@ The Fig. 3 caption says "Y-axis scale is the same for detection rate … and pro
 - **Density year:** the code filters the density predictions to `year == 2014` ([04:36](../Scripts/04_Model_with_GAMs_Q3.R#L36)), while the survey was in 2019. If that was intentional (for example, the latest year available), say so. Otherwise it is a bug.
 - **Species subset:** the methods say the input data were subset to three species. The model used for the maps was fitted to all 16 (see 1.1).
 - **CI band width:** the "50% CI depth range" ([04.1:30-41](../Scripts/04.1_Plot_H3_models.R#L30-L41)) collects the depths whose *point estimate* falls inside the 50% CI of the maximum, then takes max − min. For humpback whales, which have two separate peaks, that range spans the gap between them and overstates the uncertainty. Describe this construction in the methods, or compute the width differently (for example, from posterior simulation of the argmax depth).
+
+**Status (27 Oct 2026):** with the refit (see 1.1), the model now uses projected coordinates and three species, as the methods say. The remaining items are text: Eq. 10 (common f(z) and the missing parenthesis), km² units, stating the 2014 density year, and a description of the CI-width construction. All are in #34.
 
 ---
 
@@ -350,8 +389,8 @@ So the authors know what does *not* need attention, these checks passed against 
 
 1. **Data (3.1, 3.2):** done. The original replicate selection is kept, with the station/depth failure rule from the methods (514 samples).
 2. **Q1 (2.1–2.5):** done. The original priors and thaw coding are kept and the bug fixes stay, so the Q1 numbers match the paper; text edits (prior wording, Eq. 3, the MFU and DL caveats) are in #26.
-3. **Q2 (4.2, 4.3, 4.4):** rerun the existing Q2 scripts unchanged on the 514-sample data. Fix only the cross-validation bugs that affect reported numbers (wrong data or species subset, the S2 figure source) and add a seed. Then update the AIC sentence, deviance explained and the Fig. 3 caption (#29).
-4. **Q3 (1.1, 1.2, 5):** refit the model the methods describe once on the 514-sample data, and produce the statistics, maps, cross-validation and area percentages from that one object. Fix the Eq. 10, units and density-year text, and decide on the sub-seafloor mask.
+3. **Q2 (4.2, 4.3, 4.4):** done. The Q2 scripts are rerun unchanged on the 514-sample data, with seeded cross-validation; text edits are in #29.
+4. **Q3 (1.1, 1.2, 5):** done. Script 04 is rerun on the 514-sample data with the seafloor mask fixed, and the maps and cross-validation come from that one object; text edits (Eq. 10, units, density year, area percentages) are in #34.
 5. **Text (6):** fix the remaining numbers and cross-references; prefer inline R where a number is already computed.
 
 Out of scope for this revision: random effects for pseudoreplication (4.1), station-blocked folds, and a `run_all` pipeline (1.3).
