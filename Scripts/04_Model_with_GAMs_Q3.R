@@ -280,7 +280,7 @@ m3.0c_pred_grid$seafloor <- terra::extract(bathy_r,
                                                  m3.0c_pred_grid[, c("lon", "lat")])[,2]
 
 m3.0c_pred_grid_trimmed <- m3.0c_pred_grid[is.na(m3.0c_pred_grid$seafloor) | 
-                                          m3.0c_pred_grid$depth <= pmax(abs(m3.0c_pred_grid$seafloor), 0),]
+                                          (m3.0c_pred_grid$seafloor < 0 & m3.0c_pred_grid$depth <= -m3.0c_pred_grid$seafloor),] # ocean cells only, down to the seafloor (marmap: land > 0)
 
 
 # response predictions
@@ -389,7 +389,7 @@ m3.1_pred_grid$seafloor <- terra::extract(bathy_r,
                                            m3.1_pred_grid[, c("lon", "lat")])[,2]
 
 m3.1_pred_grid_trimmed <- m3.1_pred_grid[is.na(m3.1_pred_grid$seafloor) |
-                                             m3.1_pred_grid$depth <= pmax(abs(m3.1_pred_grid$seafloor), 0),]
+                                             (m3.1_pred_grid$seafloor < 0 & m3.1_pred_grid$depth <= -m3.1_pred_grid$seafloor),] # ocean cells only, down to the seafloor (marmap: land > 0)
 
 # response predictions
 m3.1preds <- predict.bam(m3.1, m3.1_pred_grid_trimmed,
