@@ -2,6 +2,7 @@
 # script to plot # of tech reps and p(detection in at least one tech rep) by primer
 
 library(dplyr)
+library(tidyr)
 library(ggplot2)
 library(PNWColors)
 
