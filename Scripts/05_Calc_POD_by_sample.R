@@ -5,11 +5,6 @@ library(tidyverse)
 load("Results/post_pdetect_m1.0+2LevelOcc_wThaw.RData")
 load("ProcessedData/detect_data_clean.RData")
 
-# drop MFU/MV1 replicates with zero reads of any taxon (failed reactions),
-# matching the occupancy model
-detect_data_clean <- detect_data_clean %>%
-  filter(!(primer %in% c("MFU", "MV1") & totalReads == 0))
-
 mean_post_pdetect <- post_pdetect %>% 
   group_by(Primer, Thaw) %>% 
   summarize(meanPOD = mean(PDetect)) %>% 

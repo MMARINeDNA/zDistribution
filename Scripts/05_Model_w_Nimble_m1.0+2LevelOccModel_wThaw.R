@@ -19,19 +19,10 @@ load("ProcessedData/jagam_m1.0.RData")
 
 # Import the data
 load("./ProcessedData/detect_data_allcet.RData")
-load("./ProcessedData/detect_data_clean.RData")
-
-# drop MFU/MV1 replicates with zero reads of any taxon: these are failed
-# reactions, not non-detections. DL amplifies only cetaceans, so a DL
-# replicate with zero reads is a genuine non-detection and is kept
-failed_reps <- detect_data_clean %>%
-  distinct(Sample_name, primer, totalReads) %>%
-  filter(primer %in% c("MFU", "MV1"), totalReads == 0) %>%
-  pull(Sample_name)
-
+# failed MFU/MV1 runs (zero reads of any taxon) are already removed in
+# 01_Wrangle_data.R, and every sample has 1 DL, 1 MFU and 3 MV1 replicates
 mm.data <- detect_data_allcet %>%
-  ungroup() %>%
-  filter(!(Sample_name %in% failed_reps))
+  ungroup()
 
 # the jagam smooth carries the diagonalised basis that matches the iid
 # priors on b_depth below; PredictMat() on it reproduces
@@ -136,8 +127,9 @@ m1.0_nimble <- nimbleCode({
 
   # slopes: weakly informative, odds of detection change by x0.14 to x7.1
   # per cycle (95%). MFU's slope is fixed at 0: MFU was run at >1 thaw in
-  # only 14 replicates (dilution-10 re-runs, essentially one run), so its
-  # thaw effect can't be estimated and is assumed to be zero
+  # only 26 of 470 replicates, 20 of them dilution-10 re-runs on one run
+  # (MURI318), so its thaw effect can't be separated from run and dilution
+  # and is assumed to be zero
   thaw_par[1] ~ dnorm(0, sd = 1)
   thaw_par[2] <- 0
   thaw_par[3] ~ dnorm(0, sd = 1)
