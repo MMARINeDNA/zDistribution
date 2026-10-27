@@ -7,12 +7,13 @@ library(ggOceanMaps)
 
 ## Get data --------------------------------------------------------------------
 
-load("./ProcessedData/detect_data.Rdata")
+# clean data, so the map shows only stations with samples in the analysis
+load("./ProcessedData/detect_data_clean.RData")
 
 
 ## Get station locations -------------------------------------------------------
 
-station_loc <- detect_data %>% 
+station_loc <- detect_data_clean %>%
   group_by(station) %>% 
   slice_head() %>% 
   select(station, lat, lon)

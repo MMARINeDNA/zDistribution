@@ -30,8 +30,12 @@ detect_data_raw <- read.csv("./Data/M3_compiled_taxon_table_wide.csv") %>%
   mutate(run = gsub("a","",run)) %>% 
   mutate(run = gsub("b","",run)) %>% 
   mutate(run = gsub("c","",run)) %>% 
-  mutate(Detected = ifelse(nReads>0, 1, 0)) %>% 
-  #filter(!(primer %in% c("MFU", "MV1") & totalReads == 0)) %>% 
+  mutate(Detected = ifelse(nReads>0, 1, 0)) %>%
+  # drop failed MFU/MV1 runs (zero reads of any taxon) before choosing among
+  # re-runs and dilutions, so a successful re-run is used where one exists.
+  # Samples left without a full set (1 DL, 1 MFU, 3 MV1) are dropped below.
+  # DL runs with zero reads are genuine non-detections and are kept
+  filter(!(primer %in% c("MFU", "MV1") & totalReads == 0)) %>%
   filter(Class == "Mammalia") %>% 
   filter(!BestTaxon %in% c("Moschus", "Equus caballus")) %>% 
   ungroup()
@@ -252,32 +256,26 @@ detect_data_noBioRep <- detect_data %>%
   #remove BioRep samples, N = 18 samples
   filter(!(NWFSCsampleID %in% (bioReps$NWFSCsampleID)))
 
-tooFewMV1 <- detect_data_noBioRep %>% 
-  filter(primer == "MV1") %>% 
-  group_by(NWFSCsampleID) %>% 
-  mutate(Nrep = n()/16) %>% 
-  filter(Nrep < 3) %>% 
-  distinct(NWFSCsampleID)
+# keep each sample's first successful replicates (lowest techRep): 1 DL,
+# 1 MFU and 3 MV1. Failed MFU/MV1 runs were dropped above, so a spare
+# replicate fills in for a failed one. Samples without a full set of five
+# are dropped
+n_reps_needed <- c(DL = 1, MFU = 1, MV1 = 3)
 
-tooFewPrimer <- detect_data_noBioRep %>% 
-  group_by(NWFSCsampleID) %>% 
-  distinct(primer, .keep_all = TRUE) %>% 
-  filter(n() < 3)
+reps_kept <- detect_data_noBioRep %>%
+  distinct(NWFSCsampleID, primer, techRep) %>%
+  group_by(NWFSCsampleID, primer) %>%
+  arrange(techRep, .by_group = TRUE) %>%
+  filter(row_number() <= n_reps_needed[primer]) %>%
+  group_by(NWFSCsampleID) %>%
+  filter(n() == sum(n_reps_needed)) %>%
+  ungroup()
 
-detect_data_clean <- detect_data_noBioRep %>% 
-  #remove samples not covered by all primers, N =  15 samples (44 techReps)
-  filter(!(NWFSCsampleID %in% (tooFewPrimer$NWFSCsampleID))) %>% 
-  #remove samples with < 3 MV1 reps, N = 28 samples (128 techReps)
-  filter(!(NWFSCsampleID %in% tooFewMV1$NWFSCsampleID)) %>% 
-  #remove additional DL techReps, Nrow = 2896 (181 techReps)
-  filter(!(primer == "DL" & techRep > 1)) %>% 
-  #remove additional MV1 techReps, Nrow = 1232 (77 techReps)
-  filter(!(primer == "MV1" & techRep > 3)) %>% 
-  #remove additional MFU techReps, Nrow = 224 (14 techReps)
-  filter(!(primer == "MFU" & techRep > 1)) %>% 
+detect_data_clean <- detect_data_noBioRep %>%
+  semi_join(reps_kept, by = c("NWFSCsampleID", "primer", "techRep")) %>%
   mutate(BestTaxon = as.factor(BestTaxon))
 
-length(unique(detect_data_clean$NWFSCsampleID)) #515 samples, 41,200 rows, 2575 technical replicates
+length(unique(detect_data_clean$NWFSCsampleID)) #470 samples, 37,600 rows, 2350 technical replicates
 
 ## count number of detections by species ---------------------------------------
 
