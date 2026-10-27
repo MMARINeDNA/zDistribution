@@ -338,7 +338,7 @@ The Fig. 3 caption says "Y-axis scale is the same for detection rate … and pro
 - **Species subset:** the methods say the input data were subset to three species. The model used for the maps was fitted to all 16 (see 1.1).
 - **CI band width:** the "50% CI depth range" ([04.1:30-41](../Scripts/04.1_Plot_H3_models.R#L30-L41)) collects the depths whose *point estimate* falls inside the 50% CI of the maximum, then takes max − min. For humpback whales, which have two separate peaks, that range spans the gap between them and overstates the uncertainty. Describe this construction in the methods, or compute the width differently (for example, from posterior simulation of the argmax depth).
 
-**Status (27 Oct 2026):** with the refit (see 1.1), the model now uses projected coordinates and three species, as the methods say. The remaining items are text: Eq. 10 (common f(z) and the missing parenthesis), km² units, the 2014 density year (a question for Amy), and a description of the CI-width construction. All are in #34.
+**Status (27 Oct 2026):** with the refit (see 1.1), the model now uses projected coordinates and three species, as the methods say. The remaining items are text: Eq. 10 (common f(z) and the missing parenthesis), km² units, stating the 2014 density year, and a description of the CI-width construction. All are in #34.
 
 ---
 
