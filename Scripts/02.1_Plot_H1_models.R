@@ -218,6 +218,11 @@ m1.2aPOD <- ggplot(m1.2a_sePreds, aes(x = depth, color = Broad_taxa, fill = Broa
   scale_color_manual(values = c(pnw_palette("Cascades",5, type = "continuous")[4:5],
                                 pnw_palette("Sunset",1, type = "continuous"))) +
   facet_wrap(~Family, scales = "free_y") +
+  facet_wrap(~Family, scales = "free_y", labeller = as_labeller(c("Bony Fishes" = "Bony fihes",
+      "Zooplankton" = "Zooplankton & Forage fishes",
+      "Cephalopods" = "Cephalopods"
+    ))
+  ) +
   geom_rug(data = filter(detect_data_clean, BestTaxon %in% (detect_per_species_clean %>% 
                                                         filter(nDetect >= 10) %>% 
                                                         pull(BestTaxon)))%>%

@@ -36,9 +36,12 @@ map <- basemap(limits = c(min(station_loc$lon)-0.2,
         axis.title.x=element_blank(),
         axis.title.y=element_blank(),
         panel.grid = element_blank()) +
-  guides(fill = "none") +
+  #guides(fill = "none") +
   ggspatial::annotation_scale(location = "bl", width_hint = 0.3)+
-  guides(color=guide_legend(override.aes=list(fill=NA))) +
+  #guides(color=guide_legend(override.aes=list(fill=NA))) +
+  guides(fill = guide_colorbar(barwidth = grid::unit(4, "cm"),
+                          barheight = grid::unit(0.3, "cm"),
+                          nbin = 256)) +
   theme(plot.margin = margin(0, 0, 0, 0))
 
 map

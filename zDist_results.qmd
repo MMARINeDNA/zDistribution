@@ -11,6 +11,9 @@ We selected `r length(unique(detect_data_clean$NWFSCsampleID))` water samples co
 
 table <- mmEcoEvo %>% 
   select(Species, common_name, Family, Broad_taxa, Prey.family) %>% 
+  mutate(Prey.family = case_when(Prey.family == "invert"~"zooplankton/forage fish",
+                                 Prey.family == "squid"~"cephalopods",
+                                 Prey.family == "fish"~"bony fishes")) %>% 
   inner_join(detect_primer_techRep_species_clean, by = c("Species" = "BestTaxon")) %>% 
   rename("Common name" = common_name, "Prey family" = Prey.family, "Broad taxon" = Broad_taxa) %>% 
   #left_join(detect_per_primer_species_clean, by = c("Species" = "BestTaxon")) %>%
@@ -21,7 +24,9 @@ pander(table, split.tables = Inf)
 
 Across all samples, we observed `r sum(detect_data_clean$Detected)` positive detections of `r length(unique(detect_data_clean$BestTaxon))` cetacean species, including 6 baleen whale species, 5 dolphin species, 2 porpoise species, and 3 beaked whale species (@tbl-sp-detects). Of these, `r nrow(detect_per_species_clean %>% filter(nDetect > 10))` species were observed more than 10 times, and `r nrow(detect_per_species_clean %>% filter(nDetect < 10))` were observed fewer than 10 times. We also detected bottlenose dolphins (*Tursiops truncatus*) one time, in a sample collected north of the known range of this species in the California Current [@carretta_etal24]. As noted in the methods section, we consider this detection likely to have resulted from lab contamination and removed it before downstream processing.
 
-@fig-bubble illustrates the distribution of detections across sampling depths $z$, ignoring $xy$ distribution, for all cetacean species included in the study. Notably, our dataset includes one unexpected detection of a bowhead whale (*Balaena mysticetus*), not generally observed south of 63 N latitude in the Bering Sea since the end of commercial whaling and not known to ever inhabit the California Current [@rugh_etal03], as well as two detections of extremely rare saber-toothed whales (*Mesoplodon stejnegeri*), a cold-water beaked whale visually observed only twice in the Gulf of Alaska between 1986 and 2005 [@Hamilton2009a]. This species has not been visually observed in the California Current, but it has been detected acoustically [@simonis_etal20a] and stranded twice in May 2015, in Oregon and Washington [@Hamilton2009a; @moore_barlow17; @Becker2020].
+@fig-bubble illustrates the distribution of detections across sampling depths $z$, ignoring $xy$ distribution, for all cetacean species included in the study. Notably, our dataset includes one unexpected detection of a bowhead whale (*Balaena mysticetus*), not generally observed south of 63 N latitude in the Bering Sea since the end of commercial whaling and not known to ever inhabit the California Current [@rugh_etal03], as well as two detections of extremely rare saber-toothed whales (*Mesoplodon stejnegeri*), a cold-water beaked whale visually observed only twice in the Gulf of Alaska between 1986 and 2005 [@Hamilton2009a]. This species has not been visually observed in the California Current, but it has been detected acoustically [@simonis_etal20a] and stranded twice in May 2015, in Oregon and Washington [@Hamilton2009a; @moore_barlow17; @Becker2020]. 
+
+Because both of these species are exceptionally rare, we manually verified these detections against all publicly available sequence data. For both species, we found that (1) the detected sequences were a 100% match to database sequences, (2) the next best match was to a species that is not found in the North Pacific Ocean (Southern right whale and Gray's beaked whale), and (3) the next best realistic matches differed by 5 bp to our bowhead whale sequence and 9 bp to our saber-toothed whale sequence. While 12S sequence data are not currently publicly available for some North Pacific beaked whale species (e.g. *M. carlhubbsi*, *M. perrini*, and *M. peruvianus*), we found that our target region differs by 5-16 bp among species within the Mesoplodont genus that do have sequence data. We therefore retain the species-level classification for our saber-toothed whale detections given its 100% match to a reference sequence for that species.
 
 ```{r}
 #| label: fig-bubble
@@ -29,8 +34,28 @@ Across all samples, we observed `r sum(detect_data_clean$Detected)` positive det
 #| fig-width: 8
 #| fig-height: 6
 
-aligned <- align_plots(detectDepth_bubble, map, align = "v", axis = "tblr")
-plot_grid(plotlist = aligned, ncol = 2, rel_widths = c(3, 1))
+legend1 <- get_legend(detectDepth_bubble)
+legend2 <- get_legend(map)
+
+plots <- plot_grid(detectDepth_bubble + theme(legend.position = "none"),
+                   map + theme(legend.position = "none"),
+                   ncol = 2,
+                   rel_widths = c(3, 1),
+                   align = "v",
+                   axis = "tblr")
+
+legends <- plot_grid(legend1,
+                     legend2,nrow = 1,
+                     align = "v",
+                     axis = "l",
+                     rel_widths = c(1, 1))
+
+plot_grid(plots,
+  ggdraw() +
+    draw_plot(legends, x = 0.15, y = 0,
+      width = 0.7, height = 1),
+  ncol = 1, rel_heights = c(1, 0.18))
+
 ```
 
 #### Question 1: How does observation error affect POD of cetacean DNA?
@@ -57,7 +82,7 @@ In the next two sections we switch to considering detection rate of cetacean DNA
 
 ```{r}
 #| label: tbl-modelAIC
-#| tbl-cap: "Akaike Information Criterion values for all GAMs tested to characterize the relationship between depth and detection rate of eDNA. Models and stratification schemes from Eq. 4."
+#| tbl-cap: "Akaike Information Criterion (AIC) values degrees of freedom ($df$) for all GAMs tested to characterize the relationship between depth and detection rate of eDNA. Models and stratification schemes from Eq. 4."
 
 modelAICtable <- modelAIC %>% 
   arrange(AIC) %>% 
@@ -82,7 +107,7 @@ Among the delphinids, species-specific trends in detection rate generally reflec
 
 ```{r}
 #| label: fig-H1POD-species
-#| fig-cap: "Species-specific detection rate predictions across all depths sampled in this study. Solid line shows posterior predicted detection rates; shaded regions show 95%, 75%, and 50% confidence band. Dashed line shows proportional time at depth. Y-axis scale is the same for detection rate (solid line) and proportional time at depth (dashed line). Plots are colored by broad taxonomic category as described in Table 1."
+#| fig-cap: "Species-specific detection rate predictions across all depths sampled in this study. Solid line shows posterior predicted detection rates; shaded regions show 95%, 75%, and 50% confidence band. Dashed line shows proportional time at depth. Y-axis scale is the same for detection rate (solid line) and proportional time at depth (dashed line). Plots are colored by broad taxonomic category as described in Table 1. The grey rug plot at the bottom shows predicted density values at each of our station locations, and the colored rug plot at the top shows positive detections for each species."
 #| fig-width: 10
 #| fig-height: 6
 
@@ -94,7 +119,7 @@ Models stratifying detections by taxonomic family and preferred prey category bo
 
 ```{r}
 #| label: fig-H1POD-family-prey
-#| fig-cap: "Left: Detection rate by depth for species stratified by taxonomic family. Right: Detection rate by depth for species stratified based on broad prey categories."
+#| fig-cap: "Left: Detection rate by depth for species stratified by taxonomic family. Right: Detection rate by depth for species stratified based on broad prey categories. In both, the grey rug plot at the bottom shows predicted density values at each of our station locations, and the colored rug plot at the top shows positive detections for each species."
 #| fig-width: 10
 #| fig-height: 6
 
@@ -118,7 +143,7 @@ The Pacific white-side dolphin detection rate was maximized near the surface, wi
 
 The depth that maximized detection rate for northern giant bottlenose whales was greater than 150 m in 52% of the study area. An additional 31% of the study area had predicted detection rates less than 0.5% at all depths . Notably, the region where predicted detection rate was near zero was along the coastline and continental shelf region throughout the study area. Similar to patterns observed for the Pacific white-sided dolphin, the depth of maximum detection rate was deeper to the south and east of the study area, with increasing model uncertainty in the same region.
 
-For humpback whales, there were two disparate peaks that maximized detection rate - above 150 m or below 450m - with no depths between 200 and 400 m maximizing detection rate throughout the study area. The predicted detection rate was maximized at depths shallower than 150 m in 40% of the study area, mainly along the coast and continental shelf, and was maximized at depths greater than 450 in 33% of the study area, mainly along the shelf break and in deeper water. Model uncertainty was greatest for this species along the shelf break representing the transition zone between the two depths, and small outside the transition zone. A small region offshore of Cape Mendocino had predicted detection rates lower than 0.5%, representing 1.5% of the study area.
+For humpback whales, there were two disparate peaks that maximized detection rate - shallower than 150 m or deeper than 450m - with no depths between 200 and 400 m maximizing detection rate throughout the study area. The predicted detection rate was maximized at depths shallower than 150 m in 40% of the study area, mainly along the coast and continental shelf, and was maximized at depths greater than 450 in 33% of the study area, mainly along the shelf break and in deeper water. Model uncertainty was greatest for this species along the shelf break representing the transition zone between the two depths, and small outside the transition zone. A small region offshore of Cape Mendocino had predicted detection rates lower than 0.5%, representing 1.5% of the study area.
 
 ```{r}
 #| label: fig-H3PODxy
