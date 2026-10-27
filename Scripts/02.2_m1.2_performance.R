@@ -10,6 +10,7 @@ load("./ProcessedData/detect_data_clean.RData")
 
 #### group data ----------------------------------------------------------------
 
+set.seed(20261027) # reproducible fold assignment
 random_samples <- detect_data %>% 
   ungroup() %>% 
   select(NWFSCsampleID) %>% 
@@ -176,7 +177,7 @@ for (a in 1:length(species)) {
     mutate(low95 = mean - 1.96 * se,
            high95 = mean + 1.96 * se) %>% 
     mutate(species = species[a]) %>% 
-    mutate(bin_label = breaks[names(breaks) == bins])
+    mutate(bin_label = breaks[bins]) # was breaks[names(breaks) == bins], which mislabelled bins
   
   TSS_by_species <- rbind(TSS_by_species, TSS_dftemp)
   TSS_raw_species <- rbind(TSS_raw_species, as.data.frame(do.call(rbind.data.frame, TSS_list)) %>%
@@ -222,6 +223,7 @@ save(AUC_df, TSS_df,
 
 ### Repeat with "clean" dataset ------------------------------------------------
 
+set.seed(20261027) # reproducible fold assignment
 random_samples_clean <- detect_data_clean %>% 
   ungroup() %>% 
   select(NWFSCsampleID) %>% 

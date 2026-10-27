@@ -35,9 +35,9 @@ Severity key: **High** = a reported result or conclusion is wrong, or can't be r
 | 3.2 | 129 failed (zero-read) MFU/MV1 replicates are counted as non-detections, contrary to the methods | Medium | Resolved: code now applies the station/depth rule in the methods (#23); text in #26 |
 | 3.3 | Whale-fall filtering is computed but never used | Low–Medium | Partly addressed; whale-fall filter not used, by decision |
 | 4.1 | GAMs treat replicates, species rows and depths within a station as independent (pseudoreplication) | Medium–High | Out of scope (the methods describe the replicate-level response accurately) |
-| 4.2 | The text says the family and prey models had *lower* AIC than the species model; they are higher | High (text) | Open |
-| 4.3 | Cross-validation: station leakage, no seed, the wrong data or model in places, and a figure built from the wrong object | Medium | Open: fix the wrong data, model and figure source and add a seed; station leakage out of scope |
-| 4.4 | The time-at-depth overlay in Fig. 3 is min–max rescaled, not "on the same scale" | Low–Medium | Open |
+| 4.2 | The text says the family and prey models had *lower* AIC than the species model; they are higher | High (text) | Q2 rerun; text in #29 |
+| 4.3 | Cross-validation: station leakage, no seed, the wrong data or model in places, and a figure built from the wrong object | Medium | Seeded, wrong data fixed, label bug fixed; S2 object and Table S3 reference in #29; station leakage out of scope |
+| 4.4 | The time-at-depth overlay in Fig. 3 is min–max rescaled, not "on the same scale" | Low–Medium | Caption fix in #29 |
 | 5 | Methods text vs. code mismatches for Q3 (coordinates, Eq. 10, density units/year, species subset) | Medium | Open |
 | 6 | Other numeric and text inconsistencies | Low | Partly addressed |
 
@@ -276,6 +276,12 @@ This makes standard errors too small, the p-values and confidence bands in Figs.
 - The `Stratification` labels in Table 2 ([L66](../zDist_results.qmd#L66)) are hard-coded by AIC rank. They happen to be correct now, but they will silently mislabel the table if the ranking changes. Join them by model name instead.
 - m1.1 uses `s(depth)` (k = 10, thin-plate), while m1.0 uses `k = 5`. Minor, but the methods present these as a nested sequence.
 
+**Status (27 Oct 2026):** the Q2 scripts were rerun unchanged on the 514-sample data. The AIC ranking is the same (m1.2 4543, m1.1 4685, m1.2a 4848, m1.2b 4940, m1.0 5093), and m1.2's deviance explained is 13.2%. The AIC sentence, the 14.3% and the Table 2 labels are in #29; the table's hard-coded stratification labels are still in the right order.
+
+Refitting the same models on the paper's own 516-sample data with the current `mgcv` (1.9-3) gives nearly the same results as on the 514 samples. The saved models behind the submitted paper came from an older `mgcv` that built the `ti(depth, factor)` interactions with one fewer coefficient per level (60 vs. 64 for species). That accounts for the small AIC shifts, and it makes the prey model's depth main effect non-significant (p = 0.81; it was 0.0015). #29 suggests dropping the claim that this term is significant. m1.1 keeps the default k = 10, as in the paper.
+
+Two text errors not listed above, also in #29: the discussion says northern giant bottlenose whales were most likely detected at 400–500 m, but the model's peak is at about 330 m (322 m in the submitted model); and the Fig. 3 and Fig. 4 captions describe the grey rug as "predicted density values at each of our station locations", when it shows sampled depths.
+
 ### 4.3 Cross-validation (Medium)
 
 - **Station leakage:** folds are assigned by `NWFSCsampleID` ([02.2:12-16](../Scripts/02.2_m1.2_performance.R#L12-L16), [04.2:13-18](../Scripts/04.2_m3.0c_performance.R#L13-L18)), so the other depths from the same station stay in the training set. For the xyz model (Q3), a flexible spatial smooth can effectively memorise stations, which inflates AUC and TSS. Use station-blocked, or spatially blocked, folds.
@@ -286,9 +292,18 @@ This makes standard errors too small, the p-values and confidence bands in Figs.
 - **Table S3** is referenced twice in the results, but its chunk is `eval: FALSE` and fully commented out ([index.qmd:161-180](../index.qmd#L161-L180)), so it doesn't exist in the rendered paper.
 - **Per-species TSS bug:** `bin_label = breaks[names(breaks) == bins]` ([02.2:177](../Scripts/02.2_m1.2_performance.R#L177)) compares two vectors of different lengths, so R recycles them and assigns the wrong labels. Use `breaks[bins]`. Also, `ylab()` is called twice (L190-191), so the x-axis is never labelled. Neither is in the paper yet.
 
+**Status (27 Oct 2026):** minimal fixes only (`02.2_m1.2_performance.R`):
+- `set.seed()` before each fold assignment, so the folds are reproducible.
+- The clean-data run takes its species list from the clean data (#30).
+- The per-species `bin_label` bug is fixed (`breaks[bins]`). It now errors under current `dplyr` rather than mislabelling, and the script stops before the clean-data run without it.
+
+With seeded folds the clean-data results are mean AUC 0.73 (unchanged) and best mean TSS 0.41 (was 0.38); the difference reflects the random folds. `pROC`'s automatic direction picked "controls > cases" only in the per-species section, which isn't in the paper. Every fold of the reported clean-data run uses "controls < cases", so no fix was needed there. Fig. S2 still plots the non-clean `TSS_plot`, and Table S3 is referenced but not rendered; both are text fixes in #29. Station-blocked folds are out of scope.
+
 ### 4.4 Time-at-depth overlay in Fig. 3 (Low–Medium)
 
 The Fig. 3 caption says "Y-axis scale is the same for detection rate … and proportional time at depth." In the code, `time_scaled` ([02.1:119-120](../Scripts/02.1_Plot_H1_models.R#L119-L120)) min–max rescales time-at-depth to the range of `mu`, pooled across all species, while the panels use `scales = "free_y"`. The secondary-axis labels are also hidden. The dashed line therefore shows shape only, not magnitude, and its height is not comparable across panels. Fix the caption, or show the secondary axis for each panel.
+
+**Status:** caption fix suggested in #29 (the dashed line shows the shape of time at depth only); no code change.
 
 ---
 
@@ -350,7 +365,7 @@ So the authors know what does *not* need attention, these checks passed against 
 
 1. **Data (3.1, 3.2):** done. The original replicate selection is kept, with the station/depth failure rule from the methods (514 samples).
 2. **Q1 (2.1–2.5):** done. The original priors and thaw coding are kept and the bug fixes stay, so the Q1 numbers match the paper; text edits (prior wording, Eq. 3, the MFU and DL caveats) are in #26.
-3. **Q2 (4.2, 4.3, 4.4):** rerun the existing Q2 scripts unchanged on the 514-sample data. Fix only the cross-validation bugs that affect reported numbers (wrong data or species subset, the S2 figure source) and add a seed. Then update the AIC sentence, deviance explained and the Fig. 3 caption (#29).
+3. **Q2 (4.2, 4.3, 4.4):** done. The Q2 scripts are rerun unchanged on the 514-sample data, with seeded cross-validation; text edits are in #29.
 4. **Q3 (1.1, 1.2, 5):** refit the model the methods describe once on the 514-sample data, and produce the statistics, maps, cross-validation and area percentages from that one object. Fix the Eq. 10, units and density-year text, and decide on the sub-seafloor mask.
 5. **Text (6):** fix the remaining numbers and cross-references; prefer inline R where a number is already computed.
 
