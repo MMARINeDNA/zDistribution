@@ -353,19 +353,13 @@ post_pdetect_4plot <- post_pdetect_4plot %>%
   left_join(thaw_range, by = "Primer") %>%
   filter(Thaw >= min_thaw, Thaw <= max_thaw)
 
-# MFU's thaw slope is fixed at 0, so mark its (flat) line as not estimated
-fixed_slope_label <- post_pdetect_4plot %>%
-  filter(Primer == "MFU") %>%
-  summarize(Thaw = mean(range(Thaw)), y = min(LCI) - 0.05) %>%
-  mutate(Primer = "MFU", label = "thaw slope fixed at 0 (not estimated)")
-
 ppdetect <- ggplot(post_pdetect_4plot) +
   geom_ribbon(aes(x=Thaw, ymin  = LCI, ymax = UCI, fill = Primer), alpha = 0.25)+
+  # MFU's thaw slope is fixed at 0 (not estimated), so its line is dashed;
+  # the figure caption explains this
   geom_line(aes(x = Thaw, y = Med, color = Primer,
                 linetype = Primer == "MFU")) +
   scale_linetype_manual(values = c(`FALSE` = "solid", `TRUE` = "dashed")) +
-  geom_text(data = fixed_slope_label, aes(x = Thaw, y = y, label = label),
-            size = 3, colour = "grey30") +
   # no raw detection proportions: they aren't conditional on presence, so
   # they sit well below POD given presence and aren't comparable
   facet_wrap(~Primer, ncol = 1) +
