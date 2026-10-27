@@ -19,8 +19,8 @@ load("ProcessedData/jagam_m1.0.RData")
 
 # Import the data
 load("./ProcessedData/detect_data_allcet.RData")
-# failed MFU/MV1 runs (zero reads of any taxon) are already removed in
-# 01_Wrangle_data.R, and every sample has 1 DL, 1 MFU and 3 MV1 replicates
+# samples where every MFU and MV1 run failed are already removed in
+# 01_Wrangle_data.R; other failed runs count as non-detections
 mm.data <- detect_data_allcet %>%
   ungroup()
 
@@ -28,11 +28,6 @@ mm.data <- detect_data_allcet %>%
 # priors on b_depth below; PredictMat() on it reproduces
 # q1Model_m1.0$jags.data$X exactly (a gam() fit ignores diagonalize = TRUE)
 depth_smooth <- q1Model_m1.0$pregam$smooth[[1]]
-
-# thaw is centred on 1 cycle, so pdetect_intercept is each primer's POD
-# (logit) at one freeze/thaw cycle. NB DL was only run at 2-6 cycles, so its
-# value at 1 cycle is an extrapolation
-thaw_ref <- 1
 
 # because I've removed some of the unique biosample reference numbers with the above 
 # methods removal, I need to renumber the unique biosamples so that they are consecutive
@@ -60,7 +55,7 @@ Y_biosamp_index <- mm.data$unique_biorep_numeric
 biosamp_Volume_filt_mL <- as.numeric(biosamp_dat$volume) - mean(as.numeric(biosamp_dat$volume)) #centered water volumes
 biosamp_depth_Depth_m <- as.numeric(biosamp_dat$depth) - mean(as.numeric(biosamp_dat$depth)) #centered sample depths
 Y_primer_index <- mm.data$primer.numeric
-Y_thaw_index <- mm.data$Thaw - thaw_ref
+Y_thaw_index <- mm.data$Thaw
 
 N <- dim(mm.data)[1]
 n_sites <- length(unique(mm.data$site.numeric))
@@ -120,19 +115,15 @@ m1.0_nimble <- nimbleCode({
   #prob_detection[2] ~ dbeta(1, 1)
   #prob_detection[3] ~ dbeta(1, 1)
   
-  # intercepts: weakly informative, POD at 1 thaw roughly 0.05-0.95 (95%)
-  pdetect_intercept[1] ~ dnorm(0, sd = 1.5)
-  pdetect_intercept[2] ~ dnorm(0, sd = 1.5)
-  pdetect_intercept[3] ~ dnorm(0, sd = 1.5)
-
-  # slopes: weakly informative, odds of detection change by x0.14 to x7.1
-  # per cycle (95%). MFU's slope is fixed at 0: MFU was run at >1 thaw in
-  # only 26 of 470 replicates, 20 of them dilution-10 re-runs on one run
-  # (MURI318), so its thaw effect can't be separated from run and dilution
-  # and is assumed to be zero
-  thaw_par[1] ~ dnorm(0, sd = 1)
-  thaw_par[2] <- 0
-  thaw_par[3] ~ dnorm(0, sd = 1)
+  # NB nimble's dnorm(mean, tau) takes a precision: tau = 10 is SD 0.32 on
+  # the logit scale, i.e. informative priors
+  pdetect_intercept[1] ~ dnorm(0, 10)
+  pdetect_intercept[2] ~ dnorm(0, 10)
+  pdetect_intercept[3] ~ dnorm(0, 10)
+  
+  thaw_par[1] ~ dnorm(0, 10)
+  thaw_par[2] ~ dnorm(0, 10)
+  thaw_par[3] ~ dnorm(0, 10)
  
   # Linear predictor, effect of depth
   # eta has dimensions of # site-depth combos
@@ -201,7 +192,7 @@ inits_fn_sitedepth <- function(){
     # jittered so each chain starts from a different point (needed for
     # the Gelman-Rubin diagnostic to be informative)
     pdetect_intercept = rnorm(n_primers, 0, 0.5),
-    thaw_par = c(rnorm(1, 0, 0.1), NA, rnorm(1, 0, 0.1)), # MFU fixed at 0
+    thaw_par = rnorm(n_primers, 0, 0.1),
     lambda = q1Model_m1.0$jags.ini$lambda * exp(rnorm(2, 0, 0.5)), # 2 vec
     #rho = log(q1Model_m1.0$jags.ini$lambda),
     b_depth = unname(q1Model_m1.0$jags.ini$b) + rnorm(5, 0, 0.1)
@@ -334,7 +325,7 @@ post_pdetect_4plot <- post.samples_intercept %>%
   left_join(post.samples_thawpar, by = c('Primer', "Index")) %>%
   select(Primer, Index, pdetect_intercept, thaw_par) %>%
   expand_grid(Thaw = 1:7) %>%
-  mutate(PDetect = inv.logit(pdetect_intercept + thaw_par*(Thaw - thaw_ref))) %>%
+  mutate(PDetect = inv.logit(pdetect_intercept + thaw_par*Thaw)) %>%
   group_by(Primer, Thaw) %>%
   summarize(Med = median(PDetect),
             LCI = quantile(PDetect, 0.025),
@@ -343,23 +334,30 @@ post_pdetect_4plot <- post.samples_intercept %>%
                             Primer == 2 ~ "MFU",
                             Primer == 3 ~ "MV1"))
 
-# plot each primer only over the thaw range it was actually run at
-# (DL was never run at 1 cycle)
+# solid over the thaw range each primer was actually run at, dashed (and a
+# lighter ribbon) where the model extrapolates beyond it (DL was never run
+# at 1 cycle). Boundary points go in both segments so the lines join
 thaw_range <- raw_thaw_primer %>%
   group_by(Primer) %>%
   summarize(min_thaw = min(Thaw), max_thaw = max(Thaw))
 
 post_pdetect_4plot <- post_pdetect_4plot %>%
-  left_join(thaw_range, by = "Primer") %>%
-  filter(Thaw >= min_thaw, Thaw <= max_thaw)
+  left_join(thaw_range, by = "Primer")
+
+post_pdetect_4plot <- bind_rows(
+  post_pdetect_4plot %>% filter(Thaw >= min_thaw, Thaw <= max_thaw) %>%
+    mutate(Segment = "observed"),
+  post_pdetect_4plot %>% filter(Thaw <= min_thaw) %>% mutate(Segment = "below"),
+  post_pdetect_4plot %>% filter(Thaw >= max_thaw) %>% mutate(Segment = "above")) %>%
+  mutate(Observed = Segment == "observed")
 
 ppdetect <- ggplot(post_pdetect_4plot) +
-  geom_ribbon(aes(x=Thaw, ymin  = LCI, ymax = UCI, fill = Primer), alpha = 0.25)+
-  # MFU's thaw slope is fixed at 0 (not estimated), so its line is dashed;
-  # the figure caption explains this
+  geom_ribbon(aes(x=Thaw, ymin  = LCI, ymax = UCI, fill = Primer,
+                  group = Segment, alpha = Observed))+
   geom_line(aes(x = Thaw, y = Med, color = Primer,
-                linetype = Primer == "MFU")) +
-  scale_linetype_manual(values = c(`FALSE` = "solid", `TRUE` = "dashed")) +
+                group = Segment, linetype = Observed)) +
+  scale_alpha_manual(values = c(`TRUE` = 0.25, `FALSE` = 0.1)) +
+  scale_linetype_manual(values = c(`TRUE` = "solid", `FALSE` = "dashed")) +
   # no raw detection proportions: they aren't conditional on presence, so
   # they sit well below POD given presence and aren't comparable
   facet_wrap(~Primer, ncol = 1) +
@@ -378,7 +376,7 @@ post_pdetect <- post.samples_intercept %>%
   left_join(post.samples_thawpar, by = c('Primer', "Index")) %>%
   select(Primer, Index, pdetect_intercept, thaw_par) %>%
   expand_grid(Thaw = 1:7) %>%
-  mutate(PDetect = inv.logit(pdetect_intercept + thaw_par*(Thaw - thaw_ref))) %>%
+  mutate(PDetect = inv.logit(pdetect_intercept + thaw_par*Thaw)) %>%
   mutate(Primer = case_when(Primer == 1 ~ "DL1",
                             Primer == 2 ~ "MFU",
                             Primer == 3 ~ "MV1"))
@@ -388,8 +386,12 @@ save(post_pdetect, file = "./Results/post_pdetect_m1.0+2LevelOcc_wThaw.RData")
 thaw1_pdetect <- post_pdetect %>%
   filter(Thaw == 1)
 
+# DL was never run at 1 thaw, so its POD at 1 thaw is an extrapolation (dashed)
 pdetect_primer <- ggplot(thaw1_pdetect) +
-  geom_density(aes(x = PDetect, fill = Primer, color = Primer), alpha = 0.25) +
+  geom_density(aes(x = PDetect, fill = Primer, color = Primer, linetype = Primer),
+               alpha = 0.25) +
+  scale_linetype_manual(values = c(DL1 = "dashed", MFU = "solid", MV1 = "solid"),
+                        guide = "none") +
   theme_bw() +
   scale_fill_manual(values = c(pnw_palette("Cascades",5, type = "discrete")[c(2, 3, 5)],
                                pnw_palette("Sunset",1, type = "discrete"))) +

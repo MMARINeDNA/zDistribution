@@ -24,13 +24,16 @@ post.detectability <- post_pdetect %>%
 
 Q2_TechRepsXPrimer <- ggplot(post.detectability) +
   geom_ribbon(aes(x = TechReps, ymin =LCI, ymax = UCI, fill = Primer), alpha = 0.25) +
-  geom_line(aes(x=TechReps, y = Mean, color = Primer)) +
+  # DL is evaluated at 1 thaw, where it was never run: an extrapolation (dashed)
+  geom_line(aes(x=TechReps, y = Mean, color = Primer, linetype = Primer)) +
+  scale_linetype_manual(values = c(DL1 = "dashed", MFU = "solid", MV1 = "solid"),
+                        guide = "none") +
   scale_color_manual(values = c(pnw_palette("Cascades",5, type = "discrete")[c(2, 3, 5)],
                                 pnw_palette("Sunset",1, type = "discrete"))) +
   scale_fill_manual(values = c(pnw_palette("Cascades",5, type = "discrete")[c(2, 3, 5)],
                                 pnw_palette("Sunset",1, type = "discrete"))) +
   theme_bw() +
-  geom_hline(yintercept = 0.90, lty = "dashed", color = "grey")+
+  geom_hline(yintercept = 0.90, lty = "dotted", color = "grey40")+
   xlab("Number of Tech Reps") +
   ylab("Probability of Detection")
 
