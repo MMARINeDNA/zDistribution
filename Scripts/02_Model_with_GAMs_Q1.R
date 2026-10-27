@@ -298,6 +298,6 @@ modelAIC <- AIC(m1.0, m1.1, m1.2, m1.2a, m1.2b) %>%
 
 ######## save all models -------------------------------------------------------
 
-save(m1.0, m1.1, m1.2, m1.2clean,
+save(m1.0, m1.1, m1.2, # m1.2clean: never created here, not used downstream
      m1.2a, m1.2b, modelAIC,
      file = "./ProcessedData/H1models.RData")

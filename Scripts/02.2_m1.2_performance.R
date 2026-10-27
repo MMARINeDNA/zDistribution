@@ -5,7 +5,8 @@ library(mgcv)
 library(pROC)
 library(tidysdm)
 
-load("./ProcessedData/detect_data.RData")
+load("./ProcessedData/detect_data.Rdata")
+load("./ProcessedData/detect_data_clean.RData")
 
 #### group data ----------------------------------------------------------------
 
@@ -16,9 +17,10 @@ random_samples <- detect_data %>%
   mutate(groupNo = sample(1:10, size = nrow(.), replace = TRUE))
   
 
+# species with at least 10 detections, the same rule used for predictions
 detect_data_AUC <- detect_data %>% 
   filter(BestTaxon %in% c(detect_per_species %>% 
-           filter(nDetect > 10) %>% 
+           filter(nDetect >= 10) %>% 
            pull(BestTaxon))) %>% 
   mutate(BestTaxon = as.factor(BestTaxon)) %>% 
   left_join(random_samples, by = "NWFSCsampleID")
@@ -227,9 +229,11 @@ random_samples_clean <- detect_data_clean %>%
   mutate(groupNo = sample(1:10, size = nrow(.), replace = TRUE))
 
 
+# species with at least 10 detections in the clean data, the same rule used
+# for predictions
 detect_data_AUC_clean <- detect_data_clean %>% 
-  filter(BestTaxon %in% c(detect_per_species %>% 
-                            filter(nDetect > 10) %>% 
+  filter(BestTaxon %in% c(detect_per_species_clean %>% 
+                            filter(nDetect >= 10) %>% 
                             pull(BestTaxon))) %>% 
   mutate(BestTaxon = as.factor(BestTaxon)) %>% 
   left_join(random_samples_clean, by = "NWFSCsampleID")

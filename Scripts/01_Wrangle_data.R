@@ -193,6 +193,9 @@ nrow(test1)/2
 # write.csv(test1, "duplicated_station_depth.csv", row.names = FALSE)
 
 ## Remove delphinid and baleen detections <100m from bottom (likely whalefall) -
+## NOT USED: we decided to keep all detections, including those near the
+## seafloor (potential whale fall is discussed but not filtered). Kept here
+## for reference only; nothing downstream uses detect_data_nowf
 
 detect_data_nowf <- detect_data %>%
   mutate(dist_to_bottom = bottom.depth.consensus - depth) %>%
