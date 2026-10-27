@@ -343,6 +343,16 @@ post_pdetect_4plot <- post.samples_intercept %>%
                             Primer == 2 ~ "MFU",
                             Primer == 3 ~ "MV1"))
 
+# plot each primer only over the thaw range it was actually run at
+# (DL was never run at 1 cycle)
+thaw_range <- raw_thaw_primer %>%
+  group_by(Primer) %>%
+  summarize(min_thaw = min(Thaw), max_thaw = max(Thaw))
+
+post_pdetect_4plot <- post_pdetect_4plot %>%
+  left_join(thaw_range, by = "Primer") %>%
+  filter(Thaw >= min_thaw, Thaw <= max_thaw)
+
 ppdetect <- ggplot(post_pdetect_4plot) +
   geom_ribbon(aes(x=Thaw, ymin  = LCI, ymax = UCI, fill = Primer), alpha = 0.25)+
   geom_line(aes(x = Thaw, y = Med, color = Primer)) +
