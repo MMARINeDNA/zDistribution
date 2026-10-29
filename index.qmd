@@ -163,27 +163,6 @@ Table S1. Sample metadata.
 Table S2. Mathematical notation for all variables included in the occupancy model and GAM framework in this study.
 
 ```{r}
-#| label: tbl-m12AUC
-#| eval: FALSE
-#| tbl-cap: "Table S3. Per-species AUC, optimized TSS, and optimized TSS threshold for Q1 and Q3 models."
-
-# m3.0c_metrics <- AUC_df_m3.0c %>% 
-#   summarize(AUC = mean(AUC)) %>% 
-#   bind_cols(TSS_df_m3.0c %>% arrange(desc(mean)) %>% slice_head()) %>% 
-#   select(AUC, threshold, mean) %>% 
-#   rename("TSS" = mean, "Threshold" = threshold) %>% 
-#   mutate(species_model = "Q3")
-# 
-# model_metrics <- species_metrics %>% 
-#   mutate(species_model = paste0(species, "-Q1")) %>% 
-#   select(-species) %>% 
-#   rename("AUC" = meanAUC, "Threshold" = meanThreshold, "TSS" = meanTSS) %>% 
-#   bind_rows(m3.0c_metrics)
-# 
-# pander(m3.0c_metrics)
-```
-
-```{r}
 #| label: fig-S1-null
 #| fig-cap: "Supplemental Figure S1. Q2 null hypothesis plot."
 
