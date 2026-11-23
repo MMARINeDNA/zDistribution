@@ -46,7 +46,7 @@ Run the scripts in the order listed within each block.
 | | `04.1_Plot_H3_models.R` | Figs. 5, 6 |
 | | `04.2_m3.0c_performance.R` | Cross-validated AUC and TSS; Fig. S2 (bottom) |
 
-Other scripts in `Scripts/` are exploratory and aren't used in the manuscript.
+`Scripts/run_04_Model_with_GAMs_Q3.slurm` runs script 04 on a cluster.
 
 ## Models and objects
 
