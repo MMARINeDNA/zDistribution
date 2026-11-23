@@ -1,93 +1,73 @@
-# Z-variabilty in POD of rare taxa
-This repo contains all code and analyses used to examine depth variability in the probability of detecting cetaceans in eDNA samples. A living version of the manuscript in progress can be found [here](https://mmarinedna.github.io/zDistribution/). Herein, we analyse marine mammal detections from water samples collected throughout the California Current and at depths of 0-500m with the goal of answering the following three questions:
+# Z-variability in POD of rare taxa
 
-1. Does the probability of a detecting cetaceans in eDNA samples vary with sample depth?
-   - H0: Probability of detection does not vary with depth.
-   - H1: Probability of detection varies across depth agnostic to species or functional group.
-   - H2: Probability of detection varies across depth according to species or functional group.
-2. Does the probability of a detecting cetaceans in eDNA samples change with the number of technical replicates?
-   * NOTE should we wrap dilution into this question as well?
-   - H0: Detection does not vary with # technical replicates.
-   - H1: Detection varies with # technical replicated agnostic to species/fuctional group or depth.
-   - H2: Detection varies with # technical replicates according to species/functional group, depth, or a combination of the two.
-3. Does depth distribution of detections vary across xy spatial distribution?
-   - H0: Depth distribution of detections does not vary across xy spatial distribution.
-   - H1: Depth distribution of detection does vary across xy spatial distribution agnostic to oceanography (e.g. upwelling).
-   - H2: Depth distribution of detection does vary across xy spatial distribution according to oceanography (e.g. upwelling).
+This repo contains the code and analyses used to examine depth variability in the probability of detecting cetaceans in eDNA samples. A living version of the manuscript can be found [here](https://mmarinedna.github.io/zDistribution/). We analyse marine mammal detections from water samples collected throughout the California Current at depths of 0–500 m to answer three questions:
 
-# The Plan
+1. How does observation error affect the probability of detection (POD) of cetacean DNA?
+2. Does species-specific detection rate vary with depth?
+3. Does depth variability in detection rate vary spatially?
 
-All raw data are in "Data", and intermediate data products are in "ProcessedData." Dive data come from [here](https://apps.dtic.mil/sti/tr/pdf/ADA560975.pdf) and [here](https://www.nepa.navy.mil/Portals/20/Documents/aftteis4/Dive%20Profile%20and%20Group%20Size_TR_2017_05_22.pdf).
+Raw data are in `Data/` and intermediate data products in `ProcessedData/`; some data files are kept out of git. Dive data come from [here](https://apps.dtic.mil/sti/tr/pdf/ADA560975.pdf) and [here](https://www.nepa.navy.mil/Portals/20/Documents/aftteis4/Dive%20Profile%20and%20Group%20Size_TR_2017_05_22.pdf). Q3 needs the Becker et al. (2020) density predictions in `Data/CCE_model_run/`.
 
-# Analysis 1: POD by depth, collapse data across X and Y
+The manuscript is `index.qmd`, which includes `zDist_methods.qmd` and `zDist_results.qmd`. Render it from the repo root with:
 
-- Model 1: POD ~ z
-- Model 2: POD ~ z with intercept by species
-- Model 3: POD ~ z with smooth by species
-- Model 4: POD ~ z with smooth by family
-- Model 5: POD ~ z with smooth by prey category (invert, fish, squid)
-- Run model diagnostics, select best model, interpret results within ecological context, develop recommendations for eDNA monitoring of marine mammals.
+```bash
+LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 quarto render index.qmd
+```
 
-# Analysis 2: POD by primer, freeze/thaw, tech rep. and vary with depth?
+(The UTF-8 locale keeps the Greek letters in Table 2 from rendering as `<U+03B2>`.)
 
-- Using GAM splines from Analysis 1, retest varying number of replicates with GAMs
-- Compare to alternative Bayesian occupancy model: [Brice's replication model](https://github.com/BriceSemmens/eDNA_patch) without assuming species' presence and adding depth as a covariate (see "Taking Brice's approach" below).
-- Run model diagnostics, select best model, interpret results within ecological context, develop recommendations for eDNA monitoring of marine mammals.
+## Old question numbering
 
-# Analysis 3: depth variability across xy or oceanography
+The order of the questions changed during the project, and some script, model and object names still use the old numbering:
 
-- Model 1: POD ~ xy + xy x species + z + z x species + xy x species x z
-- Run model diagnostics, report significant covariates, interpret results within ecological context, develop recommendations for eDNA monitoring of marine mammals.
+- The manuscript's **Q1** (observation error, occupancy model) was the old Q2. Its scripts start with `05_`, and its figure objects start with `Q2_`.
+- The manuscript's **Q2** (detection rate by depth, GAMs) was the old Q1. Its scripts start with `02_`, its models are `m1.x`, and its objects start with `H1`.
+- **Q3** kept its number: scripts start with `04_`, models are `m3.x`, and objects start with `H3` or `m3`.
 
-# Taking Brice's approach
+## Scripts by manuscript question
 
-We don't have observations of the presence or absence of marine mammals at each site, but we can still treat site occupancy as a latent variable (per species). 
+Run the scripts in the order listed within each block.
 
-We have: multiple sites, each of which contain biological samples at multiple depths (not replicates), then multiple primers x tech reps. Each has an associated volume and dilution. 
+| Manuscript | Script | Produces |
+|---|---|---|
+| **Data** | `0.5_MM_dive_data_expand.R` | `Data/MM_dive_time_expand.csv` (time at depth, used in Fig. 3) |
+| | `01_Wrangle_data.R` | `ProcessedData/detect_data*.RData` (514 samples) |
+| | `01.1_Plot_detections.R` | Fig. 1 (left) |
+| | `01.2_Sampling_map.R` | Fig. 1 (right) |
+| | `01.2_Examine_deep_detections.R` | Deep and near-seafloor detections; Fig. S4. It saves to `detect_species_meta.RData`, but the manuscript loads `ProcessedData/potential_whalefall.RData`. |
+| **Q1** | `02.5_Model_with_JAGS_Q1.R` | Depth-spline basis for the occupancy model (`ProcessedData/jagam_m1.0.RData`) |
+| | `05_Model_w_Nimble_m1.0+2LevelOccModel_wThaw.R` | Occupancy model; Fig. 2 (left, right) |
+| | `05_Calc_POD_by_sample.R` | Per-sample POD |
+| | `05_Plot_TechRepsXPrimer.R` | Fig. 2 (middle) |
+| **Q2** | `02_Model_with_GAMs_Q1.R` | Depth GAMs; Table 2 |
+| | `02.1_Plot_H1_models.R` | Figs. 3, 4, S1, S3 |
+| | `02.2_m1.2_performance.R` | Cross-validated AUC and TSS; Fig. S2 (top) |
+| **Q3** | `04_Model_with_GAMs_Q3.R` | xyz and density GAMs |
+| | `04.1_Plot_H3_models.R` | Figs. 5, 6 |
+| | `04.2_m3.0c_performance.R` | Cross-validated AUC and TSS; Fig. S2 (bottom) |
 
-* need to add a dilution coefficient, or does this happen at the tech rep level?
+Other scripts in `Scripts/` are exploratory and aren't used in the manuscript.
 
-### Hierarchical Model Structure
+## Models and objects
 
-1. **Site-Level Occurrence**
-   The presence of a marine mammal species at site $s$ is modeled as a Bernoulli random variable:
+| Manuscript | Model in code | Equation | Saved in | Shown in |
+|---|---|---|---|---|
+| **Q1** occupancy model | 2-level occupancy model with the `m1.0` depth spline (`05_Model_w_Nimble_m1.0+2LevelOccModel_wThaw.R`) | Eqs. 1–3 | `Results/nimbleOut_m1.0_2LevelOcc_wThaw.RData`, `Results/post_pdetect_m1.0+2LevelOcc_wThaw.RData` | Fig. 2 (`Figures/Q2_detect_probability_plots.Rdata`, `Figures/Q2_TechRepsXPrimer.RData`) |
+| **Q2** depth smooth | `m1.0` | Eq. 4, line 1: β₀ + f(z) | `ProcessedData/H1models.RData` | Table 2; Fig. S1 |
+| **Q2** depth smooth, species intercept | `m1.1` | Eq. 4, line 2: β_s + f(z) | `ProcessedData/H1models.RData` | Table 2 |
+| **Q2** depth smooth by species (best model) | `m1.2` | Eq. 4, line 3: β_s + f_s(z) | `ProcessedData/H1models.RData` | Table 2; Figs. 3, S2 (top), S3 |
+| **Q2** depth smooth by family | `m1.2a` | Eq. 4, line 4: β_F + f_F(z) | `ProcessedData/H1models.RData` | Table 2; Fig. 4 (left) |
+| **Q2** depth smooth by prey category | `m1.2b` | Eq. 4, line 5: β_e + f_e(z) | `ProcessedData/H1models.RData` | Table 2; Fig. 4 (right) |
+| **Q3** approach 1 (xyz) | `m3.0c` | Eq. 5 | `ProcessedData/m3.0models_preds_0.05degree.Rdata` | Fig. 5; Fig. S2 (bottom) |
+| **Q3** approach 2 (density) | `m3.1` | Eq. 6 | `ProcessedData/m3.0models_preds_0.05degree.Rdata` | Fig. 6 |
 
-   $Z_s \sim \text{Bernoulli}(\psi)$
+Notes:
 
-   where $Z_s$ is the site-level occurrence indicator, and $\psi$ is the overall occurrence probability, drawn from a Beta prior:
+- In the occupancy model, `pdetect_intercept` and `thaw_par` are the primer intercepts (γ_m) and freeze/thaw slopes (γ_t,m) in Eq. 3, and `b_depth` holds the occupancy intercept and depth-spline coefficients in Eq. 1. Primers are indexed 1 = DL, 2 = MFU, 3 = MV1.
+- Script 04 also fits `m3.0a` (depth + xy) and `m3.0b` (a tensor product of xyz); neither is reported in the manuscript.
+- Equation numbers are as rendered; the labels in the `.qmd` files differ (`eq-4-8` renders as Eq. 4, `eq-9` as Eq. 5 and `eq-10` as Eq. 6).
+- Cross-validation results are in `ProcessedData/m1.2clean_performance.Rdata` (Q2) and `ProcessedData/m3.0cperformance.Rdata` (Q3); the figure objects for Q2 and Q3 are in `Figures/H1PODplots.Rdata` and `Figures/H3.0c_map_clean.Rdata`.
 
-   $\psi \sim \text{Beta}(1,1)$
+## Archive
 
-   --> note that in our case, particularly since we are working at the species level, psi might come from some field over X, Y
-
-2. **Capture within a depth x primer x tech rep reaction **
-   The logit-linear model for capture probability at depth $d$ is:
-
-   $\text{logit}(p_{\text{capture},d}) = \beta_0 + \beta_{\text{vol}} \cdot X_{\text{vol},d} + \beta_{\text{depth}} \cdot X_{\text{depth},d} + \gamma_{s} + \delta_{\text{primer}[b]}$
-
-   Where:
-   - $p_{\text{capture},d}$ is the capture probability for depth $d$
-   - $\beta_0$ is the intercept (site-level capture probability hyperparameter)
-   - $\beta_{\text{vol}}$ is the volume coefficient
-   - $\beta_{\text{depth}}$ is the depth coefficient
-   - $X_{\text{vol},d}$ is the centered water volume
-   - $X_{\text{depth},d}$ is the centered sampling depth
-   - $\gamma_{s}$ is the site-specific random effect # EKJ note is this what we want?
-   - $\delta_{\text{primer}[b]}$ is the primer-specific fixed effect, with method effects constrained such that:
-   $\delta_{\text{MFU}} = 0$ and 
-   $\delta_{\text{MV1}} \sim \text{Normal}(0, 1.7)$ # EKJ note may need to change these
-   $\delta_{\text{DLP}} \sim \text{Normal}(0, 1.7)$
-   
-   The depth capture for a given site, volume, primer  is then modeled as:
-
-   $Y_{\text{capture},d} \sim \text{Bernoulli}(Z_{s} \cdot p_{\text{capture},d})$
-
-   Need to rewrite this bc it's only one Bernoulli trial in our case
-
-   Conditional on capture in that volume x primer reaction, technical replicates are modeled as:
-
-   $Y_{\text{detect},i} \sim \text{Bernoulli}(p_{\text{detect}} \cdot Y_{\text{capture},b[i]})$
-
-   where $p_{\text{detect}}$ is the detection probability, drawn from a Beta prior:
-
-   $p_{\text{detect}} \sim \text{Beta}(1,1)$
+`Archive/` holds unfinished work on species-specific depth splines in nimble. None of it is used in the manuscript, and some of it may not run as is. See `Archive/README.md`.
